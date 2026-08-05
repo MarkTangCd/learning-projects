@@ -5,6 +5,7 @@ Computes the strategy equity curve WITH trading costs and compares it to
 buy-and-hold. No for-loops — pure column math.
 """
 
+import matplotlib.pyplot as plt
 import pandas as pd
 
 from strategy import fetch_ohlcv, sma_crossover_signal
@@ -39,8 +40,19 @@ def report(df, fast, slow, fee):
     print(f"总成交笔数:        {trades}")
 
 
+def plot_equity(df, fast, slow, out="equity.png"):
+    """Recipe plot: strategy (net) vs buy-and-hold equity curves."""
+    df[["equity_net", "equity_hold"]].plot(figsize=(10, 5))
+    plt.title(f"SMA({fast},{slow}) equity — net vs buy & hold")
+    plt.ylabel("equity (start = 1.0)")
+    plt.tight_layout()
+    plt.savefig(out, dpi=120)  # headless: save instead of plt.show()
+    print(f"图已保存: {out}")
+
+
 if __name__ == "__main__":
-    FAST, SLOW = 10, 30
+    FAST, SLOW = 20, 60
     df = sma_crossover_signal(fetch_ohlcv(), fast=FAST, slow=SLOW)
     df = backtest(df, fee=FEE)
     report(df, FAST, SLOW, FEE)
+    plot_equity(df, FAST, SLOW)
