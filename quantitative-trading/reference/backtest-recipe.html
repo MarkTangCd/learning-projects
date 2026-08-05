@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>参考 · 向量化回测配方</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">参考文档 · 常读常新</p>
+  <h1>向量化回测配方</h1>
+  <p class="subtitle">一份 position 列 → 一条诚实的收益曲线。无循环,纯列运算。配 <a href="../lessons/0004-honest-backtest.html">L4</a>。</p>
+
+  <h2>前提</h2>
+  <p>一张带时间索引的 <code>df</code>,含 <code>close</code> 列,和一列 <code>position</code>(0/1,<strong>已 shift(1) 防前视偏差</strong>)。</p>
+
+  <h2>四步配方</h2>
+  <pre><code>FEE = 0.001   # 单边成本:手续费 + 滑点粗估
+
+# ① 资产每根收益
+df["ret"] = df["close"].pct_change()
+
+# ② 策略收益:只在持仓时吃到涨跌
+df["strat_ret"] = df["position"] * df["ret"]
+
+# ③ 扣成本:position 变化 = 一次换手
+df["trade"] = df["position"].diff().abs()
+df["strat_ret_net"] = df["strat_ret"] - df["trade"] * FEE
+
+# ④ 复利成曲线(起点 1.0)+ 基准
+df["equity_net"]  = (1 + df["strat_ret_net"].fillna(0)).cumprod()
+df["equity_hold"] = (1 + df["ret"].fillna(0)).cumprod()   # 买入持有</code></pre>
+
+  <h2>读数</h2>
+  <pre><code>total_net  = df["equity_net"].iloc[-1]  - 1     # 策略含成本总收益
+total_hold = df["equity_hold"].iloc[-1] - 1     # 及格线
+trades     = int(df["trade"].sum())             # 总成交笔数</code></pre>
+
+  <h2>三条诚实纪律</h2>
+  <table>
+    <thead><tr><th>纪律</th><th>怎么落实</th></tr></thead>
+    <tbody>
+      <tr><td>① 不用未来信息</td><td><code>position = signal.shift(1)</code>;丢掉未收盘 K 线</td></tr>
+      <tr><td>② 扣掉交易成本</td><td><code>trade × FEE</code>,含手续费 + 滑点</td></tr>
+      <tr><td>③ 和"躺平"比</td><td>永远对比 <code>equity_hold</code>(买入持有)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>画图(可选)</h2>
+  <pre><code># pip install matplotlib
+df[["equity_net", "equity_hold"]].plot(figsize=(10, 5))</code></pre>
+
+  <div class="callout warn">
+    <span class="label">这个配方的简化假设(要心里有数)</span>
+    按<strong>收盘价即时成交</strong>、成本<strong>固定</strong>、<strong>无部分成交/无资金约束</strong>、无爆仓/保证金。够用来快速筛选策略,但实盘前需用 <a href="https://www.freqtrade.io/en/stable/">freqtrade</a> / <a href="https://vectorbt.dev/">vectorbt</a> 等引擎做更真实的验证。
+  </div>
+
+  <div class="lesson-foot">
+    <div class="nav">
+      <a href="../lessons/0004-honest-backtest.html">← 回到 L4</a>
+      <a href="ccxt-pandas-cheatsheet.html">速查表 →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

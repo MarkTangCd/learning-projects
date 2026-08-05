@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L4 · 诚实的回测</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">第 4 课 · 工位 03 回测</p>
+  <h1>诚实的回测</h1>
+  <p class="subtitle">给策略装一杆秤:把收益和成本一起算清。这一课决定你信不信自己的策略。</p>
+
+  <p>L3 你有了一列 <code>position</code>(1=持有,0=空仓)。今天挂在 <a href="0001-anatomy-of-a-quant-system.html">工位 ③「回测」</a>:算出这个策略<strong>本来</strong>会走出的收益曲线,并把<strong>手续费和滑点</strong>扣进去。看得见的胜利——两个数字:<em>策略含成本总收益</em> vs <em>买入持有总收益</em>。</p>
+
+  <div class="callout warn">
+    <span class="label">这是新手死亡区</span>
+    L1 说过:大多数"稳赚"策略都死在这一步。今天我们学的是<strong>怎么不骗自己</strong>——诚实回测有三条纪律:<strong>① 不用未来信息 ② 扣掉交易成本 ③ 和"什么都不做"比。</strong>
+  </div>
+
+  <h2>第一步:一根 K 线赚多少?</h2>
+  <p>先把价格变成<strong>收益率</strong>——这是回测的原子单位:</p>
+  <pre><code>df["ret"] = df["close"].pct_change()   # 今天相对昨天的涨跌幅</code></pre>
+  <p><code>pct_change()</code> = <code>(今天收盘 / 昨天收盘) − 1</code>。比如 100 → 105,<code>ret = 0.05</code>(涨 5%)。</p>
+
+  <h2>第二步:策略赚多少?</h2>
+  <p>关键洞察:<strong>你只在"持有"的那些 K 线上,吃到市场的涨跌</strong>。空仓时(position=0)你赚 0。用乘法一步搞定:</p>
+  <pre><code>df["strat_ret"] = df["position"] * df["ret"]</code></pre>
+  <ul>
+    <li>持有(position=1):<code>strat_ret = 1 × ret</code> → 完整吃到当根涨跌。</li>
+    <li>空仓(position=0):<code>strat_ret = 0 × ret = 0</code> → 场外,涨跌与你无关。</li>
+  </ul>
+  <div class="callout tip">
+    <span class="label">前视偏差已经防好了</span>
+    这里的 <code>position</code> 是 L3 里 <code>shift(1)</code> 过的——用<em>已收盘</em>的 K 线算信号、<em>下一根</em>才持仓。所以这个乘法<strong>天然不含未来信息</strong>。L3 那一步的价值,在这里兑现。
+  </div>
+
+  <h2>第三步:扣掉交易成本(诚实的核心)</h2>
+  <p>每次 <code>position</code> 发生变化(0→1 进场,或 1→0 离场),就是一笔真实交易,要付<a href="../reference/glossary.html">手续费 + 滑点</a>。用 <code>diff()</code> 抓住"变化":</p>
+  <pre><code>FEE = 0.001                              # 单边 0.1%:手续费 + 滑点的粗估
+df["trade"] = df["position"].diff().abs()  # 换手:进/出各记 1
+df["cost"]  = df["trade"] * FEE
+df["strat_ret_net"] = df["strat_ret"] - df["cost"]   # 净收益 = 毛收益 − 成本</code></pre>
+  <p>这正是你上节课 9/6/11 悬念的答案所在:<strong>交易越频繁,被扣的 <code>cost</code> 越多</strong>。进场 11 次的那组,要先多赚出这些成本才谈得上更好。</p>
+
+  <h2>第四步:滚成收益曲线,并和"躺平"比</h2>
+  <p>收益率靠<strong>复利</strong>累积:每根 K 线把本金乘以 <code>(1+当根收益)</code>。<code>cumprod()</code>(累积乘积)把它们连乘起来:</p>
+  <pre><code>df["equity_net"]  = (1 + df["strat_ret_net"].fillna(0)).cumprod()  # 策略(含成本)
+df["equity_hold"] = (1 + df["ret"].fillna(0)).cumprod()            # 买入持有基准
+
+total_strat = df["equity_net"].iloc[-1] - 1
+total_hold  = df["equity_hold"].iloc[-1] - 1
+print(f"策略(含成本)总收益: {total_strat:.1%}")
+print(f"买入持有总收益:     {total_hold:.1%}")</code></pre>
+  <div class="callout warn">
+    <span class="label">真正的及格线</span>
+    "策略赚了钱"根本不够——问题永远是:<strong>它有没有跑赢"无脑买入并持有"?</strong> 一个跑不赢躺平的复杂策略,只是用更高的风险和成本,换来更差的结果。<code>equity_hold</code> 就是你每个策略必须先迈过的那道坎。
+  </div>
+
+  <h2>你刚做的,就是一次"向量化回测"</h2>
+  <p>注意全程<strong>没有一个 for 循环</strong>——全是整列的数学运算。这叫<span class="term">向量化回测(vectorized backtest)</span>:快、简洁、适合快速试参数。它是简化版,做了几个假设(按收盘价成交、成本固定、无部分成交)。等策略成型,再上 <a href="https://www.freqtrade.io/en/stable/">freqtrade</a> / <a href="https://vectorbt.dev/">vectorbt</a> 这类专业引擎处理更真实的细节——但<strong>核心原理就是你今天这四步</strong>。完整配方见 <a href="../reference/backtest-recipe.html">向量化回测配方 →</a></p>
+
+  <h2>随手一测</h2>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">判断一个策略好坏,最该拿它去比较的基准是?</div>
+    <button class="opt">它自己上个月的历史收益</button>
+    <button class="opt">银行活期存款的年化利率</button>
+    <button class="opt">无脑买入并持有同一资产</button>
+    <button class="opt">它在零成本假设下的收益</button>
+    <div class="fb right" data-for="right">对。跑不赢"买入持有"的策略,等于用更高成本和风险换更差结果。equity_hold 是每个策略必须先迈过的坎。</div>
+    <div class="fb nope" data-for="nope">应该比"买入持有(equity_hold)":跑不赢躺平的策略毫无意义。这是回测里最诚实的一把尺。</div>
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q"><code>df["position"].diff().abs()</code> 这一列在回测里代表什么?</div>
+    <button class="opt">发生了交易换手要付成本</button>
+    <button class="opt">当根 K 线价格的涨跌幅度</button>
+    <button class="opt">策略累积到当前的总收益</button>
+    <button class="opt">均线快线与慢线之间的差</button>
+    <div class="fb right" data-for="right">对。position 变化(0→1 或 1→0)= 一次买或卖,diff 抓住这个跳变,乘以费率就是这笔交易的成本。</div>
+    <div class="fb nope" data-for="nope">diff() 抓的是 position 的"变化":从 0→1 或 1→0 就是一次交易换手,要按费率扣成本。</div>
+  </div>
+
+  <h2>动手挑战:揭晓 9 / 6 / 11 的胜负</h2>
+  <div class="callout">
+    <span class="label">让成本说话</span>
+    我把回测封装进 <code>practice/backtest.py</code>(复用你 L3 的信号函数)。<br>
+    1. 先跑默认 <code>(10,30)</code>,看策略 vs 买入持有两个数。<br>
+    2. 依次换成 <code>(5,20)</code> 和 <code>(20,60)</code>,记下每组的<strong>策略含成本总收益</strong>。<br>
+    3. 再把 <code>FEE</code> 从 <code>0.001</code> 调到 <code>0</code> 跑一遍——对比"零成本"和"含成本",看频繁交易那组掉了多少。<br>
+    把结果贴给我,我们一起读这张成绩单。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0"><strong><a href="https://www.quantstart.com/articles/Successful-Backtesting-of-Algorithmic-Trading-Strategies-Part-I/">QuantStart — Successful Backtesting of Algorithmic Trading Strategies</a></strong> —— 系统讲回测的偏差与陷阱(前视、幸存者、成本),practitioner 视角。读它给今天的四步打上理论地基。</p>
+  </div>
+
+  <div class="lesson-foot">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想画出收益曲线看图(matplotlib)、想弄清 <code>cumprod</code>/<code>fillna</code>、或想知道为什么"按收盘价成交"是简化假设——直接说。
+    </div>
+    <div class="nav">
+      <a href="0003-first-signal.html">← L3:第一个信号</a>
+      <a href="0005-evaluating-strategies.html">下一课:读懂策略成绩单(夏普/回撤)→</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

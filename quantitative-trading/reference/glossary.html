@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>参考 · 量化术语词汇表</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .gl { font-family: var(--sans); }
+    .gl dt { font-weight: 700; color: var(--accent); margin-top: 1.1rem; font-size: 1rem; }
+    .gl dd { margin: 0.2rem 0 0; font-size: 0.92rem; line-height: 1.55; color: var(--ink-soft); }
+    .gl dd .en { color: var(--ink-faint); font-style: italic; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">参考文档 · 常读常新</p>
+  <h1>量化术语词汇表</h1>
+  <p class="subtitle">这是全课程的"官方术语表"。每节课的用词都以此为准;学到新词就回来加。</p>
+
+  <dl class="gl">
+    <dt>信号 <span class="en">Signal</span></dt>
+    <dd>把行情数据映射为"买/卖/持有 + 目标仓位"的决策逻辑。系统的大脑。见 <a href="../lessons/0001-anatomy-of-a-quant-system.html">L1</a>。</dd>
+
+    <dt>策略 <span class="en">Strategy</span></dt>
+    <dd>一套完整的交易规则,通常 = 信号 + 仓位规则 + 进出场条件。口语里常与"信号"混用。</dd>
+
+    <dt>回测 <span class="en">Backtest</span></dt>
+    <dd>在历史数据上模拟运行策略,估计它过去<em>本会</em>有的表现。诚实的回测必须计入手续费、滑点,并防前视偏差。</dd>
+
+    <dt>前视偏差 <span class="en">Look-ahead bias</span></dt>
+    <dd>回测中用到了"当时根本拿不到的未来信息"(例如用当天收盘价决定当天开盘的操作)。最隐蔽、最致命的回测错误。</dd>
+
+    <dt>过拟合 <span class="en">Overfitting</span></dt>
+    <dd>策略"背下"了历史数据里的随机噪声而非真实规律,历史曲线极美、实盘立刻失灵。曲线越完美越可疑。</dd>
+
+    <dt>滑点 <span class="en">Slippage</span></dt>
+    <dd>你期望的成交价与实际成交价之间的差。市价单、流动性差、行情剧烈时尤其大。回测忽略它 = 自欺。</dd>
+
+    <dt>手续费 <span class="en">Fee / Commission</span></dt>
+    <dd>交易所对每笔成交收取的费用,常分 maker(挂单)/taker(吃单)两档。高频策略对费率极敏感。</dd>
+
+    <dt>执行 <span class="en">Execution</span></dt>
+    <dd>把仓位决策变成真实订单并管理其生命周期(下单、部分成交、撤单、持仓对账)。"系统"与"实验"的分水岭。</dd>
+
+    <dt>风控 <span class="en">Risk management</span></dt>
+    <dd>凌驾于所有环节之上的守门机制:最大仓位、单笔/单日止损、急停开关。目标是"活到能赚钱的那天"。</dd>
+
+    <dt>急停 <span class="en">Kill switch</span></dt>
+    <dd>一键停止所有交易/撤销所有挂单的机制。行情异常或系统出 bug 时的最后保险。</dd>
+
+    <dt>纸上交易 <span class="en">Paper trading</span></dt>
+    <dd>用真实实时行情、模拟资金下单,不投真金白银。回测与实盘之间的必经桥梁。</dd>
+
+    <dt>Maker / Taker</dt>
+    <dd>Maker=挂限价单为市场"提供"流动性(费率低/有返佣);Taker=用市价单"吃掉"现有挂单(费率高)。</dd>
+
+    <dt>K 线 <span class="en">OHLCV / Candle</span></dt>
+    <dd>一个时间段内的开(Open)、高(High)、低(Low)、收(Close)、量(Volume)。最常用的行情数据结构。</dd>
+  </dl>
+
+  <div class="lesson-foot">
+    <div class="ask">
+      <strong>发现缺词?</strong> 告诉我,我随时补进这张表——它会跟着课程一起长大。
+    </div>
+    <div class="nav">
+      <a href="../lessons/0001-anatomy-of-a-quant-system.html">← 回到 L1</a>
+      <span></span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

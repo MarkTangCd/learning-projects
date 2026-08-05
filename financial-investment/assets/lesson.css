@@ -1,0 +1,185 @@
+/* Shared stylesheet for all lessons & reference docs.
+   Tufte-inspired: quiet typography, generous margins, readable measure.
+   Prints cleanly. Theme-aware (light/dark). */
+
+:root {
+  --ink: #2b2b2b;
+  --ink-soft: #5a5a5a;
+  --paper: #fdfcf9;
+  --rule: #d8d3c7;
+  --accent: #7a1f1f;        /* deep red — value/warning */
+  --accent-2: #1f4e5f;      /* teal — technical/price */
+  --gain: #17823b;
+  --loss: #b3261e;
+  --highlight: #fbf2c4;
+  --card: #f5f2ea;
+  --measure: 38rem;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Georgia", serif;
+  --font-sans: "Inter", "Helvetica Neue", -apple-system, system-ui, sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e8e4da;
+    --ink-soft: #a8a294;
+    --paper: #17171a;
+    --rule: #3a3a40;
+    --accent: #e07a7a;
+    --accent-2: #6bc3d6;
+    --gain: #4ecb71;
+    --loss: #ff6b60;
+    --highlight: #3a3520;
+    --card: #212127;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--font-serif);
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.65;
+  font-size: 1.15rem;
+  margin: 0;
+  padding: 3rem 1.5rem 6rem;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: var(--measure); margin: 0 auto; }
+
+/* ---- Course header ---- */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 0.6rem;
+}
+h1 {
+  font-weight: 600;
+  font-size: 2.1rem;
+  line-height: 1.15;
+  margin: 0 0 0.4rem;
+}
+.subtitle { color: var(--ink-soft); font-style: italic; margin: 0 0 2rem; }
+
+h2 {
+  font-weight: 600;
+  font-size: 1.4rem;
+  margin: 2.6rem 0 0.8rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--rule);
+}
+h3 { font-weight: 600; font-size: 1.1rem; margin: 1.8rem 0 0.5rem; }
+
+p { margin: 0 0 1rem; }
+a { color: var(--accent-2); text-decoration: none; border-bottom: 1px solid currentColor; }
+a:hover { opacity: 0.75; }
+
+strong { font-weight: 600; }
+em.term { font-style: normal; font-weight: 600; color: var(--accent); }
+
+/* ---- Callouts ---- */
+.callout {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  background: var(--card);
+  border-left: 3px solid var(--accent-2);
+  border-radius: 0 6px 6px 0;
+  padding: 0.9rem 1.1rem;
+  margin: 1.4rem 0;
+}
+.callout.warn { border-left-color: var(--accent); }
+.callout .label {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 0.3rem;
+}
+
+/* ---- Key idea box ---- */
+.keyidea {
+  background: var(--highlight);
+  border-radius: 8px;
+  padding: 1.2rem 1.4rem;
+  margin: 1.6rem 0;
+  font-size: 1.1rem;
+}
+
+/* ---- Definition list ---- */
+dl.terms dt { font-weight: 600; color: var(--accent); margin-top: 0.8rem; }
+dl.terms dd { margin: 0.1rem 0 0; color: var(--ink); }
+dl.terms dd .en { font-family: var(--font-sans); font-size: 0.85rem; color: var(--ink-soft); }
+
+/* ---- Compare table (e.g. value vs technical) ---- */
+table { border-collapse: collapse; width: 100%; margin: 1.4rem 0; font-size: 0.98rem; }
+th, td { text-align: left; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--font-sans); font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); }
+
+/* ---- Quiz widget ---- */
+.quiz {
+  font-family: var(--font-sans);
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 1.3rem 1.4rem;
+  margin: 1.8rem 0;
+}
+.quiz .q { font-weight: 600; margin-bottom: 0.9rem; font-size: 1rem; }
+.quiz .opt {
+  display: block; width: 100%; text-align: left;
+  background: var(--paper); color: var(--ink);
+  border: 1px solid var(--rule); border-radius: 7px;
+  padding: 0.7rem 0.9rem; margin: 0.45rem 0;
+  font: inherit; cursor: pointer; transition: all 0.15s;
+}
+.quiz .opt:hover { border-color: var(--accent-2); }
+.quiz .opt.correct { border-color: var(--gain); background: color-mix(in srgb, var(--gain) 14%, var(--paper)); }
+.quiz .opt.wrong { border-color: var(--loss); background: color-mix(in srgb, var(--loss) 14%, var(--paper)); }
+.quiz .fb { margin-top: 0.9rem; font-size: 0.92rem; line-height: 1.5; display: none; }
+.quiz .fb.show { display: block; }
+.quiz .fb.ok { color: var(--gain); }
+.quiz .fb.no { color: var(--loss); }
+
+/* ---- Footer nav ---- */
+.lesson-nav {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  margin-top: 3.5rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--rule);
+  display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between;
+}
+.ask {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  background: var(--card);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  margin: 2rem 0 0;
+  color: var(--ink-soft);
+}
+.source {
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  border-left: 3px solid var(--accent);
+  padding: 0.6rem 1rem;
+  margin: 1.6rem 0;
+  background: var(--card);
+  border-radius: 0 6px 6px 0;
+}
+.source .label { font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); display: block; margin-bottom: 0.2rem; }
+
+/* ---- Progress dots ---- */
+.progress { font-family: var(--font-sans); font-size: 0.75rem; color: var(--ink-soft); letter-spacing: 0.1em; }
+
+@media print {
+  body { background: #fff; color: #000; padding: 0; font-size: 11pt; }
+  .quiz .opt { cursor: default; }
+  .lesson-nav, .ask { display: none; }
+}

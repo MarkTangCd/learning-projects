@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>参考 · CCXT + pandas 速查表</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    h3 code { font-size: 0.85em; }
+    .two { display: grid; grid-template-columns: 1fr; gap: 0; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">参考文档 · 常读常新</p>
+  <h1>CCXT + pandas 速查表</h1>
+  <p class="subtitle">拉数据 + 处理表格,最常用的几招。配 <a href="../lessons/0002-crypto-data-pipeline.html">L2</a> 使用。</p>
+
+  <h2>CCXT:取数</h2>
+
+  <h3>连交易所(公开数据无需 key)</h3>
+  <pre><code>import ccxt
+ex = ccxt.binance()      # 或 ccxt.bybit() / ccxt.coinbase()
+ex.load_markets()        # 加载所有交易对信息(可选)</code></pre>
+
+  <h3>走本地代理(Clash/V2Ray 等)</h3>
+  <pre><code># requests 不认 .zshrc 的代理,必须在 ccxt 里显式设。
+# 只能设一个,同时设 httpProxy+httpsProxy 会报 InvalidProxySettings。
+ex = ccxt.binance({"timeout": 30000})
+ex.httpsProxy = "http://127.0.0.1:1087"</code></pre>
+  <div class="callout warn">
+    <span class="label">排障</span>
+    连不上先隔离测代理本身:<code>curl -x http://127.0.0.1:1087 https://api.binance.com/api/v3/time</code>。能返回 JSON 说明代理没问题,问题在 Python 端。
+  </div>
+
+  <h3>拉 K 线 <code>fetch_ohlcv</code></h3>
+  <pre><code># symbol, timeframe, since(毫秒时间戳,可选), limit
+raw = ex.fetch_ohlcv("BTC/USDT", "1h", limit=500)
+# 返回: [[ts_ms, open, high, low, close, volume], ...]</code></pre>
+  <p>常用 <code>timeframe</code>:<code>"1m" "5m" "15m" "1h" "4h" "1d" "1w"</code>(各交易所支持略有差异)。</p>
+
+  <h3>其他常用调用</h3>
+  <pre><code>ex.fetch_ticker("BTC/USDT")     # 最新价/买卖盘快照
+ex.fetch_order_book("BTC/USDT") # 盘口深度
+ex.symbols                      # 支持的交易对列表
+ex.timeframes                   # 支持的周期
+ex.rateLimit                    # 建议的最小请求间隔(毫秒)</code></pre>
+
+  <div class="callout warn">
+    <span class="label">限速</span>
+    循环请求时开启 <code>ccxt.binance({"enableRateLimit": True})</code>,让 CCXT 自动按交易所限速排队,避免被封 IP。
+  </div>
+
+  <h3>拉长历史(分页)</h3>
+  <pre><code>all_rows = []
+since = ex.parse8601("2024-01-01T00:00:00Z")
+while True:
+    batch = ex.fetch_ohlcv("BTC/USDT", "1h", since=since, limit=1000)
+    if not batch:
+        break
+    all_rows += batch
+    since = batch[-1][0] + 1        # 从最后一根之后继续
+    if len(batch) < 1000:
+        break</code></pre>
+
+  <h2>pandas:处理表格</h2>
+
+  <h3>建表 + 时间索引</h3>
+  <pre><code>import pandas as pd
+df = pd.DataFrame(raw, columns=["ts","open","high","low","close","volume"])
+df["ts"] = pd.to_datetime(df["ts"], unit="ms", utc=True)
+df = df.set_index("ts")</code></pre>
+
+  <h3>看数据</h3>
+  <pre><code>df.head() / df.tail()     # 头/尾几行
+df.shape                  # (行数, 列数)
+df.info()                 # 列类型 + 非空计数
+df.describe()             # 计数/均值/分位数等统计摘要
+df.dtypes                 # 每列数据类型</code></pre>
+
+  <h3>选取</h3>
+  <pre><code>df["close"]                       # 取一列(Series)
+df[["open","close"]]              # 取多列
+df.loc["2026-07-31"]             # 按索引标签(时间)取
+df.iloc[-1]                       # 按位置取(最后一行)
+df[df["volume"] > 1000]          # 条件筛选</code></pre>
+
+  <h3>造新列 / 常用运算</h3>
+  <pre><code>df["range"] = df["high"] - df["low"]        # 振幅
+df["ret"] = df["close"].pct_change()        # 逐根收益率
+df["sma20"] = df["close"].rolling(20).mean()# 20 周期均线
+df["logret"] = (df["close"] / df["close"].shift(1)).apply("log")</code></pre>
+
+  <h3>清洗检查</h3>
+  <pre><code>df.index.duplicated().sum()          # 应为 0(无重复时间)
+df.index.is_monotonic_increasing     # 应为 True(时间递增)
+df.isna().sum()                      # 每列缺失值计数
+df = df[~df.index.duplicated()]      # 去重
+df = df.iloc[:-1]                     # 丢掉未收盘的最新一根</code></pre>
+
+  <h3>存 / 读(本地缓存,省得反复请求)</h3>
+  <pre><code>df.to_parquet("btc_1h.parquet")      # 推荐:快、省空间(需 pyarrow)
+df = pd.read_parquet("btc_1h.parquet")
+df.to_csv("btc_1h.csv")              # 通用但更大更慢</code></pre>
+
+  <div class="lesson-foot">
+    <div class="ask">
+      <strong>想加哪一招?</strong> 告诉我你反复用到的操作,我补进这张表。
+    </div>
+    <div class="nav">
+      <a href="../lessons/0002-crypto-data-pipeline.html">← 回到 L2</a>
+      <a href="glossary.html">词汇表 →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

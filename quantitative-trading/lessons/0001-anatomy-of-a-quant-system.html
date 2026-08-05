@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L1 · 量化交易系统解剖</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">第 1 课 · 心智地图</p>
+  <h1>量化交易系统的解剖</h1>
+  <p class="subtitle">在写任何一行策略代码之前,先看清整台机器长什么样。</p>
+
+  <p>你的使命是<strong>亲手搭一套量化交易系统</strong>。系统这个词听起来庞大,但它其实是一条<strong>流水线(pipeline)</strong>:数据从一端进来,订单从另一端出去,中间经过几个界限清晰的工位。</p>
+
+  <p>今天唯一的目标:记住这五个工位,以及它们各自回答的那个问题。之后<em>每一节课</em>都会挂在这张地图的某个工位上——所以这是你最该反复回看的一课。</p>
+
+  <h2>五段式流水线</h2>
+
+  <div class="pipeline">
+    <div class="stage">
+      <div class="n">01 · DATA</div>
+      <div class="t">数据</div>
+      <div class="d">拿到干净、对齐、可信的行情。<br>「我看到了什么?」</div>
+    </div>
+    <div class="stage">
+      <div class="n">02 · SIGNAL</div>
+      <div class="t">信号 / 策略</div>
+      <div class="d">把数据转成买/卖/持有的决策。<br>「我该做什么?」</div>
+    </div>
+    <div class="stage">
+      <div class="n">03 · BACKTEST</div>
+      <div class="t">回测</div>
+      <div class="d">在历史上诚实地检验这个决策。<br>「这想法值钱吗?」</div>
+    </div>
+    <div class="stage">
+      <div class="n">04 · EXECUTION</div>
+      <div class="t">执行</div>
+      <div class="d">把决策变成真实的下单与成交。<br>「怎么把单打进去?」</div>
+    </div>
+    <div class="stage">
+      <div class="n">05 · RISK</div>
+      <div class="t">风控</div>
+      <div class="d">在所有环节之上,防止你爆仓。<br>「怎么才能不死?」</div>
+    </div>
+  </div>
+
+  <h3>① 数据 Data</h3>
+  <p>一切的地基。你要从交易所 API 拿到价格/成交量,清洗它:<strong>时间对齐、去重、处理缺口</strong>,还要知道每个交易所的怪癖(最小价格变动 tick size、手续费结构)。数据脏,后面全脏。Crypto 的好处是数据基本免费、开放——这也是我们从它切入的原因。</p>
+
+  <h3>② 信号 Signal / 策略 Strategy</h3>
+  <p>系统的大脑:一段把数据映射成<strong>仓位决策</strong>的逻辑。可以简单如"价格上穿 20 日均线就买",也可以复杂如一个机器学习模型的输出。注意——信号只回答"做什么",不回答"下多少、怎么下",那是后面工位的事。</p>
+
+  <h3>③ 回测 Backtest</h3>
+  <p>在历史数据上模拟运行你的策略,看它<em>本来</em>会赚还是会亏。这是新手最容易<strong>自欺欺人</strong>的一环。一个诚实的回测必须计入<span class="term">手续费</span>、<span class="term">滑点(slippage)</span>,并严防<span class="term">前视偏差(look-ahead bias)</span>——即用了当时根本拿不到的未来信息。<a href="../reference/glossary.html">术语见词汇表 →</a></p>
+
+  <div class="callout warn">
+    <span class="label">新手死亡区</span>
+    绝大多数"稳赚"策略都死在回测这一步:它们不是找到了真规律,而是<strong>过拟合(overfitting)</strong>了历史噪声。一条能通过诚实回测的普通策略,远胜一条曲线漂亮却造假的策略。
+  </div>
+
+  <h3>④ 执行 Execution</h3>
+  <p>把"买 0.5 BTC"这个决策,变成真正打进交易所的订单,并跟踪它的状态:部分成交、撤单、持仓对账。<strong>这一步是"交易系统"和"交易实验"的分水岭</strong>——能自动、可靠地下单管单,系统才算活了。</p>
+
+  <h3>⑤ 风控 Risk</h3>
+  <p>不是流水线的一个环节,而是<strong>笼罩在所有环节之上的守门人</strong>:单笔最大亏损、最大仓位、单日止损、以及一键"急停(kill switch)"。信号负责让你赚钱,风控负责让你<strong>活到能赚钱的那天</strong>。</p>
+
+  <h2>一个关键洞察:两个循环,一份信号</h2>
+  <p>这条流水线其实跑成两个循环:</p>
+  <ul>
+    <li><strong>研究循环</strong>:数据 → 信号 → 回测 →(改进)→ 再回测。你 90% 的时间花在这里。</li>
+    <li><strong>实盘循环</strong>:数据 → 信号 → 风控/仓位 → 执行。真金白银在这里流动。</li>
+  </ul>
+  <div class="callout tip">
+    <span class="label">工程原则</span>
+    两个循环里的<strong>「信号」应该是同一份代码</strong>。如果回测用的策略逻辑和实盘用的是两套代码,你回测出来的结论对实盘就毫无意义。一份信号,两处运行——这是好架构的第一条戒律。
+  </div>
+
+  <h2>随手一测</h2>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">一条历史曲线极其漂亮的策略,最该让你警惕的问题是什么?</div>
+    <button class="opt">数据来源不够权威可信可靠</button>
+    <button class="opt">执行下单速度慢导致滑点</button>
+    <button class="opt">它过拟合了历史行情的噪声</button>
+    <button class="opt">风控参数设置得过于保守</button>
+    <div class="fb right" data-for="right">对。漂亮曲线的头号嫌疑就是过拟合——策略"背下"了历史噪声,换到未来就失灵。诚实回测的意义正在于此。</div>
+    <div class="fb nope" data-for="nope">再想想:曲线越完美,越可能是过拟合了历史噪声,而非发现了真规律。这是回测环节的头号陷阱。</div>
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">"回测赚钱和实盘用的是同一份信号代码"——这条原则属于哪个工位的关切?</div>
+    <button class="opt">属于数据清洗对齐环节</button>
+    <button class="opt">属于跨研究与实盘的架构</button>
+    <button class="opt">属于交易所订单执行环节</button>
+    <button class="opt">属于单日止损的风控环节</button>
+    <div class="fb right" data-for="right">对。这是贯穿"研究循环"和"实盘循环"的架构原则:一份信号、两处运行,否则回测结论对实盘无效。</div>
+    <div class="fb nope" data-for="nope">这是一条架构原则:研究循环和实盘循环必须共用同一份信号代码,否则回测无法代表实盘。</div>
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0"><strong><a href="https://www.amazon.com/Quantitative-Trading-Build-Algorithmic-Business/dp/1119800064">Ernest P. Chan, 《Quantitative Trading》</a></strong> —— 个人量化系统的经典入门,作者是业内公认的实践派。先读它对"策略研究→回测→实盘"整体流程的论述,和今天这张地图对照着看。<br><span style="color:var(--ink-faint)">(全部已验证资源见工作区 <code>RESOURCES.md</code>。)</span></p>
+  </div>
+
+  <div class="lesson-foot">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 任何一个工位想深入(比如"滑点到底怎么算""kill switch 怎么实现"),或者你想现在就动手拉一次真实行情,直接说,我们就展开。
+    </div>
+    <div class="nav">
+      <span></span>
+      <a href="0002-crypto-data-pipeline.html">下一课:用 CCXT 拉真实 Crypto 行情 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

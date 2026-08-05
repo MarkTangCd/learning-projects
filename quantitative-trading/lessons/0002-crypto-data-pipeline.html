@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L2 · 用 CCXT 拉真实 Crypto 行情</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">第 2 课 · 工位 01 数据</p>
+  <h1>拿到你的第一批真实行情</h1>
+  <p class="subtitle">流水线的第一段。今天结束时,你会把真实的 BTC K 线握在手里——装进一张干净的表。</p>
+
+  <p>这一课挂在 <a href="0001-anatomy-of-a-quant-system.html">L1 的工位 ①「数据」</a>上。目标只有一个、看得见的胜利:<strong>从交易所拉到真实的 BTC/USDT 小时 K 线,清洗成一张规整的 pandas 表格</strong>。没有策略、没有回测——先把地基的第一块砖砌好。</p>
+
+  <p>我们用 <a href="https://docs.ccxt.com/">CCXT</a>:一个用<strong>同一套代码</strong>访问 100+ 交易所的开源库。学会它,你就不被任何单一交易所绑死——这正是好架构该有的样子。</p>
+
+  <div class="callout warn">
+    <span class="label">先看地区可达性</span>
+    <strong>Binance 国际站(binance.com)的 API 在美国、中国大陆等地区被地理封锁</strong>,直连会连接超时(不是代码错)。若你在这些地区,把交易所换成全球可达的 <code>ccxt.kraken()</code>(支持 BTC/USDT)、或 <code>ccxt.coinbase()</code>(用 <code>"BTC/USD"</code>)、<code>ccxt.binanceus()</code>。这本身就是 L1 说的"交易所怪癖"——<strong>可达性因地区而异</strong>,是量化的真实工程现实。本课示例默认用 Kraken。
+  </div>
+
+  <h2>第 1 步:装库</h2>
+  <p>在你的终端(zsh)里:</p>
+  <pre><code>pip install ccxt pandas</code></pre>
+  <div class="callout tip">
+    <span class="label">建议</span>
+    用虚拟环境隔离本项目依赖:<code>python -m venv venv && source venv/bin/activate</code>,再执行上面的 <code>pip install</code>。以后所有课都在这个环境里跑。
+  </div>
+
+  <h2>第 2 步:拉数据(完整可运行)</h2>
+  <p>新建 <code>fetch_ohlcv.py</code>,粘贴运行:</p>
+  <pre><code>import ccxt
+import pandas as pd
+
+# 1) Pick an exchange. No API key needed for public market data.
+#    binance.com is geo-blocked in the US / mainland China — use kraken there.
+exchange = ccxt.kraken()
+
+# 2) Fetch OHLCV candles: symbol, timeframe, how many.
+#    Returns a list of [timestamp, open, high, low, close, volume].
+raw = exchange.fetch_ohlcv("BTC/USDT", timeframe="1h", limit=500)
+
+# 3) Load into a pandas DataFrame — a labeled table.
+df = pd.DataFrame(raw, columns=["ts", "open", "high", "low", "close", "volume"])
+
+# 4) The timestamp is Unix milliseconds. Turn it into real UTC datetimes,
+#    then make it the row index so every row is stamped in time.
+df["ts"] = pd.to_datetime(df["ts"], unit="ms", utc=True)
+df = df.set_index("ts")
+
+print(df.tail())          # last 5 rows
+print(df.shape)           # (rows, columns)
+</code></pre>
+
+  <p>你应该看到类似(数字会随行情不同):</p>
+  <pre><code>                              open      high       low     close     volume
+ts
+2026-07-31 20:00:00+00:00  ...       ...       ...       ...       ...
+...
+(500, 5)</code></pre>
+
+  <div class="callout">
+    <span class="label">跑通了 = 今天的胜利</span>
+    你刚刚亲手完成了流水线工位 ① 的核心动作:<strong>从真实交易所取数 → 变成结构化数据</strong>。整套量化系统的其余部分,都建在这块砖上。
+  </div>
+
+  <h2>顺带:pandas 三个够用的概念</h2>
+  <p>你 Python 熟,但没碰过 pandas。今天只需记住三点,足够撑起后面所有课:</p>
+  <table>
+    <thead><tr><th>概念</th><th>是什么</th><th>怎么用</th></tr></thead>
+    <tbody>
+      <tr><td><code>DataFrame</code></td><td>带行列标签的二维表(像内存里的 Excel)</td><td>我们的 <code>df</code></td></tr>
+      <tr><td>列 <span style="color:var(--ink-faint)">column</span></td><td>一整列数据,一个 <code>Series</code></td><td><code>df["close"]</code> 取收盘价</td></tr>
+      <tr><td>索引 <span style="color:var(--ink-faint)">index</span></td><td>每行的标签,我们设成了时间</td><td><code>df.loc["2026-07-31"]</code> 按时间取</td></tr>
+    </tbody>
+  </table>
+  <p>常用速查:<code>df.head()</code> / <code>df.tail()</code> 看头尾几行,<code>df.shape</code> 看行列数,<code>df.describe()</code> 看统计摘要,<code>df["close"].plot()</code> 画收盘价曲线(需 <code>pip install matplotlib</code>)。更全的速查见 <a href="../reference/ccxt-pandas-cheatsheet.html">CCXT + pandas 速查表 →</a></p>
+
+  <h2>清洗:三件必须警惕的事</h2>
+  <p>「数据脏,后面全脏」(L1)。拿到 K 线后,永远检查:</p>
+  <ul>
+    <li><strong>时区</strong>:交易所时间戳基本是 UTC 毫秒。上面第 4 步已用 <code>utc=True</code> 显式标注——别让本地时区悄悄混进来。</li>
+    <li><strong>缺口/重复</strong>:偶尔会缺 K 线或重复。检查:<code>df.index.duplicated().sum()</code> 应为 0;<code>df.index.is_monotonic_increasing</code> 应为 True(时间严格递增)。</li>
+    <li><strong>最新那根未收盘</strong>:最后一根 K 线可能还在跳动(未收盘)。做信号时通常<strong>丢掉最后一根</strong>,只用已收盘的 K 线——否则就埋下了前视偏差的种子。</li>
+  </ul>
+
+  <h2>随手一测</h2>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">交易所返回的 K 线时间戳,最标准的处理方式是把它当作?</div>
+    <button class="opt">当地时区的秒级时间戳数值</button>
+    <button class="opt">交易所所在城市当地时间</button>
+    <button class="opt">UTC 时区的毫秒级时间戳</button>
+    <button class="opt">无需转换可直接当索引用</button>
+    <div class="fb right" data-for="right">对。CCXT 的时间戳是 Unix 毫秒、UTC。显式用 <code>unit="ms", utc=True</code> 转换,避免本地时区污染数据。</div>
+    <div class="fb nope" data-for="nope">再看第 4 步:CCXT 时间戳是 Unix <strong>毫秒</strong>、<strong>UTC</strong>,要用 <code>unit="ms", utc=True</code> 显式转换。</div>
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">做信号时通常丢掉"最新那根 K 线",最主要的原因是?</div>
+    <button class="opt">它可能未收盘会引入前视偏差</button>
+    <button class="opt">它的成交量数据通常不准确</button>
+    <button class="opt">它会让表格的行数变成奇数</button>
+    <button class="opt">交易所对它收取更高手续费</button>
+    <div class="fb right" data-for="right">对。最新 K 线还在跳动、未收盘,用它做决策等于用了"尚未定型的未来",这是前视偏差的常见来源。见 <a href="../reference/glossary.html">词汇表</a>。</div>
+    <div class="fb nope" data-for="nope">关键在于它<strong>未收盘</strong>:数据还在变,拿它做决策会引入前视偏差。见 <a href="../reference/glossary.html">词汇表:前视偏差</a>。</div>
+  </div>
+
+  <h2>动手挑战(可选,但强烈建议)</h2>
+  <div class="callout">
+    <span class="label">改一改,跑一跑</span>
+    在你的脚本上做三件事,巩固记忆:<br>
+    1. 把 <code>timeframe</code> 改成 <code>"1d"</code>,把 <code>limit</code> 改成 <code>90</code> —— 拉 90 天日线。<br>
+    2. 加一行 <code>df["range"] = df["high"] - df["low"]</code> —— 造出一列"每根 K 线的振幅"。<br>
+    3. <code>print(df["range"].describe())</code> —— 看看 BTC 日内振幅的分布。<br>
+    做完把结果贴给我,或告诉我哪里卡住了。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0"><strong><a href="https://docs.ccxt.com/">CCXT 官方文档</a></strong> —— 直接读 <em>Manual → Market Data → fetchOHLCV</em> 一节,理解参数(symbol / timeframe / since / limit)和返回结构。这是你数据管道最核心的一个函数。全部资源见 <code>RESOURCES.md</code>。</p>
+  </div>
+
+  <div class="lesson-foot">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 跑报错了(交易所连不上、pip 装不上、pandas 报错)、想换 Bybit/Coinbase、想拉更长历史(分页)、或想现在就把数据存成文件——直接说,我们展开。
+    </div>
+    <div class="nav">
+      <a href="0001-anatomy-of-a-quant-system.html">← L1:系统解剖</a>
+      <a href="0003-first-signal.html">下一课:你的第一个信号 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>
