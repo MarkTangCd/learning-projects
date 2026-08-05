@@ -32,7 +32,25 @@
     <dd>回测中用到了"当时根本拿不到的未来信息"(例如用当天收盘价决定当天开盘的操作)。最隐蔽、最致命的回测错误。</dd>
 
     <dt>过拟合 <span class="en">Overfitting</span></dt>
-    <dd>策略"背下"了历史数据里的随机噪声而非真实规律,历史曲线极美、实盘立刻失灵。曲线越完美越可疑。</dd>
+    <dd>策略"背下"了历史数据里的随机噪声而非真实规律,历史曲线极美、实盘立刻失灵。曲线越完美越可疑。样本内夏普高得离谱是典型信号。见 <a href="../lessons/0005-evaluating-strategies.html">L5</a>。</dd>
+
+    <dt>收益曲线 <span class="en">Equity Curve</span></dt>
+    <dd>把每根 K 线的净收益复利累积(<code>cumprod</code>)得到的资金曲线,起点通常归一到 1.0。回测的主输出,一切成绩单从它压缩而来。</dd>
+
+    <dt>最大回撤 <span class="en">Max Drawdown, MDD</span></dt>
+    <dd>收益曲线从任意历史高点跌到之后最低谷的最大跌幅(≤0)。衡量"痛感"——你要忍受的最难熬一段。<code>(equity/equity.cummax()−1).min()</code>。见 <a href="../lessons/0005-evaluating-strategies.html">L5</a>。</dd>
+
+    <dt>夏普比率 <span class="en">Sharpe Ratio</span></dt>
+    <dd>风险调整后收益:每承担一单位波动换来多少超额收益。<code>mean/std × √年化因子</code>。全行业最通用的策略尺子。&lt;1 平庸,&gt;3 存疑(疑似过拟合)。</dd>
+
+    <dt>波动率 <span class="en">Volatility</span></dt>
+    <dd>收益的标准差(<code>std</code>),衡量颠簸幅度。夏普的分母;同样收益下波动越小越好。</dd>
+
+    <dt>CAGR <span class="en">复合年化增长率</span></dt>
+    <dd>把总收益摊成"平均每年"的复利速度,让长短不一的回测可横向比较。<code>equity[-1]**(1/年数)−1</code>。</dd>
+
+    <dt>年化 <span class="en">Annualization</span></dt>
+    <dd>把"每根 K 线"的统计量换算成"每年"的可比数。日线 crypto ≈ 365,传统股票 ≈ 252,4h 线 = 365×6。用错因子,夏普/CAGR 全错。</dd>
 
     <dt>滑点 <span class="en">Slippage</span></dt>
     <dd>你期望的成交价与实际成交价之间的差。市价单、流动性差、行情剧烈时尤其大。回测忽略它 = 自欺。</dd>

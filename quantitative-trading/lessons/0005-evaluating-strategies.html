@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L5 · 读懂策略成绩单</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    /* Scorecard: three metric cards. Reuses course tokens (var(--*)). */
+    .cards { display: flex; flex-wrap: wrap; gap: 0.7rem; margin: 1.4rem 0 1.6rem; font-family: var(--sans); }
+    .card { flex: 1 1 9rem; min-width: 9rem; border: 1px solid var(--rule); border-top: 3px solid var(--accent);
+            border-radius: 6px; background: #fff; padding: 0.8rem 0.9rem; }
+    .card .m { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; }
+    .card .t { font-weight: 700; font-size: 1.02rem; margin: 0.15rem 0 0.35rem; }
+    .card .d { font-size: 0.8rem; color: var(--ink-soft); line-height: 1.45; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">第 5 课 · 工位 03 回测</p>
+  <h1>读懂策略成绩单</h1>
+  <p class="subtitle">总收益是虚荣指标。今天给策略量三个真数字:能不能拿得住、值不值得拿、每年赚多少。</p>
+
+  <p>L4 你有了一条 <code>equity_net</code> 收益曲线,和"策略 vs 买入持有"两个数。但"赚了 +50%"几乎什么都没说——它没告诉你<strong>中途多痛、波动多大、这曲线可不可信</strong>。今天还在 <a href="0001-anatomy-of-a-quant-system.html">工位 ③「回测」</a>,把那条曲线压成一张<span class="term">成绩单(scorecard)</span>。看得见的胜利:用<strong>同一把尺</strong>给 L4 的三组参数(9/6/11)真正排名。</p>
+
+  <div class="callout warn">
+    <span class="label">为什么总收益会骗你</span>
+    想象两条都以 <code>+50%</code> 收尾的曲线:A 一路平滑爬升;B 中途从高点跌掉 <strong>−60%</strong> 才涨回来。数学上同分,但 B 你<strong>根本拿不住</strong>——早在半路割肉离场了。总收益看不见这个差别,今天的三个指标就是来补这个洞的。
+  </div>
+
+  <h2>指标一:最大回撤(能不能拿得住)</h2>
+  <p><span class="term">最大回撤(Max Drawdown, MDD)</span>= 收益曲线从任意历史高点跌到之后最低谷的<strong>最大跌幅</strong>。它衡量的是<strong>痛感</strong>——你这辈子要忍受的最难熬的那一段。</p>
+  <pre><code>roll_max = df["equity_net"].cummax()          # 到目前为止的历史最高水位
+drawdown = df["equity_net"] / roll_max - 1    # 每个时点距高点回撤了多少(≤0)
+mdd = drawdown.min()                          # 最深的那一下(最负)</code></pre>
+  <p><code>cummax()</code>=「累积最大值」,一路记住至今的最高水位线;当前净值除以它再减 1,就是"此刻从山顶滑落了百分之几"。取最小值(最负)就是最大回撤。<code>−0.35</code> 意味着:历史上最坏时,你的账户从峰值缩水过 <strong>35%</strong>。</p>
+
+  <h2>指标二:夏普比率(值不值得拿)</h2>
+  <p>赚同样的钱,颠簸小的远比颠簸大的好。<span class="term">夏普比率(Sharpe Ratio)</span>回答:<strong>每承担一单位波动,换来多少超额收益?</strong> 它是全行业最通用的"风险调整后收益"尺子。</p>
+  <pre><code>r = df["strat_ret_net"].dropna()      # 每根 K 线的净收益序列
+sharpe = r.mean() / r.std() * (365 ** 0.5)   # 日线 crypto:一年 365 根,年化</code></pre>
+  <ul>
+    <li><code>r.mean()</code>:平均每根赚多少(收益的"高度")。</li>
+    <li><code>r.std()</code>:收益的波动(颠簸的"幅度")。</li>
+    <li><code>× √365</code>:把"每根 K 线"的比率<strong>年化</strong>成可横向比较的数。日线一年约 365 根;若用 4 小时线就是 <code>√(365×6)</code>。</li>
+  </ul>
+  <div class="callout tip">
+    <span class="label">怎么读夏普</span>
+    粗略基准(样本内、无风险利率按 0 简化):<strong>&lt;1 平庸 · 1–2 不错 · 2–3 很好 · &gt;3 存疑</strong>。注意——高得离谱不是好消息,往下看。
+  </div>
+
+  <h2>指标三:CAGR(每年赚多少)</h2>
+  <p>总收益 <code>+120%</code> 是 3 个月还是 5 年赚的?天差地别。<span class="term">CAGR(复合年化增长率)</span>把总收益摊平成"平均每年"的复利速度,让不同长度的回测能比。</p>
+  <pre><code>years = len(df) / 365                          # 日线:根数 ÷ 365 ≈ 年数
+cagr = df["equity_net"].iloc[-1] ** (1 / years) - 1</code></pre>
+
+  <h2>三数合一:一张成绩单</h2>
+  <div class="cards">
+    <div class="card"><div class="m">Max Drawdown</div><div class="t">能拿得住吗?</div><div class="d">最深的那一跌。越接近 0 越好;−50% 意味着账户腰斩过一次。</div></div>
+    <div class="card"><div class="m">Sharpe</div><div class="t">值得拿吗?</div><div class="d">每单位波动的回报。越高越好,但离谱地高要警惕过拟合。</div></div>
+    <div class="card"><div class="m">CAGR</div><div class="t">多快?</div><div class="d">复利年化速度。把长短不一的回测拉到同一时间尺度上比。</div></div>
+  </div>
+  <p>永远和 <code>equity_hold</code> 的同款三数并排看:一个策略若夏普更低、回撤更深,却只换来和买入持有差不多的 CAGR,那它<strong>纯属自找麻烦</strong>。</p>
+
+  <div class="callout warn">
+    <span class="label">高夏普 ≠ 好策略:过拟合的味道</span>
+    如果你反复调参数,直到某组在<strong>这段历史</strong>上跑出夏普 5、回撤只有 3%——先别高兴。你很可能只是<a href="../reference/glossary.html">背下了这段数据的噪声(<strong>过拟合</strong>)</a>。成绩单只证明"过去在这段数据上好看",不证明"未来会赚"。真正的检验是拿它去<strong>没见过的数据</strong>上跑——那是下一课 <a href="#next">样本外验证</a> 的事。
+  </div>
+
+  <h2>随手一测</h2>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">两个策略总收益都是 +50%。凭什么说 A 比 B 更值得实盘?</div>
+    <button class="opt">A 的总成交笔数明显更多</button>
+    <button class="opt">A 的最大回撤浅、夏普更高</button>
+    <button class="opt">A 的历史数据窗口拉得更长</button>
+    <button class="opt">A 用的均线参数是整数值</button>
+    <div class="fb right" data-for="right">对。同样的收益下,回撤更浅、夏普更高意味着更平滑、更抗波动——你才拿得住,也更可能不是靠单次幸运。</div>
+    <div class="fb nope" data-for="nope">看风险调整后的质量:同样收益下,回撤更浅、夏普更高的那个更平滑、更拿得住。笔数/窗口/参数长相都不是理由。</div>
+  </div>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">你狂调参数,终于让夏普从 1.2 飙到 5.0、回撤只剩 2%。最该做的是?</div>
+    <button class="opt">立刻上实盘,趁信号还在</button>
+    <button class="opt">再加杠杆放大这套参数</button>
+    <button class="opt">警惕过拟合,拿新数据验证</button>
+    <button class="opt">把这组参数记为最终答案</button>
+    <div class="fb right" data-for="right">对。样本内夏普高到离谱通常是过拟合的味道——你背下了这段历史的噪声。唯一的解药是拿它没见过的数据检验(下一课)。</div>
+    <div class="fb nope" data-for="nope">样本内夏普 5、回撤 2% 太美了,反而危险——多半是过拟合。别上实盘/加杠杆,先拿没见过的数据验证。</div>
+  </div>
+
+  <h2>动手挑战:给 9 / 6 / 11 真正排名</h2>
+  <div class="callout">
+    <span class="label">让成绩单说话</span>
+    我在 <code>practice/metrics.py</code> 里写好了 <code>scorecard()</code>(复用你 L4 的 <code>backtest()</code>)。<br>
+    1. 直接跑 <code>python metrics.py</code>——它会依次对 <code>(5,20)</code>、<code>(10,30)</code>、<code>(20,60)</code> 三组打印<strong>最大回撤 / 夏普 / CAGR</strong>,并附上买入持有那一行。<br>
+    2. 对照 L4 的总收益结论:<strong>总收益最高的那组,夏普/回撤也最优吗?</strong> 如果排名变了,说说为什么。<br>
+    3. 把 <code>FEE</code> 调成 <code>0</code> 再跑一次——哪个指标对成本最敏感?<br>
+    把三张成绩单贴给我,我们一起读,并挑出你更愿意拿去 paper trading 的那组。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0"><strong><a href="https://www.quantstart.com/articles/Sharpe-Ratio-for-Algorithmic-Trading-Performance-Measurement/">QuantStart — Sharpe Ratio for Algorithmic Trading Performance Measurement</a></strong> —— 把夏普比率的定义、年化、无风险利率处理讲透,practitioner 视角、代码可跑。读它给今天三个指标补上理论地基。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想把回撤画成"水下曲线(underwater plot)"、想弄清夏普里为什么用 √ 年化、或想知道无风险利率该不该减——直接说。
+    </div>
+    <div class="nav">
+      <a href="0004-honest-backtest.html">← L4:诚实的回测</a>
+      <a href="0006-out-of-sample.html">下一课:样本外验证 —— 别被过拟合骗了 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>
