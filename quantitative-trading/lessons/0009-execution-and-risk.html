@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L9 · 真实执行与风控</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    /* Order-lifecycle diagram — reuses course tokens. */
+    .life { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: stretch;
+            font-family: var(--sans); font-size: 0.82rem; margin: 1.3rem 0 1.7rem; }
+    .life .node { flex: 1 1 7rem; min-width: 7rem; border: 1px solid var(--rule);
+                  border-radius: 6px; background: #fff; padding: 0.6rem 0.7rem; }
+    .life .node b { display: block; font-size: 0.9rem; }
+    .life .node span { color: var(--ink-soft); font-size: 0.76rem; }
+    .life .send { border-top: 3px solid var(--link); }
+    .life .live { border-top: 3px solid var(--warn); }
+    .life .done { border-top: 3px solid var(--good); }
+    .life .bad  { border-top: 3px solid var(--accent); }
+    .life .arr { align-self: center; color: var(--ink-faint); font-weight: 700; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 9 课 · 工位 4(执行)深水区</p>
+  <h1>真实执行与风控</h1>
+  <p class="subtitle">Paper trading 撒了一个谎:"即时、全额、按我的价成交"。真实市场里,你只能<strong>发出</strong>订单——成不成、成多少、成在哪个价,由交易所说了算。</p>
+
+  <p>L8 你造的 tick 机器人里,买入就是一行算术:<code>coin = cash / price</code>。它假设你想要的价格<strong>必然、瞬间、全额</strong>兑现。真实执行把这三个假设全打碎:订单是<strong>异步</strong>的——你 <span class="term">SEND</span>,然后必须<span class="term">READ BACK</span>(回读)交易所返回的订单对象,再<span class="term">RECONCILE</span>(对账)你以为的和实际发生的。</p>
+
+  <div class="callout tip">
+    <span class="label">这一课的可见胜利</span>
+    在 Binance <strong>测试网</strong>(真订单、假钱)上走完一次订单生命周期:挂一张<strong>不会成交</strong>的限价单看它 <code>open</code> → 撤单看它 <code>canceled</code>;再打一张市价单看它<strong>真成交</strong>,然后<strong>对账</strong>出真实滑点与手续费。全程每张单都先过<strong>风控闸门 + 急停</strong>。
+  </div>
+
+  <h2>订单的生命周期</h2>
+  <p>回测里"成交"是一个瞬间。真实订单是一个<strong>状态机</strong>,会走到下面某个终态——你的代码必须能处理每一条分支:</p>
+
+  <div class="life">
+    <div class="node send"><b>SEND</b><span>create_order 发出,拿到 id</span></div>
+    <div class="arr">→</div>
+    <div class="node live"><b>open</b><span>挂在簿上,filled=0 或部分</span></div>
+    <div class="arr">→</div>
+    <div class="node done"><b>closed</b><span>filled=amount 全成交</span></div>
+  </div>
+  <div class="life">
+    <div class="node bad"><b>canceled</b><span>你撤单 / 超时未成</span></div>
+    <div class="node bad"><b>rejected</b><span>被拒:余额/精度/风控</span></div>
+    <div class="node live"><b>partial</b><span>只成一部分,剩下继续挂</span></div>
+  </div>
+
+  <p>ccxt 用一套<strong>统一订单结构</strong>把这些跨交易所抹平。下单后你要回读的关键字段:<a href="https://docs.ccxt.com/#/README?id=order-structure">ccxt 订单结构</a></p>
+
+  <table>
+    <thead><tr><th>字段</th><th>含义</th><th>为什么 L8 看不到它</th></tr></thead>
+    <tbody>
+      <tr><td><code>status</code></td><td><code>open</code> / <code>closed</code> / <code>canceled</code></td><td>回测没有"挂着"这个状态</td></tr>
+      <tr><td><code>filled</code> / <code>remaining</code></td><td>已成 / 未成数量</td><td>回测默认 filled=amount</td></tr>
+      <tr><td><code>average</code></td><td>实际成交<strong>均价</strong></td><td>回测用你给的 price,不是市场吃到的价</td></tr>
+      <tr><td><code>fee</code></td><td>真实手续费(maker/taker 不同)</td><td>回测用一个固定费率近似</td></tr>
+    </tbody>
+  </table>
+
+  <h2>限价 vs 市价 —— 你在选"要价格"还是"要成交"</h2>
+  <table>
+    <thead><tr><th>类型</th><th>你得到什么</th><th>你放弃什么</th><th>角色</th></tr></thead>
+    <tbody>
+      <tr><td><span class="term">限价单 limit</span></td><td>价格有保证(不超过你的价)</td><td>成交没保证,可能一直挂着</td><td>maker(挂单方,费率低)</td></tr>
+      <tr><td><span class="term">市价单 market</span></td><td>成交有保证(立即吃单)</td><td>价格没保证,吃穿盘口=滑点</td><td>taker(吃单方,费率高)</td></tr>
+    </tbody>
+  </table>
+  <p>L8 的"即时必成交"其实偷偷用的是<strong>市价单的成交假设 + 限价单的价格假设</strong>——两头好处都要,现实里没有。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">一张限价买单挂在市价<strong>下方 20%</strong>,刚发出后它的 status 最可能是?</div>
+    <button class="opt">open:仍在挂单,filled 为 0</button>
+    <button class="opt">closed:已全成交,filled 满额</button>
+    <div class="fb right" data-for="right">对。买价远低于市场,没人愿意卖给你,单子就<strong>挂着</strong>(open, filled=0)。这正是回测里不存在、实盘里必须处理的状态。</div>
+    <div class="fb nope" data-for="nope">不成交才对。你的买价比市场低 20%,没有卖方会以这个价成交,订单停在 <code>open</code>、filled=0,直到你撤单或市价跌下来。</div>
+  </div>
+
+  <h2>SEND → READ BACK → RECONCILE</h2>
+  <p>这是替换 L8"即时必成交"的新纪律。下单后<strong>永远不要相信</strong> <code>create_order</code> 的即时返回就是最终结果——它可能还是 <code>open</code>。要 <code>fetch_order</code> 回读真相,再对账:</p>
+  <pre><code># SEND
+o = ex.create_order(SYMBOL, "market", "buy", amount, None,
+                    {"clientOrderId": cid})   # 幂等钥匙,呼应 L8
+# READ BACK —— 别信下单回执,查订单簿里的真相
+filled = ex.fetch_order(o["id"], SYMBOL)
+# RECONCILE —— 我以为的 vs 实际发生的
+slip_bps = (filled["average"] - assumed) / assumed * 1e4
+print(filled["status"], filled["filled"], filled["average"], filled["fee"])</code></pre>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">市价单成交后,给账户记账该用哪个价格?</div>
+    <button class="opt">下单前 ticker 里读到的 last 价</button>
+    <button class="opt">回读订单拿到的 average 均价</button>
+    <div class="fb right" data-for="right">对。<code>average</code> 是交易所吃单后<strong>实际</strong>给你的加权均价,和你下单前看到的 last 之间的差就是<strong>已实现滑点</strong>。用假设价记账 = 账户对不上。</div>
+    <div class="fb nope" data-for="nope">用假设价会让账目失真。市价单吃穿盘口,真实成交价是回读到的 <code>average</code>;它减去下单前的 last 就是你这次付出的<strong>滑点成本</strong>。</div>
+  </div>
+
+  <h2>风控闸门 + 急停(每张单的前置关卡)</h2>
+  <p>执行深水区最贵的 bug 不是"少赚",是"下错单把账户打爆"。所以<strong>任何订单发出前</strong>都要过一道风控闸门,它有权<strong>拒绝</strong>:</p>
+  <ul>
+    <li><strong>名义价值上限</strong>:<code>amount × price ≤ MAX_NOTIONAL</code>——挡住 fat-finger(多打一个零)。</li>
+    <li><strong>最小下单额</strong>:低于交易所 <code>limits.cost.min</code> 会被拒,提前挡下。</li>
+    <li><strong>急停 kill switch</strong>:一个开关(这里是一个 flag 文件),打开即<strong>秒拒一切新单</strong>——策略发疯、行情异常时你的红色大按钮。风控里<strong>最先、最便宜</strong>地检查。</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">测试网的真实坑(正是执行课该有的)</span>
+    Binance 现货测试网端点正在从 <code>testnet.binance.vision</code> 迁移到 <code>demo-api.binance.com</code>。ccxt 4.5.x 的 <code>set_sandbox_mode(True)</code> 仍指向前者——只要你的 key 也是在 <a href="https://testnet.binance.vision/">testnet.binance.vision</a> 上用 GitHub 登录生成的,两者匹配就能跑。若报 <code>Invalid API-key</code>,多半是 key 与端点不匹配:重新在同一站点生成 key,别混用主网 key。真实券商换端点/换鉴权是执行层的日常,你的第一个实盘 bug 大概率就长这样。
+  </div>
+
+  <h2>动手挑战:在测试网走完一次订单生命周期</h2>
+  <div class="callout">
+    <span class="label">你的第一张真订单(假钱)</span>
+    脚本 <code>practice/execution.py</code> 已写好(测试网 + 代理 + 风控闸门 + 急停)。<br>
+    <strong>① 拿密钥:</strong>去 <a href="https://testnet.binance.vision/">testnet.binance.vision</a> 用 GitHub 登录 → Generate HMAC Key → 两行 export:<br>
+    <code>export BINANCE_TESTNET_KEY="..."</code> · <code>export BINANCE_TESTNET_SECRET="..."</code><br>
+    <strong>② 看余额:</strong><code>python execution.py balance</code>(测试网自带一堆假 USDT/BTC)。<br>
+    <strong>③ 挂单→撤单:</strong><code>python execution.py rest</code>——看它 <code>open</code>(filled=0)再 <code>canceled</code>。<br>
+    <strong>④ 真成交→对账:</strong><code>python execution.py fill</code>——看 <code>closed</code>、真实 <code>average</code>、滑点 bps、手续费。<br>
+    <strong>⑤ 试急停:</strong><code>python execution.py kill</code> 再跑一次 <code>fill</code>——风控闸门应<strong>秒拒</strong>;<code>unkill</code> 解除。<br>
+    把 ③④⑤ 的输出贴给我,我们一起对账:实际滑点和手续费,和 L4 回测里你假设的成本差多少?
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://docs.ccxt.com/#/README?id=order-structure">ccxt 手册 —— 订单结构与下单方法</a></strong> —— 权威定义了 <code>create_order / fetch_order / cancel_order</code> 与统一订单字段。这是你跨任何交易所写执行层的字典。</p>
+    <p style="margin:0"><strong><a href="https://testnet.binance.vision/">Binance 现货测试网</a></strong> —— 免费拿密钥与假钱,安全地把执行 bug 全撞一遍再碰真钱。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清 maker/taker 费率差怎么影响策略、<code>clientOrderId</code> 幂等在断网重试时怎么救命、部分成交后该追单还是撤单、或怎么把这套执行层接回 L8 的 tick 循环替换掉那行"即时成交"——直接说。
+    </div>
+    <div class="nav">
+      <a href="0008-paper-trading.html">← L8:纸上交易</a>
+      <a href="../reference/execution-recipe.html">参考卡:执行配方 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

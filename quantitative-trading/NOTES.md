@@ -27,7 +27,10 @@
 5. ✅ L5 读懂成绩单:最大回撤 / 夏普 / CAGR,首点过拟合
 6. ✅ L6 样本外验证:train/test 切分、数据泄漏/窥探、过拟合税
 7. ✅ L7 滚动前进验证(walk-forward):拼接样本外曲线、参数漂移
-8. ✅ L8 纸上交易:tick 事件循环、三纪律(已收盘/持久化/幂等)、模拟成交 ← 已发布
-9. L9 真实执行与风控:订单生命周期、testnet 真订单、急停/风控 ← 下一课
+8. ✅ L8 纸上交易:tick 事件循环、三纪律 + 收尾压力测试(抓到并修掉"时间戳倒退误成交"+"账本不分周期串味"两 bug;闸门改比时间序、state 按 tf 命名空间)← 完成
+9. ✅ L9 真实执行与风控:订单生命周期(open/closed/canceled/partial/rejected)、ccxt 统一订单结构、SEND→READ BACK→RECONCILE、限价 vs 市价/maker-taker、风控闸门(名义上限/最小额)+ 急停 kill switch、testnet(set_sandbox_mode)。脚本 `practice/execution.py`(balance/rest/fill/kill/unkill),参考卡 `execution-recipe.html`,词表 +8 词 ← 已发布,待用户拿 testnet key 跑动手挑战
+   - 已验证坑:ccxt 4.5.70 sandbox 仍指 testnet.binance.vision(demo-api.binance.com 也通);两端点公开接口经代理均可达;key 须与端点匹配否则 Invalid API-key。
+10. 小资金实盘(paper/testnet 稳定后)← 下一课候选 A
+11. (扩展)传统股票 / AI 量化;或回 gauntlet 给信号找 edge(regime 过滤/均值回归)← 候选 B
 10. Paper trading 稳定后 → 小资金实盘
 11. (扩展)传统股票 / AI 量化(SMA 单族无 edge → 待引入均值回归/波动率过滤/regime 过滤等第二类信号,复用 gauntlet)

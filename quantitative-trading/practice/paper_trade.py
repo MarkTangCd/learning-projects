@@ -14,33 +14,43 @@ import json
 import os
 import time
 
+import pandas as pd
+
 from strategy import fetch_ohlcv
 
+SYMBOL = "BTC/USDT"
 FAST, SLOW = 10, 30
 FEE = 0.001
 START_CASH = 10_000.0
-STATE_FILE = os.path.join(os.path.dirname(__file__), "paper_state.json")
 
 
-def load_state():
+def state_path(tf):
+    """Namespace the ledger by (symbol, timeframe): switching --tf must NOT
+    mix a 4h ledger with 1d bars -- that's what caused the backwards-bar sell."""
+    key = SYMBOL.replace("/", "")
+    return os.path.join(os.path.dirname(__file__), f"paper_state_{key}_{tf}.json")
+
+
+def load_state(path):
     """Live trading is a loop WITH MEMORY: reload the portfolio each tick."""
-    if os.path.exists(STATE_FILE):
-        with open(STATE_FILE) as f:
+    if os.path.exists(path):
+        with open(path) as f:
             return json.load(f)
     return {"cash": START_CASH, "coin": 0.0, "position": 0,
             "entry": 0.0, "last_ts": None, "trades": []}
 
 
-def save_state(state):
-    with open(STATE_FILE, "w") as f:
+def save_state(state, path):
+    with open(path, "w") as f:
         json.dump(state, f, indent=2, default=str)
 
 
 def tick(state, tf="1d"):
     """One decision cycle: poll -> signal -> compare -> maybe trade -> persist."""
     # Discipline 1: the last candle is still FORMING -> drop it, use closed bars only.
-    df = fetch_ohlcv(timeframe=tf, limit=SLOW + 40).iloc[:-1]
-    bar_ts = str(df.index[-1])
+    df = fetch_ohlcv(symbol=SYMBOL, timeframe=tf, limit=SLOW + 40).iloc[:-1]
+    bar_ts_obj = df.index[-1]
+    bar_ts = str(bar_ts_obj)
     price = float(df["close"].iloc[-1])
 
     # Live signal = crossover on the LAST CLOSED bar -- the live form of shift(1).
@@ -48,10 +58,13 @@ def tick(state, tf="1d"):
     slow = df["close"].rolling(SLOW).mean().iloc[-1]
     desired = int(fast > slow)
 
-    # Discipline 2: act only when a NEW bar has closed since the last tick.
-    if state["last_ts"] == bar_ts:
+    # Discipline 2: act only on a STRICTLY NEWER closed bar. Comparing ordering
+    # (not ==) blocks both the repeat tick AND a backwards/stale timestamp --
+    # e.g. a stale ledger or a rewound feed must never make us "trade the past".
+    last_obj = pd.Timestamp(state["last_ts"]) if state["last_ts"] else None
+    if last_obj is not None and bar_ts_obj <= last_obj:
         equity = state["cash"] + state["coin"] * price
-        print(f"[{bar_ts}] 无新收盘K线,持仓不变 | position={state['position']} "
+        print(f"[{bar_ts}] 无更新收盘K线,持仓不变 | position={state['position']} "
               f"equity=${equity:,.2f}")
         return state
 
@@ -86,22 +99,24 @@ if __name__ == "__main__":
     ap.add_argument("--tf", default="1d", help="timeframe: 1d (default) / 4h / 1h")
     args = ap.parse_args()
 
-    if args.reset and os.path.exists(STATE_FILE):
-        os.remove(STATE_FILE)
+    state_file = state_path(args.tf)
+    if args.reset and os.path.exists(state_file):
+        os.remove(state_file)
         print("状态已重置。")
 
-    state = load_state()
-    print(f"=== paper trading  SMA({FAST},{SLOW})  起始资金 ${START_CASH:,.0f} ===")
+    state = load_state(state_file)
+    print(f"=== paper trading  SMA({FAST},{SLOW}) {SYMBOL} {args.tf}  "
+          f"起始资金 ${START_CASH:,.0f} ===")
 
     if args.loop:
         print(f"每 {args.loop}s 一次 tick(Ctrl-C 停止)\n")
         try:
             while True:
                 state = tick(state, tf=args.tf)
-                save_state(state)
+                save_state(state, state_file)
                 time.sleep(args.loop)
         except KeyboardInterrupt:
             print("\n已停止,状态已保存。")
     else:
         state = tick(state, tf=args.tf)
-        save_state(state)
+        save_state(state, state_file)

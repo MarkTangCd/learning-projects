@@ -22,8 +22,10 @@ fast = df["close"].rolling(FAST).mean().iloc[-1]
 slow = df["close"].rolling(SLOW).mean().iloc[-1]
 desired = int(fast > slow)
 
-# ③ Compare + 幂等:只在"新K线"且"目标≠当前"时下单
-if state["last_ts"] == bar_ts:  return state            # 无新K线 -> 不动作
+# ③ Compare + 幂等:只在"严格更新的K线"且"目标≠当前"时下单
+#   用 <= 比时间序,不用 == :既挡重复 tick,也挡"时间倒退"(切周期/陈旧feed)
+last = pd.Timestamp(state["last_ts"]) if state["last_ts"] else None
+if last is not None and bar_ts <= last:  return state   # 无更新K线 -> 不动作
 if desired != state["position"]:
     # ④ Act:模拟成交 + 扣费,更新虚拟账户
     if desired == 1:
@@ -41,6 +43,8 @@ equity = state["cash"] + state["coin"] * price          # mark-to-market</code><
       <tr><td>① 只对已收盘 K 线动作</td><td><code>df.iloc[:-1]</code> 丢掉 forming candle</td><td>用未定数据决策 = 前视偏差实盘版</td></tr>
       <tr><td>② 状态持久化</td><td>持仓/现金存 JSON,每 tick 读写</td><td>重启丢仓位,账户对不上</td></tr>
       <tr><td>③ 幂等下单</td><td>目标=当前仓位就不动作</td><td>同一根 K 线重复下单</td></tr>
+      <tr><td>④ 闸门比时间序,非相等</td><td><code>bar_ts &lt;= last_ts → 不动作</code></td><td>时间倒退时"对着过去下单"</td></tr>
+      <tr><td>⑤ 账本按周期命名空间</td><td><code>paper_state_{sym}_{tf}.json</code></td><td>切 <code>--tf</code> 串味 → 拿 4h 状态比 1d K线,误成交</td></tr>
     </tbody>
   </table>
 

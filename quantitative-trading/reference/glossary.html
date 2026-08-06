@@ -114,6 +114,30 @@
 
     <dt>K 线 <span class="en">OHLCV / Candle</span></dt>
     <dd>一个时间段内的开(Open)、高(High)、低(Low)、收(Close)、量(Volume)。最常用的行情数据结构。</dd>
+
+    <dt>限价单 <span class="en">Limit Order</span></dt>
+    <dd>指定价格挂单:成交价有保证(不超过你的价),但成交本身没保证——可能一直挂着。你是 maker。见 <a href="../lessons/0009-execution-and-risk.html">L9</a>。</dd>
+
+    <dt>市价单 <span class="en">Market Order</span></dt>
+    <dd>立即按当前盘口成交:成交有保证,但价格没保证——吃穿盘口就是滑点。你是 taker。</dd>
+
+    <dt>订单状态 <span class="en">Order Status</span></dt>
+    <dd>ccxt 统一订单的生命周期终态:<code>open</code>(挂单中,含部分成交)、<code>closed</code>(全额成交)、<code>canceled</code>(撤单/超时);被拒为 rejected。下单后须 <code>fetch_order</code> 回读,不能假设。</dd>
+
+    <dt>对账 <span class="en">Reconciliation</span></dt>
+    <dd>用交易所返回的真相(<code>filled/average/fee</code>)校准你以为的成交,而非用下单前的假设价记账。SEND → READ BACK → RECONCILE 的第三步。</dd>
+
+    <dt>已实现滑点 <span class="en">Realized Slippage</span></dt>
+    <dd>市价单实际成交均价(<code>average</code>)与下单前参考价之差,常用 bps 表示。回测里被固定滑点近似,实盘里逐单量出。</dd>
+
+    <dt>名义价值 <span class="en">Notional</span></dt>
+    <dd>一张订单的市值 = <code>amount × price</code>。风控闸门的核心度量:设上限挡住 fat-finger(多打一个零)。</dd>
+
+    <dt>风控闸门 / 急停 <span class="en">Risk Gate / Kill Switch</span></dt>
+    <dd>任何订单发出前必须通过的前置关卡,有权拒单(名义上限/最小额/急停)。急停=一个开关,打开即秒拒一切新单,是策略发疯时的红色大按钮。见 <a href="../lessons/0009-execution-and-risk.html">L9</a>。</dd>
+
+    <dt>测试网 <span class="en">Testnet / Sandbox</span></dt>
+    <dd>交易所提供的真实撮合、假钱环境。ccxt 用 <code>set_sandbox_mode(True)</code> 切入。接真钱前把执行 bug(时区/精度/端点/鉴权)全撞一遍的地方。</dd>
   </dl>
 
   <div class="lesson-foot">

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>参考 · 真实执行配方</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">参考文档 · 常读常新</p>
+  <h1>真实执行配方</h1>
+  <p class="subtitle">把订单发到真交易所并对账的最小骨架。替换掉纸上交易的"即时必成交"假设。配 <a href="../lessons/0009-execution-and-risk.html">L9</a>。</p>
+
+  <h2>三步纪律:SEND → READ BACK → RECONCILE</h2>
+  <pre><code># 0) 建测试网客户端(set_sandbox_mode 必须在任何请求前调用)
+ex = ccxt.binance({"apiKey": KEY, "secret": SECRET, "enableRateLimit": True})
+ex.httpsProxy = "http://127.0.0.1:1087"
+ex.set_sandbox_mode(True)          # -> testnet.binance.vision;key 也须是测试网 key
+ex.load_markets()
+
+# 1) SEND —— 过风控闸门后才发;clientOrderId = 幂等钥匙(呼应 L8)
+ok, why = pre_trade_check(ex, side, amount, price)   # 见下方
+if not ok: return
+o = ex.create_order(SYMBOL, "market", "buy", amount, None,
+                    {"clientOrderId": f"l9-{ms}"})
+
+# 2) READ BACK —— 别信下单回执,回读订单簿里的真相
+filled = ex.fetch_order(o["id"], SYMBOL)
+
+# 3) RECONCILE —— 我以为的 vs 实际发生的
+slip_bps = (filled["average"] - assumed) / assumed * 1e4
+# 记账用 filled["average"] / filled["fee"],不是下单前的 ticker</code></pre>
+
+  <h2>统一订单结构:下单后必读字段</h2>
+  <table>
+    <thead><tr><th>字段</th><th>含义</th><th>下单方法</th></tr></thead>
+    <tbody>
+      <tr><td><code>id</code> / <code>clientOrderId</code></td><td>交易所 id / 你给的幂等 id</td><td><code>create_order(sym, type, side, amount, price, params)</code></td></tr>
+      <tr><td><code>status</code></td><td><code>open</code> / <code>closed</code> / <code>canceled</code></td><td><code>fetch_order(id, sym)</code></td></tr>
+      <tr><td><code>filled</code> / <code>remaining</code></td><td>已成 / 未成数量</td><td><code>fetch_open_orders(sym)</code></td></tr>
+      <tr><td><code>average</code></td><td>实际成交均价(算滑点用它)</td><td><code>cancel_order(id, sym)</code></td></tr>
+      <tr><td><code>cost</code> / <code>fee</code></td><td>成交额 / 真实手续费</td><td><code>fetch_balance()</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>订单生命周期(状态机)</h2>
+  <pre><code>SEND ──▶ open ──▶ closed        # 全额成交(终态)
+          │  └──▶ partial ──▶ …  # 部分成交,剩余继续挂
+          ├──▶ canceled          # 你撤单 / 超时(终态)
+          └──▶ rejected          # 余额/精度/风控被拒(终态)</code></pre>
+
+  <h2>限价 vs 市价</h2>
+  <table>
+    <thead><tr><th>类型</th><th>保证</th><th>放弃</th><th>角色/费率</th></tr></thead>
+    <tbody>
+      <tr><td>limit 限价</td><td>价格 ≤ 你的价</td><td>可能不成交(一直挂)</td><td>maker,费率低</td></tr>
+      <tr><td>market 市价</td><td>立即成交</td><td>价格不定(吃穿盘口=滑点)</td><td>taker,费率高</td></tr>
+    </tbody>
+  </table>
+
+  <h2>风控闸门(每张单前置,可拒单)</h2>
+  <pre><code>def pre_trade_check(ex, side, amount, price):
+    if os.path.exists(KILL_FILE):                 # ① 急停:最先、最便宜
+        return False, "KILL SWITCH ON"
+    notional = amount * price
+    if notional > MAX_NOTIONAL_USDT:              # ② 名义上限:挡 fat-finger
+        return False, "over notional cap"
+    min_cost = ex.market(SYMBOL)["limits"]["cost"]["min"]
+    if min_cost and notional < min_cost:          # ③ 最小下单额
+        return False, "below exchange minimum"
+    return True, "ok"</code></pre>
+
+  <div class="callout warn">
+    <span class="label">这仍不是全部(执行深水区还在更深处)</span>
+    生产级执行还要处理:<strong>部分成交后追单/撤单</strong>、<strong>超时与重试</strong>(靠 clientOrderId 幂等去重,断网重发不下双倍单)、<strong>对账循环</strong>(定期用 fetch_balance / fetch_open_orders 校准本地账本 vs 交易所真相)、<strong>限频</strong>(enableRateLimit)。工业级实现见 <a href="https://www.freqtrade.io/en/stable/">freqtrade</a> / <a href="https://nautilustrader.io/docs/latest/">NautilusTrader</a>。术语见 <a href="glossary.html">词表</a>。
+  </div>
+
+  <div class="lesson-foot">
+    <div class="nav">
+      <a href="../lessons/0009-execution-and-risk.html">← 回到 L9</a>
+      <a href="paper-trading-recipe.html">纸上交易配方 →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
