@@ -1,0 +1,125 @@
+<meta charset="utf-8">
+<title>第 6 课 · 相对估值：给公司拍一个"合理价格区间"</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+<div class="wrap">
+
+  <p class="eyebrow">股票投资 · 第 6 课 · 估值篇开场</p>
+  <h1>相对估值：给公司拍一个"合理价格区间"</h1>
+  <p class="subtitle">把 PE 反过来用——从"贵不贵"走到"到底该值多少钱"。</p>
+  <p class="progress">● ○ ○ ○ &nbsp; 估值篇 1/? &nbsp;·&nbsp; <span style="opacity:.6">地基篇 ✓ 毕业</span></p>
+
+  <div class="keyidea">
+    <strong>今天的小胜利：</strong>你将第一次<strong>亲手估出一个价</strong>——用<em class="term">相对估值</em>给一家公司拍出一个"合理价格<strong>区间</strong>"，并理解一句估值的灵魂：<em class="term">宁要模糊的正确，不要精确的错误。</em>
+  </div>
+
+  <div class="callout">
+    <span class="label">你已经毕业地基篇了</span>
+    第 1 课你知道了<a href="0001-price-vs-value.html">价格 ≠ 价值</a>，但一直没真去"估价值"。前五课攒的工具——三张表、PE/PB/ROE——就是为今天准备的。<strong>估值，就是给"价值"标个数，再拿去和"价格"比。</strong>
+  </div>
+
+  <h2>先看地图：估值只有两条路</h2>
+  <table>
+    <tr><th>路子</th><th>思路一句话</th><th>特点</th></tr>
+    <tr><td><strong>相对估值</strong><br><span style="opacity:.6">Relative Valuation</span></td><td>它<strong>该值几倍</strong>利润？拿同行/历史当尺子比。</td><td>快、直觉、依赖"别人"定价是否合理</td></tr>
+    <tr><td><strong>绝对估值 / DCF</strong><br><span style="opacity:.6">Discounted Cash Flow</span></td><td>它未来能生出多少<strong>现金</strong>，折回今天值多少。</td><td>慢、最根本、下一课学</td></tr>
+  </table>
+  <p>今天学<strong>相对估值</strong>——上手最快、90% 的日常判断都够用。它就藏在你已经会的 PE 里。</p>
+
+  <h2>核心公式：把 PE 反过来用</h2>
+  <p>第 4 课：<code>PE = 股价 ÷ 每股盈利</code>。把它移项，就得到估值公式：</p>
+  <div class="keyidea" style="text-align:center;font-size:1.15rem">
+    合理股价 = <strong>合理 PE</strong> × <strong>每股盈利(EPS)</strong>
+  </div>
+  <p>两个输入，一个是"倍数"，一个是"利润"。估值的全部功夫，就在把这两个数各自定得<strong>靠谱</strong>。下面拆开。</p>
+
+  <h2>输入一：每股盈利，要用"可持续"的那个</h2>
+  <p>不能随手抓某一年的利润。要用<strong>公司正常年份、能长期赚到的利润</strong>——这叫<em class="term">正常化盈利</em>。回想第 5 课的坑：</p>
+  <ul>
+    <li>剔掉<strong>一次性收益</strong> → 优先用<strong>扣非净利润</strong>（长安 2023 那种并表重组收益不能算）。</li>
+    <li>周期股别用<strong>景气顶点或谷底</strong>那年 → 取一个跨周期的中间水平。</li>
+  </ul>
+  <p class="callout warn"><span class="label">垃圾进，垃圾出（GIGO）</span>盈利这个输入错了，后面算得再精细都是错的。<strong>估值 90% 的准头，在于盈利估得靠不靠谱</strong>，不在小数点。</p>
+
+  <h2>输入二：合理 PE，用三把尺子量</h2>
+  <p>"该给几倍"没有标准答案，但有三个可靠的<strong>锚</strong>，交叉着看：</p>
+  <ol>
+    <li><strong>它自己的历史 PE</strong>：过去多年在什么区间波动？现在偏高还是偏低？（均值回归的直觉）</li>
+    <li><strong>同行可比公司</strong>：一样的生意，别人被给了几倍？</li>
+    <li><strong>用增长匹配（PEG）</strong>：一个好用的直觉——<em class="term">PEG = PE ÷ 利润增长率</em>。<strong>PEG ≈ 1</strong> 大致算合理：增长 20% 的公司，给 PE 20 不算贵；增长 5% 却给 PE 30，就偏贵。<span style="opacity:.7">（你上次问过 PEG，就是它。）</span></li>
+  </ol>
+
+  <h2>动手：三档拍出一个区间</h2>
+  <p>成熟的做法不是算出<strong>一个</strong>精确价，而是给<strong>悲观 / 中性 / 乐观</strong>三档合理 PE，各乘以可持续 EPS，得到一个<strong>区间</strong>。举个干净的例子——假设消费品公司 A：</p>
+  <p style="font-family:var(--font-mono);font-size:.9rem;background:var(--card);padding:.8rem 1rem;border-radius:6px;">
+    可持续 EPS（扣非、正常年份）= 2 元<br>
+    合理 PE：历史多在 12–20，同行也在此，利润年增 ~10%<br>
+    ───────────────────────────────<br>
+    悲观 12 × 2 = <strong>24 元</strong>（区间下沿）<br>
+    中性 16 × 2 = <strong>32 元</strong>（中枢）<br>
+    乐观 20 × 2 = <strong>40 元</strong>（区间上沿）
+  </p>
+  <p>于是 A 的合理价值区间 ≈ <strong>24–40 元</strong>。有了这把尺，再看市场价格：</p>
+  <ul>
+    <li>股价 <strong>22 元</strong> → 掉到区间<strong>下沿之下</strong>，可能<strong>低估</strong>，值得研究。</li>
+    <li>股价 <strong>45 元</strong> → 冲到区间<strong>上沿之上</strong>，可能<strong>高估</strong>，别追。</li>
+    <li>股价 <strong>32 元</strong> → 就在中枢附近，<strong>大致合理</strong>，没便宜可占。</li>
+  </ul>
+
+  <h2>灵魂：为什么是"区间"，还要留安全边际</h2>
+  <div class="keyidea">
+    <strong>宁要模糊的正确，不要精确的错误。</strong>估值天生不精确（输入全是估的），所以给区间、不给一口价。<br>
+    真买入时，只在价格<strong>明显低于</strong>你估的下沿（比如再打个七折）才动手——这段折扣叫<em class="term">安全边际</em>。
+  </div>
+  <p>安全边际正是第 1 课<a href="0001-price-vs-value.html">市场先生</a>的用法：他情绪崩溃、报出远低于价值的价时，那道折扣就是你犯错的容错垫。<strong>估值给你一把尺，安全边际给你留退路。</strong></p>
+
+  <h2>练一练</h2>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">1. 某公司可持续每股盈利 3 元，你判断合理 PE 区间是 10–15 倍。它的合理价值区间大约是？</div>
+    <button class="opt">3 到 15 元，用盈利和 PE 直接相减</button>
+    <button class="opt">30 到 45 元，用盈利分别乘以两档 PE</button>
+    <button class="opt">10 到 15 元，合理 PE 就是价格</button>
+    <div class="fb ok" data-for="correct">对。合理价 = 合理 PE × 每股盈利。下沿 10×3=30，上沿 15×3=45，区间就是 30–45 元。</div>
+    <div class="fb no" data-for="wrong">公式是"合理 PE × 每股盈利"，是乘不是减。下沿 10×3=30，上沿 15×3=45，所以区间 30–45 元。</div>
+  </div>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">2. 给一家周期股 + 有一次性收益的公司做相对估值，最该先做哪一步？</div>
+    <button class="opt">直接用最新一年的净利润，越新越准确</button>
+    <button class="opt">用它景气顶点那年的利润，显得便宜</button>
+    <button class="opt">先把盈利正常化：剔一次性、取跨周期中间水平</button>
+    <div class="fb ok" data-for="correct">对。垃圾进垃圾出。用扣非、跨周期的可持续盈利做输入，估值才有意义——否则一次性收益和景气顶点会把你骗得很惨。</div>
+    <div class="fb no" data-for="wrong">最新或顶点利润都可能虚高（一次性收益、景气高点）。必须先正常化盈利：剔除一次性、取跨周期中间水平，这是估值的第一步。</div>
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">3. 你估出某股合理区间 24–40 元，现价 22 元。结合"安全边际"，更稳妥的做法是？</div>
+    <button class="opt">已低于下沿,可研究,但最好等更深的折扣再动手</button>
+    <button class="opt">正好 22 元,立刻满仓买入,不用再想别的</button>
+    <button class="opt">低于 40 元就行,现价随便买都算安全边际</button>
+    <div class="fb ok" data-for="correct">对。跌破下沿说明可能低估、值得研究；但安全边际要的是"明显低于价值"的折扣和容错垫，不是压着下沿就冲。区间是估的，留退路。</div>
+    <div class="fb no" data-for="wrong">安全边际 = 只在明显低于价值时才买，留容错。22 元只是刚破下沿，不是"随便买"或"满仓冲"的理由；区间本身是估的，要留退路。</div>
+  </div>
+
+  <h2>一句话总结</h2>
+  <div class="keyidea">
+    <strong>合理股价 = 合理 PE × 可持续每股盈利</strong>。合理 PE 用"历史 / 同行 / PEG"三把尺量，盈利要正常化。<br>
+    结果是<strong>一个区间</strong>，不是一口价；真买入还要在下沿之下留足<strong>安全边际</strong>。
+  </div>
+
+  <div class="source">
+    <span class="label">推荐精读（本课主源）</span>
+    相对估值的黄金标准是 <a href="https://pages.stern.nyu.edu/~adamodar/">Aswath Damodaran</a>——他的《The Little Book of Valuation》第 3–5 章专讲"用倍数估值"，最平易。查 <em>PEG Ratio</em>、<em>Relative Valuation</em> 可上 <a href="https://www.investopedia.com/terms/p/pegratio.asp">Investopedia</a>（英文，可让我翻译）。
+  </div>
+
+  <div class="ask">
+    💬 <strong>随时问我。</strong> 想动真格就说："<strong>用长安的可持续盈利,带我拍一个合理价格区间</strong>",我们把扣非/正常化利润和合理 PE 一起定出来；或问"<strong>DCF 到底怎么算</strong>",下一课我们就折未来现金。
+  </div>
+
+  <div class="lesson-nav">
+    <span>← <a href="0005-changan-practice.html">第 5 课：长安实操</a></span>
+    <span>下一课预告：绝对估值 DCF 入门——把"未来的现金"折回今天值多少 →</span>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>

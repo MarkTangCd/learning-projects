@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L7 · 滚动前进验证</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    /* Walk-forward folds diagram — reuses course tokens. */
+    .folds { font-family: var(--sans); font-size: 0.78rem; margin: 1.4rem 0 1.7rem; }
+    .fold { display: flex; align-items: stretch; margin: 0.28rem 0; }
+    .fold .lab { flex: 0 0 3.2rem; color: var(--ink-faint); font-weight: 600; align-self: center; }
+    .fold .seg { padding: 0.4rem 0.5rem; border-radius: 4px; font-weight: 600; white-space: nowrap; }
+    .fold .tr { background: var(--accent-soft); color: var(--accent); }
+    .fold .te { background: #e9f5ee; color: var(--good); margin-left: 0.25rem; }
+    .fold .gap { flex: 0 0 auto; }
+    .stitch { margin-top: 0.5rem; padding: 0.45rem 0.6rem; border-radius: 4px;
+              background: #e9f5ee; color: var(--good); font-weight: 700; display: inline-block; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">第 7 课 · 工位 03 回测 · 深潜</p>
+  <h1>滚动前进验证</h1>
+  <p class="subtitle">单次切分是赌一把运气;walk-forward 是赌很多把,再把运气平均掉。</p>
+
+  <p>L6 你那次 test 夏普 <code>+0.70</code> 看着不错——但你已经戳穿了它:test 段<strong>恰好</strong>是 2023 复苏,是个更容易的市场。换一刀,结论可能翻盘。<span class="term">滚动前进验证(walk-forward)</span>的思路很直接:<strong>别只切一刀,切很多刀,把每刀的样本外结果拼起来。</strong> 运气有好有坏,拼在一起就被平均掉,剩下的才是策略的真本事。看得见的胜利:一条横跨牛熊的<strong>连续样本外曲线</strong>,和它到底跑不跑得赢躺平。</p>
+
+  <h2>怎么滚</h2>
+  <p>拿一个固定长度的 train 窗口,每次向前挪一个 test 的长度。<strong>每一个 fold 都重新调参</strong>,把当次冠军用在紧接着的、从没见过的 test 段上:</p>
+  <div class="folds">
+    <div class="fold"><span class="lab">Fold 1</span><span class="seg tr">■■■ train ■■■</span><span class="seg te">test₁</span></div>
+    <div class="fold"><span class="lab">Fold 2</span><span class="gap" style="flex:0 0 1.4rem"></span><span class="seg tr">■■■ train ■■■</span><span class="seg te">test₂</span></div>
+    <div class="fold"><span class="lab">Fold 3</span><span class="gap" style="flex:0 0 2.8rem"></span><span class="seg tr">■■■ train ■■■</span><span class="seg te">test₃</span></div>
+    <div class="fold"><span class="lab">Fold 4</span><span class="gap" style="flex:0 0 4.2rem"></span><span class="seg tr">■■■ train ■■■</span><span class="seg te">test₄</span></div>
+    <span class="stitch">拼接 → test₁ + test₂ + test₃ + test₄ = 一条连续样本外曲线</span>
+  </div>
+  <p>红色 train 只用来调参、每 fold 更新一次;绿色 test 段<strong>永不重叠、永远是样本外</strong>。把所有绿段首尾接起来,就得到一条跨越多个市场、<strong>策略从头到尾都没偷看过</strong>的收益曲线。给<strong>这条</strong>曲线打成绩单——regime 运气已经被摊平了。</p>
+
+  <div class="callout tip">
+    <span class="label">为什么"每 fold 重新调参"是对的</span>
+    这恰好模拟真实运维:市场会变,你会<strong>定期重新优化</strong>参数。walk-forward 忠实还原了这个过程——用"截至当时"能拿到的数据调参,再面对未知的下一段。所以它比单次切分更接近实盘会发生的事。
+  </div>
+
+  <h2>两个新读数</h2>
+  <p><strong>① 拼接样本外曲线 vs 同区间买入持有。</strong> 老规矩(L5 铁律):样本外还跑得赢躺平,才算有 <a href="../reference/glossary.html">edge</a>。这条曲线跨了牛熊,结论比 L6 单刀硬得多。</p>
+  <p><strong>② 参数漂移。</strong> 盯住每个 fold 选中的参数:如果它<strong>每季度都在乱跳</strong>((10,40)→(20,60)→(5,90)→…),说明<span class="term">没有稳定的最优参数</span>——所谓"最优"只是每段数据的噪声。<strong>参数漂移越大,策略越不可信。</strong> 稳定的赢家才像真规律。</p>
+
+  <div class="callout warn">
+    <span class="label">walk-forward 也不是圣杯</span>
+    如果你反复调 train/test 长度、网格范围,直到 walk-forward 曲线变好看——你只是<strong>过拟合到了 walk-forward 本身</strong>(又一种<a href="../reference/glossary.html">数据窥探</a>)。它不能消灭过拟合,只是把门槛抬得<strong>高得多</strong>。更狠的版本(组合式净化交叉验证)见 López de Prado,后期再碰。
+  </div>
+
+  <h2>随手一测</h2>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">walk-forward 相比单次 train/test 切分,核心优势是?</div>
+    <button class="opt">让 train 数据量变得更大</button>
+    <button class="opt">彻底消除策略的过拟合风险</button>
+    <button class="opt">多段样本外拼接,摊平运气</button>
+    <button class="opt">省去每次重新调参的麻烦</button>
+    <div class="fb right" data-for="right">对。单刀切分只赌一次 regime 运气;walk-forward 滚很多刀、把多段样本外结果拼起来,好运坏运互相抵消,verdict 更硬。它降低而非消除过拟合。</div>
+    <div class="fb nope" data-for="nope">核心是"多段样本外拼接摊平运气"。它不消除过拟合(反复调窗口仍会窥探),也不是为了扩大 train 或省去调参——恰恰每 fold 都要重新调参。</div>
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">walk-forward 里,每个 fold 选中的最优参数每次都不一样、来回乱跳。这说明?</div>
+    <button class="opt">没有稳定最优,策略可信度低</button>
+    <button class="opt">策略适应力强,是好现象</button>
+    <button class="opt">train 窗口开得太大了</button>
+    <button class="opt">应该改用更高的手续费率</button>
+    <div class="fb right" data-for="right">对。参数每段都换,说明"最优"只是各段噪声、没有跨市场稳定的规律。稳定的赢家才像真 edge;漂移越大越危险。</div>
+    <div class="fb nope" data-for="nope">参数乱跳=没有稳定最优=在追噪声,是危险信号而非适应力。稳定的赢家才可信,和窗口大小或费率无关。</div>
+  </div>
+
+  <h2>动手挑战:把 L6 那 +0.70 的运气挤干</h2>
+  <div class="callout">
+    <span class="label">滚起来看真本事</span>
+    <code>practice/walkforward.py</code> 已写好:同一段跨牛熊数据,train=365 / test=90 滚动 7 个 fold,每 fold 在 train 上重选 SMA 参数,拼出一条连续样本外曲线。<br>
+    1. 跑 <code>python walkforward.py</code>,看每个 fold 选了什么参数、test 跑赢躺平没有。<br>
+    2. 看最后的<strong>拼接样本外</strong>:它的夏普/CAGR vs 同区间买入持有——<strong>挤干运气后,还剩 edge 吗?</strong><br>
+    3. 数<strong>参数漂移</strong>:7 个 fold 选了几种不同参数?对照 L6 单刀那次的 <code>+0.70</code>,现在这个更诚实的数字告诉你什么?<br>
+    把输出贴给我,我们一起下最终判决:SMA 交叉这套,到底值不值得推进到 paper trading。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0"><strong><a href="https://vectorbt.dev/">vectorbt — Splitting & Cross-Validation 文档</a></strong> —— 看专业向量化工具怎么把 walk-forward / 滚动窗口切分自动化(一次扫上百个 fold)。等你想大规模验证时,不必手写 fold 循环。原理就是你今天这套。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清 rolling(固定窗)vs anchored(扩张窗)怎么选、想把拼接样本外曲线画出来、或想知道 train/test 长度该怎么定——直接说。
+    </div>
+    <div class="nav">
+      <a href="0006-out-of-sample.html">← L6:样本外验证</a>
+      <a href="0008-paper-trading.html">下一课:纸上交易 —— 让策略在真实行情里跑起来 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

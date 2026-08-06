@@ -12,11 +12,16 @@ import pandas as pd
 PROXY = "http://127.0.0.1:1087"
 
 
-def fetch_ohlcv(symbol="BTC/USDT", timeframe="1d", limit=400):
-    """Pull clean OHLCV into a time-indexed DataFrame (from L2)."""
+def fetch_ohlcv(symbol="BTC/USDT", timeframe="1d", limit=400, since=None):
+    """Pull clean OHLCV into a time-indexed DataFrame (from L2).
+
+    since: optional ISO date like "2020-10-01" -> start the window there.
+           None (default) = most recent `limit` bars.
+    """
     exchange = ccxt.binance({"timeout": 30000})
     exchange.httpsProxy = PROXY
-    raw = exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
+    since_ms = exchange.parse8601(f"{since}T00:00:00Z") if since else None
+    raw = exchange.fetch_ohlcv(symbol, timeframe=timeframe, since=since_ms, limit=limit)
     df = pd.DataFrame(raw, columns=["ts", "open", "high", "low", "close", "volume"])
     df["ts"] = pd.to_datetime(df["ts"], unit="ms", utc=True)
     return df.set_index("ts")

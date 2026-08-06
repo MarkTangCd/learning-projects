@@ -67,8 +67,47 @@
     <dt>急停 <span class="en">Kill switch</span></dt>
     <dd>一键停止所有交易/撤销所有挂单的机制。行情异常或系统出 bug 时的最后保险。</dd>
 
-    <dt>纸上交易 <span class="en">Paper trading</span></dt>
-    <dd>用真实实时行情、模拟资金下单,不投真金白银。回测与实盘之间的必经桥梁。</dd>
+    <dt>样本内 / 样本外 <span class="en">In-sample / Out-of-sample</span></dt>
+    <dd>样本内 = 调参时用过的数据(表现必然好看,对预测未来无价值);样本外 = 从没碰过的数据,是对"上线后表现"的诚实代理。见 <a href="../lessons/0006-out-of-sample.html">L6</a>。</dd>
+
+    <dt>Train / Test 切分 <span class="en">Train/Test Split</span></dt>
+    <dd>把时间序列<strong>按时间顺序</strong>切成前段(train,调参)+ 后段(test,验收一次)。绝不能随机打乱——那会把未来 K 线混进 train。</dd>
+
+    <dt>数据泄漏 <span class="en">Data Leakage</span></dt>
+    <dd>训练/回测中用到了当时拿不到的未来信息。随机打乱时间序列、用未来数据填充、跨切点标准化都是常见来源。前视偏差的更广义说法。</dd>
+
+    <dt>数据窥探 <span class="en">Data Snooping</span></dt>
+    <dd>反复查看 test 结果再回头改策略,使 test 悄悄变成样本内。诚实做法:参数在 train 上锁定后,test 只跑唯一一次。</dd>
+
+    <dt>过拟合税 <span class="en">Overfitting Tax</span></dt>
+    <dd>样本内表现 − 样本外表现的落差。落差越大,原"漂亮回测"里的水分越多。判断真信号 vs 过拟合的核心量。</dd>
+
+    <dt>滚动前进验证 <span class="en">Walk-forward</span></dt>
+    <dd>train→test 窗口一段段往前挪,反复"调参→样本外验收",把每段样本外拼成一条跨多市场的连续曲线,摊平 regime 运气。单次 train/test 的稳健升级版。见 <a href="../lessons/0007-walk-forward.html">L7</a>。</dd>
+
+    <dt>Rolling / Anchored 窗口</dt>
+    <dd>walk-forward 的两种 train 窗口:Rolling=固定长度、整体前移(只记近期);Anchored/Expanding=起点不动、窗口不断扩张(累积全部历史)。</dd>
+
+    <dt>参数漂移 <span class="en">Parameter Drift</span></dt>
+    <dd>walk-forward 里每个 fold 选中的"最优参数"来回乱跳。说明没有跨市场稳定的最优——所谓最优只是各段噪声。漂移越大,策略越不可信。</dd>
+
+    <dt>纸上交易 / 干跑 <span class="en">Paper trading / Dry-run</span></dt>
+    <dd>用真实实时行情、模拟资金下单,不投真金白银。回测与实盘之间的必经桥梁,专门抓回测看不见的工程 bug(时区/断网/状态错乱)。见 <a href="../lessons/0008-paper-trading.html">L8</a>。</dd>
+
+    <dt>事件循环 <span class="en">Event Loop / Tick</span></dt>
+    <dd>实盘的运行方式:每隔一段时间执行一次 tick(poll→signal→compare→act),一次只处理一根 K 线。与回测的整列向量化相对。</dd>
+
+    <dt>未收盘 K 线 <span class="en">Forming Candle</span></dt>
+    <dd>实时拉到的最后一根 K 线,当前周期还没结束、数值仍在变。用它算信号 = 前视偏差的实盘版。做法:<code>df.iloc[:-1]</code> 丢掉它,只用已收盘 K 线。</dd>
+
+    <dt>状态持久化 <span class="en">State Persistence</span></dt>
+    <dd>把持仓/现金/入场价等写入磁盘,使断电重启后账户不丢。实盘是"有记忆的循环",回测则每次重算。</dd>
+
+    <dt>幂等 <span class="en">Idempotency</span></dt>
+    <dd>同一根 K 线被处理多次,结果与处理一次相同。做法:只在"目标仓位≠当前仓位"时下单,防止重复成交。</dd>
+
+    <dt>标记市值 <span class="en">Mark-to-market</span></dt>
+    <dd>任意时刻账户价值 = 现金 + 持币 × 现价。你的实时净值,盈亏随行情逐刻变动。</dd>
 
     <dt>Maker / Taker</dt>
     <dd>Maker=挂限价单为市场"提供"流动性(费率低/有返佣);Taker=用市价单"吃掉"现有挂单(费率高)。</dd>

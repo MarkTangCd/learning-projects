@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>参考 · 样本外验证配方</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">参考文档 · 常读常新</p>
+  <h1>样本外验证配方</h1>
+  <p class="subtitle">让回测数字不再是"事后挑出来的"。配 <a href="../lessons/0006-out-of-sample.html">L6</a>。</p>
+
+  <h2>前提</h2>
+  <p>一段带时间索引的 <code>price</code>,一个能给 <code>df</code> 加 <code>strat_ret_net</code> 的回测(<a href="backtest-recipe.html">回测配方</a>),和一套参数网格。</p>
+
+  <h2>配方:train 上搜、test 上验一次</h2>
+  <pre><code># ① 按时间顺序切(绝不随机打乱 -> 会数据泄漏)
+split = int(len(price) * 0.7)          # 前 70% train,后 30% test
+
+def score(net_returns):                # 从某段自己的净收益重建成绩单
+    r = net_returns.dropna()
+    eq = (1 + r).cumprod()
+    return {"sharpe": sharpe(r), "cagr": cagr(eq), "mdd": max_drawdown(eq)}
+
+# ② 每组参数:整段回测,再切成 train / test 两张成绩单
+rows = []
+for fast, slow in GRID:
+    net = backtest(sma_crossover_signal(price, fast, slow))["strat_ret_net"]
+    rows.append((fast, slow, score(net[:split]), score(net[split:])))
+
+# ③ 只用 train 挑冠军;再看它的 test 成绩 = 诚实的未来估计
+winner = max(rows, key=lambda x: x[2]["sharpe"])   # 按 train 夏普
+tax = winner[2]["sharpe"] - winner[3]["sharpe"]    # 过拟合税(落差)</code></pre>
+
+  <h2>三条纪律</h2>
+  <table>
+    <thead><tr><th>纪律</th><th>为什么</th></tr></thead>
+    <tbody>
+      <tr><td>① 按时间切,不随机打乱</td><td>随机会把未来 K 线混进 train = 数据泄漏(前视偏差)</td></tr>
+      <tr><td>② 调参只在 train 上做</td><td>样本内表现必然好看,对预测未来无价值</td></tr>
+      <tr><td>③ test 只碰一次</td><td>回头看 test 再改策略 = 数据窥探,test 被污染成样本内</td></tr>
+    </tbody>
+  </table>
+
+  <h2>读落差</h2>
+  <table>
+    <thead><tr><th>train</th><th>test</th><th>诊断</th></tr></thead>
+    <tbody>
+      <tr><td>好</td><td>崩</td><td>过拟合 —— 别上实盘</td></tr>
+      <tr><td>好</td><td>也稳(略降)</td><td>可能真信号 —— 可进 paper trading</td></tr>
+      <tr><td>一般</td><td>一般</td><td>诚实但无 edge</td></tr>
+    </tbody>
+  </table>
+  <p>永远拿 test 段的<strong>买入持有</strong>做同款对比。<strong>过拟合税 = 样本内 − 样本外</strong>,越大水分越多。</p>
+
+  <h2>升级:滚动前进 walk-forward</h2>
+  <p>单次切分只赌一次 regime 运气。walk-forward 滚很多刀、把每段样本外拼起来,摊平运气。配 <a href="../lessons/0007-walk-forward.html">L7</a>。</p>
+  <pre><code>TRAIN_BARS, TEST_BARS = 365, 90   # rolling 1 年调参 / 下 1 季验收
+
+# 每 fold:固定长度 train 窗口前移一个 test 长度,test 段永不重叠
+start, oos = 0, []
+while start + TRAIN_BARS + TEST_BARS <= len(price):
+    tr = slice(start, start + TRAIN_BARS)
+    te = slice(start + TRAIN_BARS, start + TRAIN_BARS + TEST_BARS)
+    best = max(GRID, key=lambda p: sharpe(nets[p][tr]))  # 只在 train 上挑
+    oos.append(nets[best][te])                           # 冠军的未见 test 段
+    start += TEST_BARS
+
+oos_curve = pd.concat(oos)          # 拼接成连续样本外曲线 -> 给它打分</code></pre>
+  <table>
+    <thead><tr><th>读什么</th><th>怎么判</th></tr></thead>
+    <tbody>
+      <tr><td>拼接样本外 vs 买入持有</td><td>跨牛熊还跑得赢躺平,才算有 edge</td></tr>
+      <tr><td>参数漂移</td><td>每 fold 选的参数乱跳 = 没有稳定最优 = 危险信号</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn">
+    <span class="label">别过拟合到 walk-forward 本身</span>
+    反复调 train/test 长度和网格直到曲线变好看,只是又一层数据窥探。walk-forward 抬高门槛,不消除过拟合。大规模用 <a href="https://vectorbt.dev/">vectorbt</a> 自动化。
+  </div>
+
+  <div class="lesson-foot">
+    <div class="nav">
+      <a href="../lessons/0006-out-of-sample.html">← 回到 L6</a>
+      <a href="metrics-scorecard.html">成绩单速查 →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

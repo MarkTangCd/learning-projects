@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>参考 · 纸上交易 tick 配方</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">参考文档 · 常读常新</p>
+  <h1>纸上交易 tick 配方</h1>
+  <p class="subtitle">一根 K 线一次决策的实盘心跳。向量化回测的"活"版本。配 <a href="../lessons/0008-paper-trading.html">L8</a>。</p>
+
+  <h2>tick 四步</h2>
+  <pre><code># ① Poll:拉最新 K 线,丢掉未收盘的最后一根
+df = fetch_ohlcv(timeframe="1d", limit=SLOW + 40).iloc[:-1]
+price = float(df["close"].iloc[-1])
+
+# ② Signal:在已收盘数据上算目标仓位(= shift(1) 的实盘形态)
+fast = df["close"].rolling(FAST).mean().iloc[-1]
+slow = df["close"].rolling(SLOW).mean().iloc[-1]
+desired = int(fast > slow)
+
+# ③ Compare + 幂等:只在"新K线"且"目标≠当前"时下单
+if state["last_ts"] == bar_ts:  return state            # 无新K线 -> 不动作
+if desired != state["position"]:
+    # ④ Act:模拟成交 + 扣费,更新虚拟账户
+    if desired == 1:
+        state["coin"] = state["cash"] * (1 - FEE) / price; state["cash"] = 0.0
+    else:
+        state["cash"] = state["coin"] * price * (1 - FEE); state["coin"] = 0.0
+    state["position"] = desired
+state["last_ts"] = bar_ts
+equity = state["cash"] + state["coin"] * price          # mark-to-market</code></pre>
+
+  <h2>三条实盘纪律</h2>
+  <table>
+    <thead><tr><th>纪律</th><th>怎么落实</th><th>不做会怎样</th></tr></thead>
+    <tbody>
+      <tr><td>① 只对已收盘 K 线动作</td><td><code>df.iloc[:-1]</code> 丢掉 forming candle</td><td>用未定数据决策 = 前视偏差实盘版</td></tr>
+      <tr><td>② 状态持久化</td><td>持仓/现金存 JSON,每 tick 读写</td><td>重启丢仓位,账户对不上</td></tr>
+      <tr><td>③ 幂等下单</td><td>目标=当前仓位就不动作</td><td>同一根 K 线重复下单</td></tr>
+    </tbody>
+  </table>
+
+  <h2>状态最小结构</h2>
+  <pre><code>{ "cash": 10000.0, "coin": 0.0, "position": 0,
+  "entry": 0.0, "last_ts": "2026-08-05 ...", "trades": [] }</code></pre>
+
+  <div class="callout warn">
+    <span class="label">这仍是模拟(要心里有数)</span>
+    按现价<strong>即时且必然成交</strong>、无部分成交、无延迟、无断线。真正的实盘要处理<strong>订单生命周期</strong>(下单/部分成交/撤单/超时/对账)与<strong>风控/急停</strong>——那是执行深水区。paper trading 的价值:在接真钱前,把时区/断网/状态错乱这些回测看不见的 bug 全暴露出来。工业级实现见 <a href="https://www.freqtrade.io/en/stable/#dry-run">freqtrade dry-run</a>。
+  </div>
+
+  <div class="lesson-foot">
+    <div class="nav">
+      <a href="../lessons/0008-paper-trading.html">← 回到 L8</a>
+      <a href="out-of-sample-recipe.html">样本外配方 →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

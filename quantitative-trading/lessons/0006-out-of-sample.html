@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L6 · 样本外验证</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    /* Train/test split bar — reuses course tokens. */
+    .split { display: flex; font-family: var(--sans); font-size: 0.82rem; font-weight: 600;
+             border-radius: 6px; overflow: hidden; margin: 1.3rem 0 1.6rem; border: 1px solid var(--rule); }
+    .split .tr { flex: 7; background: var(--accent-soft); color: var(--accent); padding: 0.7rem 0.9rem; }
+    .split .te { flex: 3; background: #e9f5ee; color: var(--good); padding: 0.7rem 0.9rem; border-left: 2px dashed var(--ink-faint); }
+    .split .lab { display: block; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.75; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">第 6 课 · 工位 03 回测 · 诚实收官</p>
+  <h1>样本外验证</h1>
+  <p class="subtitle">你每个漂亮的回测数字,都是事后挑出来的。今天学怎么拿到一个不骗自己的未来估计。</p>
+
+  <p>L5 你亲眼看到:最优参数会随市场<strong>翻盘</strong>((20,60) 牛市赢、(5,20) 熊市赢)。这暴露了一个更深的问题——只要你在<strong>同一段数据</strong>上又调参又评分,那个赢家几乎<strong>一定</strong>好看:你就是挑最好看的那个。这叫 <span class="term">样本内(in-sample)</span> 表现,它对预测未来<strong>几乎没有价值</strong>。今天还在 <a href="0001-anatomy-of-a-quant-system.html">工位 ③「回测」</a>,给回测装上最后一道诚实锁。看得见的胜利:一个策略的 <em>样本内</em> vs <em>样本外</em> 两张成绩单,和它们之间的<strong>落差</strong>。</p>
+
+  <div class="callout warn">
+    <span class="label">量化头号杀手:回测过拟合</span>
+    参数越多、你试的组合越多,总能"炼"出一组在历史上闪闪发光的参数——哪怕市场其实是随机的。<a href="../reference/glossary.html">过拟合</a>让回测曲线美得不真实,实盘立刻打回原形。样本外验证,就是专门用来<strong>戳穿</strong>这种幻觉的。
+  </div>
+
+  <h2>核心:样本内 vs 样本外</h2>
+  <p>把数据按<strong>时间顺序</strong>切成两段:</p>
+  <div class="split">
+    <div class="tr"><span class="lab">Train · 样本内(约 70%)</span>在这里<strong>调参</strong>:随便试、随便挑最优。</div>
+    <div class="te"><span class="lab">Test · 样本外(约 30%)</span>只用来<strong>验收一次</strong>。策略从没见过它。</div>
+  </div>
+  <p>逻辑很简单:<strong>test 段模拟"未来"</strong>——策略调参时完全没碰过它,所以它在 test 上的表现,才是对"上线后会怎样"的诚实代理。</p>
+
+  <div class="callout warn">
+    <span class="label">铁律一:必须按时间切,不能随机打乱</span>
+    这是时间序列。若像普通机器学习那样把数据<strong>随机洗牌</strong>再切,你会把"未来的 K 线"混进 train——模型偷看了明天,这是<a href="../reference/glossary.html">前视偏差</a>的又一种形态(<span class="term">数据泄漏 data leakage</span>)。<strong>train 必须整段在 test 之前。</strong>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">铁律二:test 只能碰一次</span>
+    每当你看了 test 结果不满意、回头改策略再测——test 就被"用"过了,悄悄变成了新的样本内。这叫 <span class="term">数据窥探(data snooping)</span>。诚实的做法:所有调参在 train 上做完、锁定<strong>一组</strong>参数,再去 test 上跑<strong>唯一一次</strong>。
+  </div>
+
+  <h2>怎么读那道落差</h2>
+  <table>
+    <thead><tr><th>train 表现</th><th>test 表现</th><th>诊断</th></tr></thead>
+    <tbody>
+      <tr><td>好</td><td>崩</td><td><strong>过拟合</strong>——背下了 train 的噪声,别上实盘</td></tr>
+      <tr><td>好</td><td>也稳(略降)</td><td>可能是<strong>真信号</strong>(至少这段数据支持),可进 paper trading</td></tr>
+      <tr><td>一般</td><td>一般</td><td>诚实但平庸,策略本身没什么 edge</td></tr>
+    </tbody>
+  </table>
+  <p>关键数字是 <span class="term">过拟合税</span> = 样本内表现 − 样本外表现。落差越大,你之前的"好回测"里水分越多。永远拿 test 段的<strong>买入持有</strong>做同款对比——样本外还跑得赢躺平,才算数。</p>
+
+  <h2>把它向量化:train 上搜、test 上验一次</h2>
+  <pre><code>split = int(len(price) * 0.7)          # 按时间切:前 70% train
+train_ret = strat_ret_net.iloc[:split]
+test_ret  = strat_ret_net.iloc[split:] # 后 30% test,碰一次
+
+# 1) 在 train 上网格搜参,挑样本内夏普最高的一组
+# 2) 锁定那组参数,只在 test 上评分 —— 那才是诚实的未来估计</code></pre>
+  <div class="callout tip">
+    <span class="label">为什么可以在整段上算均线</span>
+    均线在任意一天只回看<strong>过去</strong>的 K 线,跨越切点计算<strong>不泄漏未来</strong>。真正必须"留在样本外"的,是<strong>你挑哪组参数</strong>这个决定——它只在 train 上做。
+  </div>
+
+  <div class="callout tip">
+    <span class="label">更稳的升级版:滚动前进(walk-forward)</span>
+    单次 train/test 只是起点。专业做法是<span class="term">滚动前进验证</span>:train→test 窗口一段段往前挪,反复"调参→样本外验收",得到一条跨越多个市场的样本外曲线。原理和今天完全一样,只是重复多次。成熟后用 <a href="https://vectorbt.dev/">vectorbt</a> 等工具自动化。
+  </div>
+
+  <h2>随手一测</h2>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">为什么时间序列的 train/test 切分,绝不能随机打乱数据?</div>
+    <button class="opt">随机切会让两段样本量不相等</button>
+    <button class="opt">会把未来 K 线混进 train 偷看</button>
+    <button class="opt">随机数每次运行结果都不同</button>
+    <button class="opt">打乱后均线指标就没法计算了</button>
+    <div class="fb right" data-for="right">对。随机洗牌会把晚于 test 的 K 线塞进 train,模型等于偷看了未来——这是数据泄漏(前视偏差的一种)。时间序列必须 train 整段在 test 之前。</div>
+    <div class="fb nope" data-for="nope">核心是数据泄漏:随机打乱会把"未来"的 K 线混进 train,模型偷看了明天。时间序列必须按时间顺序切、train 整段在 test 前。</div>
+  </div>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">某策略 train 段夏普 2.8、test 段掉到 0.1。最诚实的解读是?</div>
+    <button class="opt">策略很稳,可以直接上实盘</button>
+    <button class="opt">再多调调参数就能修好 test</button>
+    <button class="opt">典型过拟合,别信这个回测</button>
+    <button class="opt">test 段太短,数字不用管</button>
+    <div class="fb right" data-for="right">对。train 光鲜、test 崩塌 = 过拟合税极高,策略只是背下了 train 的噪声。回头改参再看 test 更糟——那是数据窥探,会污染 test。</div>
+    <div class="fb nope" data-for="nope">train 2.8、test 0.1 是过拟合的教科书形态。别上实盘,也别回头改参再测(那会污染 test)。这个回测的样本内水分极大。</div>
+  </div>
+
+  <h2>动手挑战:量出你自己的过拟合税</h2>
+  <div class="callout">
+    <span class="label">train 上搜、test 上验一次</span>
+    我写好了 <code>practice/oos.py</code>(复用 L4 backtest + L5 metrics):它拉一段跨牛熊的 BTC 数据,按 70/30 切分,在 <strong>train 上网格搜</strong> 12 组 SMA 参数,挑样本内夏普冠军,再拿它去 <strong>test 上验收一次</strong>。<br>
+    1. 跑 <code>python oos.py</code>,看那张 train/test 对照表。<br>
+    2. 找出 <strong>train 冠军</strong>:它的 <strong>test</strong> 夏普/CAGR 掉了多少?这就是你的<strong>过拟合税</strong>。<br>
+    3. 看脚本最后一行"事后诸葛"——<strong>test 上真正最优的那组,和 train 冠军是不是同一组?</strong> 如果不是,你就亲手证明了:在 train 上挑参数,根本挑不出 test 的赢家。<br>
+    把输出贴给我,我们一起判它是真信号还是过拟合。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0"><strong><a href="https://www.quantresearch.org/">Marcos López de Prado — 回测过拟合(Backtest Overfitting)研究</a></strong> —— 量化界对"样本外/过拟合"最权威的声音。代表作《Pseudo-Mathematics and Financial Charlatanism》用数学证明:试的参数够多,任何随机策略都能炼出漂亮的样本内回测。读它彻底建立对"样本内数字"的免疫力。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清 walk-forward 具体怎么滚、想知道"该切 70/30 还是别的比例"、或想把 train/test 两条收益曲线画在一张图上对比——直接说。
+    </div>
+    <div class="nav">
+      <a href="0005-evaluating-strategies.html">← L5:读懂成绩单</a>
+      <a href="0007-walk-forward.html">下一课:滚动前进验证 —— 把运气挤干 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

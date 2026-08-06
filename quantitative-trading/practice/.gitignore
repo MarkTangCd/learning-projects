@@ -3,3 +3,5 @@ __pycache__/
 *.pyc
 *.parquet
 *.csv
+*.png
+paper_state.json

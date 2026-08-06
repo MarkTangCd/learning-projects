@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L8 · 纸上交易</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    /* Tick loop diagram — reuses course tokens. */
+    .loop { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+            font-family: var(--sans); font-size: 0.82rem; margin: 1.3rem 0 1.7rem; }
+    .loop .step { flex: 1 1 7rem; min-width: 7rem; border: 1px solid var(--rule);
+                  border-top: 3px solid var(--good); border-radius: 6px; background: #fff;
+                  padding: 0.6rem 0.7rem; }
+    .loop .step b { display: block; font-size: 0.9rem; }
+    .loop .step span { color: var(--ink-soft); font-size: 0.76rem; }
+    .loop .arr { color: var(--ink-faint); font-weight: 700; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">第 8 课 · 工位 04 执行</p>
+  <h1>纸上交易</h1>
+  <p class="subtitle">从"整列数学"跨到"一次一根 K 线":让策略在真实行情里跑起来,只是不花真钱。</p>
+
+  <p>回测三部曲(L4–L7)结束,你换<a href="0001-anatomy-of-a-quant-system.html">工位</a>了——从 ③回测 走到 ④<strong>执行</strong>。<span class="term">纸上交易(paper trading)</span>= 用<strong>真实实时行情</strong>驱动策略、下<strong>模拟单</strong>、跟踪一个虚拟账户。它是回测与实盘之间<strong>唯一的桥</strong>。看得见的胜利:你锁定的信号第一次在<strong>活的</strong>市场里做决策,虚拟账户实时更新、并存到磁盘。</p>
+
+  <div class="callout tip">
+    <span class="label">先说清:这一课和"策略赚钱"无关</span>
+    L7 已判 SMA 交叉无 edge——但 paper trading 学的是<strong>管道(工位 ④)</strong>,不是收益。我们拿这个简单策略当<strong>载体</strong>,把 L1 那句"<em>一份信号,两处运行</em>"的<strong>实盘那一半</strong>兑现。管道通了,以后换任何有 edge 的信号都能直接插上。
+  </div>
+
+  <h2>思维切换:向量化 → 事件循环</h2>
+  <table>
+    <thead><tr><th></th><th>回测(L4–L7)</th><th>纸上/实盘(L8)</th></tr></thead>
+    <tbody>
+      <tr><td>时间</td><td>离线,历史冻结</td><td>在线,实时推进</td></tr>
+      <tr><td>计算</td><td>整列向量化,一次算完</td><td><strong>事件循环,一次一根 K 线</strong></td></tr>
+      <tr><td>视野</td><td>能看到全部历史</td><td>只能看到"截至现在"</td></tr>
+      <tr><td>状态</td><td>每次重算,无需记忆</td><td><strong>要记住持仓/现金(有记忆)</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h2>实盘的心跳:一个 tick</h2>
+  <div class="loop">
+    <div class="step"><b>① Poll</b><span>拉最新已收盘 K 线</span></div>
+    <span class="arr">→</span>
+    <div class="step"><b>② Signal</b><span>在已收盘数据上算目标仓位</span></div>
+    <span class="arr">→</span>
+    <div class="step"><b>③ Compare</b><span>目标 vs 当前持仓</span></div>
+    <span class="arr">→</span>
+    <div class="step"><b>④ Act</b><span>只在变化时模拟下单+扣费+存状态</span></div>
+  </div>
+  <p>把这个 tick 每隔一段时间(日线策略→每天一次)重复执行,就是一台交易机器人的核心。<strong>没有魔法,就这四步。</strong></p>
+
+  <h2>三条实盘新纪律(回测里免费,实盘里要自己管)</h2>
+  <p><strong>① 只对已收盘 K 线动作。</strong> 实时数据的<strong>最后一根还在变</strong>(<span class="term">未收盘 K 线 forming candle</span>)。用它算信号 = 用还没定的未来做决策 = <a href="../reference/glossary.html">前视偏差</a>的实盘版。做法:<code>df.iloc[:-1]</code> 丢掉最后一根,只用已收盘的。这就是 L3 <code>shift(1)</code> 在实盘里的形态。</p>
+  <p><strong>② 记住状态。</strong> 回测每次从头重算;实盘是<strong>有记忆的循环</strong>——你持着仓穿过一个个 tick。持仓、现金、入场价必须<span class="term">持久化(persist)</span>到磁盘,断电重启也不丢。</p>
+  <p><strong>③ 幂等:只在目标≠当前时下单。</strong> 同一根 K 线被扫两次,不能买两次。每个 tick 先比对<em>目标仓位</em>和<em>当前仓位</em>,一致就<strong>什么都不做</strong>。</p>
+
+  <div class="callout tip">
+    <span class="label">模拟成交 & 标记市值</span>
+    下单简化为:按当前价即时成交、扣 <code>FEE</code>。买 = 现金→币,卖 = 币→现金。任意时刻账户价值 = <code>现金 + 持币 × 现价</code>,这叫<span class="term">标记市值(mark-to-market)</span>——你的实时"净值"。
+  </div>
+
+  <div class="callout warn">
+    <span class="label">为什么非走这一步不可</span>
+    Paper trading 专门抓那些<strong>回测里根本看不见的 bug</strong>:时区错位、断网重连、下单失败、状态写坏、数据延迟、K 线对不齐……这些没有一个会出现在向量化回测里,却每一个都能让实盘亏钱。<strong>在接真金白银前,先让它们在模拟盘里全部暴露。</strong>
+  </div>
+
+  <h2>随手一测</h2>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">实时行情里,为什么必须丢掉拉到的最后一根 K 线?</div>
+    <button class="opt">最后一根 K 线的数据总是错的</button>
+    <button class="opt">它还没收盘,用它=偷看未来</button>
+    <button class="opt">交易所不返回最后一根的成交量</button>
+    <button class="opt">丢掉能让 SMA 计算快一点</button>
+    <div class="fb right" data-for="right">对。实时拉到的最后一根是"当前还在形成"的 K 线,数值还会变。拿它算信号=用没定下来的未来做决策,是前视偏差的实盘版。只用已收盘 K 线。</div>
+    <div class="fb nope" data-for="nope">最后一根是"未收盘 forming candle",还在变。用它算信号=偷看未来(前视偏差实盘版)。不是数据错、也不是为了提速。</div>
+  </div>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">同一根已收盘 K 线,你的 tick 被触发了两次。正确行为是?</div>
+    <button class="opt">再按信号买入一次加仓</button>
+    <button class="opt">把上一笔成交撤销重来</button>
+    <button class="opt">目标=当前仓位,什么都不做</button>
+    <button class="opt">立即清仓换成现金规避</button>
+    <div class="fb right" data-for="right">对。这就是幂等:每个 tick 只比对目标仓位与当前仓位,一致就不动作。否则同一根 K 线会被重复下单,账户被搞乱。</div>
+    <div class="fb nope" data-for="nope">要幂等:目标仓位与当前一致就什么都不做。重复买/撤销/清仓都会因为同一根 K 线被扫两次而搞乱账户。</div>
+  </div>
+
+  <h2>动手挑战:让策略在活市场里跑起来</h2>
+  <div class="callout">
+    <span class="label">你的第一笔 paper 决策</span>
+    <code>practice/paper_trade.py</code> 已写好(复用你的 <code>fetch_ohlcv</code>),$10,000 虚拟起始资金,状态存 <code>paper_state.json</code>。<br>
+    1. 跑 <code>python paper_trade.py</code>:它拉<strong>此刻</strong>的 BTC 已收盘 K 线、算信号、决策。<em>(当前日线信号是空仓,所以你会看到它守住现金——执行逻辑正确。)</em><br>
+    2. <strong>再跑一次</strong>:观察它报"无新收盘K线,持仓不变"——这就是<strong>幂等</strong>在起作用。<br>
+    3. 打开 <code>paper_state.json</code>,看<strong>状态被持久化</strong>了。<br>
+    4. 想看完整 <strong>BUY→SELL</strong> 成交?切到更快周期实时跑:<code>python paper_trade.py --reset --tf 4h --loop 60</code>(每 60s 一个 tick,Ctrl-C 停)。周期一快,更容易撞上金叉/死叉触发模拟单。<br>
+    把输出贴给我,我们一起验证这四步管道是否都通了。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0"><strong><a href="https://www.freqtrade.io/en/stable/#dry-run">freqtrade — Dry-run(模拟盘)模式</a></strong> —— 工业级 Crypto 机器人的"paper trading"就叫 dry-run:同一套策略代码,配置一开关就在实时行情上模拟下单。读它看专业框架怎么把你今天这台 tick 机器人做成生产级(含真实订单、超时、重连)。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清怎么用 cron 每天定时跑一次 tick、想把 tick 接到交易所<strong>测试网(testnet)</strong>下真订单、或想给账户加一条净值曲线记录——直接说。
+    </div>
+    <div class="nav">
+      <a href="0007-walk-forward.html">← L7:滚动前进验证</a>
+      <a href="0009-execution-and-risk.html">下一课:真实执行与风控 —— 订单生命周期 + 急停 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>
