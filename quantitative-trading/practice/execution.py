@@ -76,15 +76,25 @@ def show_order(tag, o):
           f"cost={o.get('cost')}")
 
 
-def guarded_create(ex, otype, side, amount, price=None):
-    """Every order goes through the gate. Idempotency via a clientOrderId,
-    echoing L8: the same tick must not send the same order twice."""
+def intent_cid(side, price, tag="l9"):
+    """Idempotency key derived from the TRADE INTENT, not the wall clock.
+
+    A retry after a timed-out SEND must reuse the SAME key, or the venue treats
+    it as a brand-new order and you double-fill. So the key must be a pure
+    function of what the trade IS (side + price bucket), never time.time().
+    In the L8 tick loop the natural intent id is (symbol, side, bar_ts)."""
+    return f"{tag}-{side}-{str(price).replace('.', '_')}"
+
+
+def guarded_create(ex, otype, side, amount, price=None, cid=None):
+    """Every order goes through the gate. Idempotency via a clientOrderId.
+    If cid is None a per-intent key is derived so retries are safe by default."""
     check_price = price if price is not None else float(ex.fetch_ticker(SYMBOL)["last"])
     ok, reason = pre_trade_check(ex, side, amount, check_price)
     print(f"  风控: {reason}")
     if not ok:
         return None
-    cid = f"l9-{int(time.time() * 1000)}"
+    cid = cid or intent_cid(side, check_price)
     params = {"clientOrderId": cid}
     if otype == "limit":
         return ex.create_order(SYMBOL, "limit", side, amount, price, params)
@@ -133,9 +143,72 @@ def cmd_fill(ex):
     show_order("成交回读", filled)
     avg = filled.get("average") or assumed
     slip_bps = (avg - assumed) / assumed * 1e4
-    fee = filled.get("fee") or {}
+
+    # RECONCILE FEES — Binance's order object does NOT carry commission; the fee
+    # lives in the individual fills. Read the trades and aggregate. This is the
+    # honest cost of the trade, not the (empty) fee field on the order header.
+    fee_cost, fee_ccy = fee_from_trades(ex, o["id"])
+    fee_bps = (fee_cost / filled["cost"] * 1e4) if fee_cost and filled.get("cost") else None
+    fee_str = f"{fee_cost} {fee_ccy}" + (f"({fee_bps:+.1f} bps)" if fee_bps else "")
     print(f"  对账: 假设 ${assumed:,.2f} -> 实际均价 ${avg:,.2f}  "
-          f"滑点 {slip_bps:+.1f} bps  手续费 {fee.get('cost')} {fee.get('currency')}")
+          f"滑点 {slip_bps:+.1f} bps  手续费 {fee_str}")
+    if slip_bps == 0.0:
+        print("  注:测试网盘口是合成的,滑点常为 0 —— 真实成本要到实盘/真实盘口才测得出。")
+
+
+def fee_from_trades(ex, order_id):
+    """Where the fee actually lives: the fills, not the order header.
+
+    Returns (total_cost, currency). Sums commission across all fills of the
+    order. Falls back to (None, None) if the venue exposes nothing."""
+    try:
+        trades = ex.fetch_order_trades(order_id, SYMBOL)
+    except Exception:
+        return None, None
+    total, ccy = 0.0, None
+    for t in trades:
+        fee = t.get("fee") or {}
+        if fee.get("cost") is not None:
+            total += float(fee["cost"])
+            ccy = fee.get("currency") or ccy
+    return (round(total, 8), ccy) if ccy else (None, None)
+
+
+def cmd_dup(ex):
+    """Idempotency demo (L10): send the SAME clientOrderId twice — the venue
+    rejects the duplicate, so a timed-out-then-retried SEND cannot double-fill.
+    Uses a far-below-market limit (won't fill) so nothing actually double-buys.
+
+    The recovery pattern real systems use: on a timeout, DON'T blind-retry
+    create_order. First fetch_order(cid) to learn if it already went through;
+    resend with the SAME cid only if it didn't."""
+    price = float(ex.fetch_ticker(SYMBOL)["last"])
+    limit = ex.price_to_precision(SYMBOL, price * 0.80)   # won't fill
+    amount = ex.amount_to_precision(SYMBOL, MAX_NOTIONAL_USDT * 0.5 / float(limit))
+    cid = intent_cid("buy", limit)                        # SAME key both sends
+    print(f"用同一个 clientOrderId 发两次 @ ${limit}(cid={cid}):")
+
+    print("  第一次发送:")
+    o1 = guarded_create(ex, "limit", "buy", float(amount), float(limit), cid=cid)
+    if not o1:
+        return
+    show_order("第一次", o1)
+
+    print("  第二次发送(模拟断网后重试,同一个 cid):")
+    try:
+        o2 = guarded_create(ex, "limit", "buy", float(amount), float(limit), cid=cid)
+        if o2:
+            show_order("重试", o2)
+            same = o2.get("id") == o1.get("id")
+            print(f"  交易所返回{'同一张单(id 相同)' if same else '新单!幂等失效'} "
+                  f"-> {'没有下重单 ✅' if same else '账户被下了两单 ❌'}")
+    except ccxt.DuplicateOrderId as e:
+        print(f"  交易所拒绝重复 clientOrderId ✅ —— 幂等生效,账户没被下重单。({e})")
+    except ccxt.InvalidOrder as e:
+        print(f"  交易所拒绝重复单 ✅(InvalidOrder)——幂等生效。({e})")
+
+    ex.cancel_order(o1["id"], SYMBOL)                     # cleanup
+    print(f"  撤单 -> status={ex.fetch_order(o1['id'], SYMBOL)['status']}")
 
 
 def cmd_kill(_):
@@ -150,11 +223,11 @@ def cmd_unkill(_):
 
 
 COMMANDS = {"balance": cmd_balance, "rest": cmd_rest, "fill": cmd_fill,
-            "kill": cmd_kill, "unkill": cmd_unkill}
+            "dup": cmd_dup, "kill": cmd_kill, "unkill": cmd_unkill}
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="Binance testnet order-lifecycle demo")
-    ap.add_argument("cmd", choices=COMMANDS, help="balance|rest|fill|kill|unkill")
+    ap.add_argument("cmd", choices=COMMANDS, help="balance|rest|fill|dup|kill|unkill")
     args = ap.parse_args()
 
     # kill/unkill are local-only switches; they must NOT need network or keys.

@@ -19,18 +19,21 @@ ex.httpsProxy = "http://127.0.0.1:1087"
 ex.set_sandbox_mode(True)          # -> testnet.binance.vision;key 也须是测试网 key
 ex.load_markets()
 
-# 1) SEND —— 过风控闸门后才发;clientOrderId = 幂等钥匙(呼应 L8)
+# 1) SEND —— 过风控闸门后才发;clientOrderId = 幂等钥匙(意图的纯函数,非时钟!见 L10)
 ok, why = pre_trade_check(ex, side, amount, price)   # 见下方
 if not ok: return
+cid = f"{SYMBOL}-{side}-{bar_ts}"                     # 同意图->同钥匙,重试不下重单
 o = ex.create_order(SYMBOL, "market", "buy", amount, None,
-                    {"clientOrderId": f"l9-{ms}"})
+                    {"clientOrderId": cid})
 
 # 2) READ BACK —— 别信下单回执,回读订单簿里的真相
 filled = ex.fetch_order(o["id"], SYMBOL)
 
 # 3) RECONCILE —— 我以为的 vs 实际发生的
 slip_bps = (filled["average"] - assumed) / assumed * 1e4
-# 记账用 filled["average"] / filled["fee"],不是下单前的 ticker</code></pre>
+# 记账均价用 filled["average"];手续费不在订单头!在成交明细里:
+fee = sum(t["fee"]["cost"] for t in ex.fetch_order_trades(o["id"], SYMBOL))
+# 注:测试网盘口是合成的,滑点常为 0 —— 真实成本要到实盘才测得出</code></pre>
 
   <h2>统一订单结构:下单后必读字段</h2>
   <table>
@@ -40,7 +43,7 @@ slip_bps = (filled["average"] - assumed) / assumed * 1e4
       <tr><td><code>status</code></td><td><code>open</code> / <code>closed</code> / <code>canceled</code></td><td><code>fetch_order(id, sym)</code></td></tr>
       <tr><td><code>filled</code> / <code>remaining</code></td><td>已成 / 未成数量</td><td><code>fetch_open_orders(sym)</code></td></tr>
       <tr><td><code>average</code></td><td>实际成交均价(算滑点用它)</td><td><code>cancel_order(id, sym)</code></td></tr>
-      <tr><td><code>cost</code> / <code>fee</code></td><td>成交额 / 真实手续费</td><td><code>fetch_balance()</code></td></tr>
+      <tr><td><code>cost</code> / <code>fee</code></td><td>成交额 / 真实手续费(<strong>Binance 的 fee 在成交明细里,订单头常为 None</strong>→ <code>fetch_order_trades</code>)</td><td><code>fetch_balance()</code></td></tr>
     </tbody>
   </table>
 
@@ -71,9 +74,21 @@ slip_bps = (filled["average"] - assumed) / assumed * 1e4
         return False, "below exchange minimum"
     return True, "ok"</code></pre>
 
+  <h2>幂等重试:断网后不下重单(L10)</h2>
+  <pre><code># 幂等钥匙 = 交易意图的纯函数,重试时不变(绝不含 time.time())
+cid = f"{SYMBOL}-{side}-{bar_ts}"
+try:
+    o = ex.create_order(SYMBOL, "limit", side, amount, price,
+                        {"clientOrderId": cid})
+except ccxt.RequestTimeout:                      # 不知道成没成 -> 先查,别盲发
+    existing = ex.fetch_order(cid, SYMBOL)        # 用 clientOrderId 回读
+    o = existing or ex.create_order(SYMBOL, "limit", side, amount, price,
+                                    {"clientOrderId": cid})  # 同 cid 兜底
+# Binance 对重复 cid 抛 ccxt.DuplicateOrderId -> 交易所已替你去重</code></pre>
+
   <div class="callout warn">
     <span class="label">这仍不是全部(执行深水区还在更深处)</span>
-    生产级执行还要处理:<strong>部分成交后追单/撤单</strong>、<strong>超时与重试</strong>(靠 clientOrderId 幂等去重,断网重发不下双倍单)、<strong>对账循环</strong>(定期用 fetch_balance / fetch_open_orders 校准本地账本 vs 交易所真相)、<strong>限频</strong>(enableRateLimit)。工业级实现见 <a href="https://www.freqtrade.io/en/stable/">freqtrade</a> / <a href="https://nautilustrader.io/docs/latest/">NautilusTrader</a>。术语见 <a href="glossary.html">词表</a>。
+    生产级执行还要处理:<strong>部分成交后追单/撤单</strong>(下一课候选)、<strong>对账循环</strong>(定期用 fetch_balance / fetch_open_orders 校准本地账本 vs 交易所真相)、<strong>限频</strong>(enableRateLimit)。超时与幂等见 <a href="../lessons/0010-idempotent-orders.html">L10</a>。工业级实现见 <a href="https://www.freqtrade.io/en/stable/">freqtrade</a> / <a href="https://nautilustrader.io/docs/latest/">NautilusTrader</a>。术语见 <a href="glossary.html">词表</a>。
   </div>
 
   <div class="lesson-foot">

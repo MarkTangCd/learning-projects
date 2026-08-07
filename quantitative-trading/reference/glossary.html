@@ -104,7 +104,10 @@
     <dd>把持仓/现金/入场价等写入磁盘,使断电重启后账户不丢。实盘是"有记忆的循环",回测则每次重算。</dd>
 
     <dt>幂等 <span class="en">Idempotency</span></dt>
-    <dd>同一根 K 线被处理多次,结果与处理一次相同。做法:只在"目标仓位≠当前仓位"时下单,防止重复成交。</dd>
+    <dd>同一操作执行多次,结果与执行一次相同。两处用到:①<strong>信号层</strong>——只在"目标仓位≠当前仓位"时下单(L8);②<strong>执行层</strong>——断网重试不下重单(L10),靠一把<strong>幂等钥匙</strong>。</dd>
+
+    <dt>幂等钥匙 / clientOrderId <span class="en">Idempotency Key</span></dt>
+    <dd>你在下单前自己生成、随单交给交易所的 id,交易所保证<strong>同一把钥匙最多执行一次</strong>。必须是交易<strong>意图的纯函数</strong>(如 <code>symbol-side-bar_ts</code>),<strong>绝不能含 <code>time.time()</code></strong>——否则重试时钥匙变了,幂等失效。断网重试的安全底座。</dd>
 
     <dt>标记市值 <span class="en">Mark-to-market</span></dt>
     <dd>任意时刻账户价值 = 现金 + 持币 × 现价。你的实时净值,盈亏随行情逐刻变动。</dd>

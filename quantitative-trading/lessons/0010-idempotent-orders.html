@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L10 · 幂等下单:断网重试不下重单</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    /* Failure-timeline diagram — reuses course tokens. */
+    .tl { font-family: var(--mono, monospace); font-size: 0.82rem; line-height: 1.7;
+          background: #fff; border: 1px solid var(--rule); border-radius: 6px;
+          padding: 0.9rem 1.1rem; margin: 1.2rem 0 1.6rem; overflow-x: auto; }
+    .tl .bad  { color: var(--accent); font-weight: 700; }
+    .tl .good { color: var(--good); font-weight: 700; }
+    .tl .dim  { color: var(--ink-faint); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 10 课 · 工位 4(执行)· 再夯一层</p>
+  <h1>幂等下单:断网重试为什么不能下重单</h1>
+  <p class="subtitle">L9 你把订单发出去、回读、对账,一切在网络<strong>顺利</strong>时都对。但执行层最危险的一刻不是下单成功,而是<strong>下单成功了、可你不知道</strong>——响应在半路超时了。天真地重试,你就买了两次。</p>
+
+  <p>下单是一次<span class="term">异步写操作</span>,跨一条<strong>不可靠</strong>的网络。<code>create_order</code> 的请求可能<strong>已经到达交易所并成交</strong>,但<strong>响应</strong>在返回你的路上超时。你的代码只看到一个 exception,它无法区分这两种情况:</p>
+  <ul>
+    <li><strong>A. 单没下成</strong>(请求没到)→ 你<em>应该</em>重试。</li>
+    <li><strong>B. 单下成了,只是回执丢了</strong>(请求到了、响应丢了)→ 你<em>绝不能</em>重试。</li>
+  </ul>
+  <p>问题是:<strong>从异常里你分不清 A 和 B。</strong> 而"重试一次网络写"正是账户被下双倍单的经典死法。</p>
+
+  <div class="tl">
+09:00:00.0  你 → 交易所   create_order(buy 0.01 BTC)  <span class="dim">请求出发</span>
+09:00:00.3  交易所        <span class="good">✔ 成交,BTC 已买入</span>
+09:00:30.0  交易所 → 你   <span class="bad">✗ 响应超时(网络抖动,回执丢了)</span>
+09:00:30.0  你的代码      except: → 天真重试 create_order(buy 0.01 BTC)
+09:00:30.4  交易所        <span class="bad">✔ 又成交一次 —— 你现在持有 0.02 BTC ❌</span>
+  </div>
+
+  <h2>解药:幂等钥匙(idempotency key)</h2>
+  <p>让"重试"变<strong>安全</strong>的唯一办法:给每笔交易的<strong>意图</strong>配一把<strong>你自己生成</strong>的钥匙,随下单一起交给交易所。交易所承诺:<strong>同一把钥匙,最多只执行一次。</strong> 第二次带同样钥匙来,它<strong>拒绝</strong>(或原样返回第一张单),而不是新开一单。这把钥匙在 Binance / ccxt 里就是 <span class="term">clientOrderId</span>。</p>
+
+  <div class="callout warn">
+    <span class="label">你 L9 脚本里的"假幂等"(真 bug)</span>
+    L9 的 <code>guarded_create</code> 里那把钥匙是:<br>
+    <code>cid = f"l9-{int(time.time() * 1000)}"</code><br>
+    它<strong>每次调用都用当前毫秒时间戳生成新值</strong>。重试时钟走了、cid 变了 → 交易所把它当<strong>全新一单</strong> → 幂等形同虚设。<strong>幂等钥匙必须是"这笔交易是什么"的纯函数,绝不能含 <code>time.time()</code>。</strong>
+  </div>
+
+  <p>正确的钥匙由<strong>意图</strong>决定——同一个意图,无论重试几次,钥匙都一样。呼应 L8:tick 循环里天然的意图 id 就是 <code>(symbol, side, bar_ts)</code>——"在这根 K 线上,买"这件事只该发生一次。</p>
+  <pre><code># 钥匙 = 意图的纯函数,重试时保持不变(不是墙上时钟!)
+def intent_cid(side, price, tag="l9"):
+    return f"{tag}-{side}-{str(price).replace('.', '_')}"
+# L8 tick 循环里更自然:f"{symbol}-{side}-{bar_ts}"
+
+o = ex.create_order(SYMBOL, "limit", "buy", amount, price,
+                    {"clientOrderId": intent_cid("buy", price)})  # 同意图 -> 同钥匙</code></pre>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">下面哪个 <code>clientOrderId</code> 能让断网重试<strong>安全</strong>?</div>
+    <button class="opt">用当前毫秒时间戳:每次发送都重新生成一把</button>
+    <button class="opt">用交易意图哈希:同一笔单重试时钥匙不变</button>
+    <div class="fb right" data-for="right">对。幂等靠的是<strong>同意图→同钥匙</strong>。钥匙由 <code>(symbol, side, bar_ts)</code> 这类意图决定,重试多少次都是同一把,交易所据此去重。含时间戳的钥匙每次都变,等于没有幂等。</div>
+    <div class="fb nope" data-for="nope">时间戳每次调用都变,重试时是一把<strong>新</strong>钥匙,交易所无从去重 → 照样下重单。幂等钥匙必须是交易意图的纯函数,不含 <code>time.time()</code>。</div>
+  </div>
+
+  <h2>配套动作:超时后不要盲目重发</h2>
+  <p>幂等钥匙让重发<strong>不会造成第二单</strong>,但更稳的做法是重发前<strong>先查真相</strong>。捕获超时后,别直接再 <code>create_order</code>——先用钥匙问交易所"这单到底下成没有":</p>
+  <pre><code>try:
+    o = ex.create_order(SYMBOL, "limit", "buy", amount, price,
+                        {"clientOrderId": cid})
+except ccxt.RequestTimeout:
+    # 不知道 A(没下成)还是 B(下成了、回执丢了)。别猜,去查:
+    existing = ex.fetch_order(cid, SYMBOL)   # 用 clientOrderId 回读
+    if existing:                             # B:其实成了 -> 对账,别重发
+        reconcile(existing)
+    else:                                    # A:确实没下成 -> 用【同一把】cid 安全重发
+        o = ex.create_order(SYMBOL, "limit", "buy", amount, price,
+                            {"clientOrderId": cid})</code></pre>
+  <p>两道保险叠在一起:<strong>先查</strong>把大多数情况解决;万一查询和重发之间又抖动,<strong>同一把幂等钥匙</strong>兜底,交易所不会给你开第二单。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q"><code>create_order</code> 抛了 <code>RequestTimeout</code>,最稳的下一步是?</div>
+    <button class="opt">先 fetch_order 查这单成没成,再决定是否用同 cid 重发</button>
+    <button class="opt">立刻用一个全新 cid 重发一遍,确保这次一定成交</button>
+    <div class="fb right" data-for="right">对。超时无法区分"没下成"和"下成了但回执丢了"。<strong>先查</strong>(用 clientOrderId 回读),查到就对账、查不到才用<strong>同一把</strong> cid 重发。这样任何一条路径都不会产生第二单。</div>
+    <div class="fb nope" data-for="nope">新 cid + 盲目重发正是双倍单的做法:若原单其实已成交,你又下了一单。超时后要<strong>先查后发</strong>,且重发必须复用<strong>同一把</strong>幂等钥匙。</div>
+  </div>
+
+  <h2>动手挑战:亲手撞一次幂等墙</h2>
+  <div class="callout">
+    <span class="label">看交易所把重复单挡下来</span>
+    脚本已加好 <code>dup</code> 命令(用一张远低于市价、<strong>不会成交</strong>的限价单,同一个 <code>clientOrderId</code> 连发两次,安全):<br>
+    <strong>①</strong> <code>python execution.py dup</code> —— 第一次创建成功;第二次带<strong>同一把 cid</strong> → 交易所<strong>拒绝重复</strong>(<code>DuplicateOrderId</code>)或原样返回同一张单;最后自动撤单。<br>
+    <strong>②</strong> 想看"假幂等"如何翻车?把 <code>intent_cid</code> 临时改成 <code>f"l9-{int(time.time()*1000)}"</code>,再跑一次 <code>dup</code> —— 两次会拿到<strong>两个不同 id</strong>(下了重单)。看完改回去。<br>
+    把两次的输出贴给我,我们对一下:交易所到底是<strong>拒绝</strong>了重复,还是<strong>原样返回</strong>了第一张单?(两种都算幂等成立,但账要不同地对。)
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://docs.stripe.com/api/idempotent_requests">Stripe · Idempotent Requests</a></strong> —— 工业界对"不可靠网络上安全重试写操作"最清晰、最权威的说明。金融支付和下单是同一个问题:一把 idempotency key,服务端保证至多执行一次。读它,你就懂了所有交易所的 <code>clientOrderId</code>。</p>
+    <p style="margin:0"><strong><a href="https://docs.ccxt.com/#/README?id=custom-order-params">ccxt · clientOrderId 与自定义下单参数</a></strong> —— 怎么把这把钥匙塞进 <code>params</code>,以及如何用它 <code>fetch_order</code> 回读。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清交易所对重复 cid 到底是<strong>报错</strong>还是<strong>返回原单</strong>(Binance 是前者)、cid 有没有长度/字符限制、<strong>部分成交</strong>后该追单还是撤剩余、或怎么把这把幂等钥匙接回 L8 的 tick 循环——直接说。下一课候选:<strong>部分成交处理</strong>(追单 vs 撤单)。
+    </div>
+    <div class="nav">
+      <a href="0009-execution-and-risk.html">← L9:真实执行与风控</a>
+      <a href="../reference/execution-recipe.html">参考卡:执行配方 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>
