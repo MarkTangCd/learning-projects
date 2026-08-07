@@ -86,9 +86,11 @@ def intent_cid(side, price, tag="l9"):
     return f"{tag}-{side}-{str(price).replace('.', '_')}"
 
 
-def guarded_create(ex, otype, side, amount, price=None, cid=None):
+def guarded_create(ex, otype, side, amount, price=None, cid=None, tif=None):
     """Every order goes through the gate. Idempotency via a clientOrderId.
-    If cid is None a per-intent key is derived so retries are safe by default."""
+    If cid is None a per-intent key is derived so retries are safe by default.
+    tif ("IOC"/"FOK") lets the VENUE cancel any unfilled remainder atomically —
+    that is what makes a chase loop race-free (L11)."""
     check_price = price if price is not None else float(ex.fetch_ticker(SYMBOL)["last"])
     ok, reason = pre_trade_check(ex, side, amount, check_price)
     print(f"  风控: {reason}")
@@ -96,6 +98,8 @@ def guarded_create(ex, otype, side, amount, price=None, cid=None):
         return None
     cid = cid or intent_cid(side, check_price)
     params = {"clientOrderId": cid}
+    if tif:
+        params["timeInForce"] = tif
     if otype == "limit":
         return ex.create_order(SYMBOL, "limit", side, amount, price, params)
     return ex.create_order(SYMBOL, "market", side, amount, None, params)
@@ -211,6 +215,71 @@ def cmd_dup(ex):
     print(f"  撤单 -> status={ex.fetch_order(o1['id'], SYMBOL)['status']}")
 
 
+CHASE_LADDER = (-0.0005, 0.0, 0.0005)   # buy legs: try cheaper first, then pay up
+
+
+def cmd_chase(ex):
+    """L11: partial fills — complete ONE intent across several bounded legs.
+
+    A limit order may fill partially; the remainder is a decision: wait,
+    cancel, or CHASE (repost more aggressively). This chases with IOC legs
+    up a price ladder. IOC = the venue fills what it can NOW and cancels the
+    rest itself — the cancel is atomic at match time, so there is no
+    cancel/fill race to lose. After the ladder, any remainder escalates to
+    a market order: the chase is BOUNDED, never infinite."""
+    ref = float(ex.fetch_ticker(SYMBOL)["last"])
+    intended = float(ex.amount_to_precision(SYMBOL, MAX_NOTIONAL_USDT * 0.4 / ref))
+    market = ex.market(SYMBOL)
+    min_cost = (market.get("limits", {}).get("cost", {}) or {}).get("min") or 0.0
+    # amount_to_precision REJECTS amounts below the venue's min precision — so
+    # "is anything left?" must be decided on the raw number BEFORE rounding.
+    min_amount = (market.get("limits", {}).get("amount", {}) or {}).get("min") or 1e-8
+    print(f"意图:买入 {intended} BTC(参考价 ${ref:,.2f})—— 沿价格阶梯分腿完成")
+
+    total_filled, total_cost = 0.0, 0.0
+    for i, off in enumerate(CHASE_LADDER, 1):
+        raw = intended - total_filled
+        if raw < min_amount:                    # done (or dust): nothing chaseable
+            break
+        remaining = float(ex.amount_to_precision(SYMBOL, raw))
+        price = float(ex.price_to_precision(SYMBOL, ref * (1 + off)))
+        if remaining * price < min_cost:
+            print(f"  残量 {remaining} 名义低于交易所最小额 ${min_cost} -> 当尘埃接受,不再追")
+            break
+        print(f"  Leg {i}: IOC 限价买 {remaining} @ ${price:,.2f}({off * 1e4:+.0f} bps)")
+        o = guarded_create(ex, "limit", "buy", remaining, price,
+                           cid=intent_cid("buy", price, tag=f"l11leg{i}"), tif="IOC")
+        if not o:
+            return                              # gate said no (e.g. kill switch mid-chase)
+        time.sleep(1)
+        done = ex.fetch_order(o["id"], SYMBOL)  # READ BACK, always — even for IOC
+        show_order(f"Leg {i} 回读", done)
+        # IOC's normal ending: status may say canceled/expired AND filled > 0.
+        # "canceled" is NOT "nothing happened" — only the read-back filled is truth.
+        total_filled += float(done.get("filled") or 0)
+        total_cost += float(done.get("cost") or 0)
+
+    raw = intended - total_filled
+    if raw >= min_amount and raw * ref >= min_cost:
+        remaining = float(ex.amount_to_precision(SYMBOL, raw))
+        print(f"  阶梯走完仍剩 {remaining} -> 升级为市价单(有界追单的最后一步)")
+        o = guarded_create(ex, "market", "buy", remaining,
+                           cid=intent_cid("buy", ref, tag="l11esc"))
+        if o:
+            time.sleep(1)
+            done = ex.fetch_order(o["id"], SYMBOL)
+            show_order("升级腿回读", done)
+            total_filled += float(done.get("filled") or 0)
+            total_cost += float(done.get("cost") or 0)
+
+    vwap = total_cost / total_filled if total_filled else None
+    urgency = (vwap - ref) / ref * 1e4 if vwap else None
+    print(f"  汇总: 意图 {intended}  实成 {round(total_filled, 8)}  "
+          f"VWAP {'$' + format(vwap, ',.2f') if vwap else '—'}  "
+          f"急迫成本 {f'{urgency:+.1f} bps' if urgency is not None else '—'}")
+    print("  账本记的是【实成 filled】,不是【意图 intended】。")
+
+
 def cmd_kill(_):
     open(KILL_FILE, "w").close()
     print("急停已激活。所有新订单将被风控闸门拒绝。解除:python execution.py unkill")
@@ -223,11 +292,12 @@ def cmd_unkill(_):
 
 
 COMMANDS = {"balance": cmd_balance, "rest": cmd_rest, "fill": cmd_fill,
-            "dup": cmd_dup, "kill": cmd_kill, "unkill": cmd_unkill}
+            "dup": cmd_dup, "chase": cmd_chase, "kill": cmd_kill, "unkill": cmd_unkill}
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="Binance testnet order-lifecycle demo")
-    ap.add_argument("cmd", choices=COMMANDS, help="balance|rest|fill|dup|kill|unkill")
+    ap.add_argument("cmd", choices=COMMANDS,
+                    help="balance|rest|fill|dup|chase|kill|unkill")
     args = ap.parse_args()
 
     # kill/unkill are local-only switches; they must NOT need network or keys.

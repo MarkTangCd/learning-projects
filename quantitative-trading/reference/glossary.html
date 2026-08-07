@@ -25,6 +25,18 @@
     <dt>策略 <span class="en">Strategy</span></dt>
     <dd>一套完整的交易规则,通常 = 信号 + 仓位规则 + 进出场条件。口语里常与"信号"混用。</dd>
 
+    <dt>信号族 <span class="en">Signal Family</span></dt>
+    <dd>一类共享核心假设的信号。两大基本族是<strong>趋势/动量</strong>(赌延续,如 SMA 交叉)和<strong>均值回归</strong>(赌拉回)——相反的赌注。谁对取决于 regime。同一族里换参数 ≠ 换族;SMA 单族无 edge 时,该换<strong>族</strong>而非继续调参。见 <a href="../lessons/0012-mean-reversion.html">L12</a>。</dd>
+
+    <dt>均值回归 <span class="en">Mean Reversion</span></dt>
+    <dd>价格围绕某均值摆动、偏离后倾向拉回的假设。规则:异常便宜(z 很负)时买、回到均值时走。震荡市吃香、单边趋势市翻车(逆势接刀)。趋势信号的反面。见 <a href="../lessons/0012-mean-reversion.html">L12</a>。</dd>
+
+    <dt>z-score / 标准化 <span class="en">Z-score / Standardization</span></dt>
+    <dd>把"现价离滚动均值几个标准差"算成一个数:<code>(close − rolling_mean) / rolling_std</code>。把不同价位、不同波动的市场放到同一把尺子上,让"贵/便宜"可比。均值回归信号的度量。</dd>
+
+    <dt>ffill 状态机 <span class="en">ffill State Trick</span></dt>
+    <dd>把"进场后持有到出场"这种有状态规则向量化的套路:只在进/出场那几根标记 1/0、中间留 NaN,再 <code>.ffill()</code> 前向填充("保持上次决策")。无 for 循环表达持仓状态。</dd>
+
     <dt>回测 <span class="en">Backtest</span></dt>
     <dd>在历史数据上模拟运行策略,估计它过去<em>本会</em>有的表现。诚实的回测必须计入手续费、滑点,并防前视偏差。</dd>
 
@@ -123,6 +135,18 @@
 
     <dt>市价单 <span class="en">Market Order</span></dt>
     <dd>立即按当前盘口成交:成交有保证,但价格没保证——吃穿盘口就是滑点。你是 taker。</dd>
+
+    <dt>部分成交 <span class="en">Partial Fill</span></dt>
+    <dd><code>status=open</code> 且 <code>0 &lt; filled &lt; amount</code>:你的价位上流动性不够,只成交了一部分。真实持仓 = <code>filled</code>,账本记<strong>事实</strong>不记意图。剩余量三选一:<strong>等 / 撤 / 追</strong>。见 <a href="../lessons/0011-partial-fills-and-chasing.html">L11</a>。</dd>
+
+    <dt>订单有效期 <span class="en">Time in Force (GTC/IOC/FOK)</span></dt>
+    <dd>下单时声明的存活规则。<code>GTC</code>=一直挂到你撤(默认);<code>IOC</code>=立刻成交能成的部分、剩余量交易所<strong>原子地</strong>自动撤;<code>FOK</code>=全额立刻成交否则整单取消。IOC 结构性消灭撤单/成交竞态。</dd>
+
+    <dt>追单 <span class="en">Chase / Repricing</span></dt>
+    <dd>撤掉(或让 IOC 自动撤掉)未成交量,用更激进的价格重发,用价格换成交确定性。必须<strong>有界</strong>(限腿数 + 限价格带 + 市价兜底),否则等于一张专挑差价成交的慢动作市价单。每条腿一把独立幂等钥匙。见 <a href="../lessons/0011-partial-fills-and-chasing.html">L11</a>。</dd>
+
+    <dt>撤单/成交竞态 <span class="en">Cancel/Fill Race</span></dt>
+    <dd>撤单请求在路上时订单可能又成交了一块——<code>cancel</code> 返回成功 ≠ 之前没成交。纪律:<strong>撤单也要回读</strong>,终态 <code>filled</code> 才进账本。IOC 腿的终态常为 canceled/expired 但 <code>filled&gt;0</code>:status 说单子的结局,filled 说钱的去向。</dd>
 
     <dt>订单状态 <span class="en">Order Status</span></dt>
     <dd>ccxt 统一订单的生命周期终态:<code>open</code>(挂单中,含部分成交)、<code>closed</code>(全额成交)、<code>canceled</code>(撤单/超时);被拒为 rejected。下单后须 <code>fetch_order</code> 回读,不能假设。</dd>

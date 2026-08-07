@@ -86,9 +86,26 @@ except ccxt.RequestTimeout:                      # 不知道成没成 -> 先查,
                                     {"clientOrderId": cid})  # 同 cid 兜底
 # Binance 对重复 cid 抛 ccxt.DuplicateOrderId -> 交易所已替你去重</code></pre>
 
+  <h2>部分成交与有界追单(L11)</h2>
+  <pre><code># 账本记【实成 filled】,不记【意图 intended】。剩余量三选一:等 / 撤 / 追。
+# 撤单也要回读:cancel 成功 ≠ 之前没成交,终态 filled 才是真相。
+# 追单模板:IOC 价格阶梯 + 市价兜底(有界:限腿数 + 限价格带,永不无限追)
+total_filled = total_cost = 0.0
+for i, off in enumerate((-0.0005, 0.0, +0.0005), 1):    # -5bps -> 0 -> +5bps
+    remaining = intended - total_filled
+    if remaining &lt;= 0 or remaining * ref &lt; min_cost: break
+    o = ex.create_order(SYMBOL, "limit", "buy", remaining, ref * (1 + off),
+                        {"clientOrderId": f"leg{i}-{cid}",  # 每腿独立幂等钥匙
+                         "timeInForce": "IOC"})  # 交易所原子撤剩余 -> 无竞态
+    done = ex.fetch_order(o["id"], SYMBOL)   # 终态可能 canceled 但 filled&gt;0!
+    total_filled += done["filled"]; total_cost += done["cost"]
+if intended - total_filled &gt; 0:              # 阶梯打完 -> 市价兜底,意图必达
+    ...  # market order for the remainder
+vwap = total_cost / total_filled             # 急迫成本 = (vwap - ref) / ref</code></pre>
+
   <div class="callout warn">
     <span class="label">这仍不是全部(执行深水区还在更深处)</span>
-    生产级执行还要处理:<strong>部分成交后追单/撤单</strong>(下一课候选)、<strong>对账循环</strong>(定期用 fetch_balance / fetch_open_orders 校准本地账本 vs 交易所真相)、<strong>限频</strong>(enableRateLimit)。超时与幂等见 <a href="../lessons/0010-idempotent-orders.html">L10</a>。工业级实现见 <a href="https://www.freqtrade.io/en/stable/">freqtrade</a> / <a href="https://nautilustrader.io/docs/latest/">NautilusTrader</a>。术语见 <a href="glossary.html">词表</a>。
+    生产级执行还要处理:<strong>对账循环</strong>(定期用 fetch_balance / fetch_open_orders 校准本地账本 vs 交易所真相)、<strong>限频</strong>(enableRateLimit)。超时与幂等见 <a href="../lessons/0010-idempotent-orders.html">L10</a>;部分成交与追单见 <a href="../lessons/0011-partial-fills-and-chasing.html">L11</a>。工业级实现见 <a href="https://www.freqtrade.io/en/stable/">freqtrade</a> / <a href="https://nautilustrader.io/docs/latest/">NautilusTrader</a>。术语见 <a href="glossary.html">词表</a>。
   </div>
 
   <div class="lesson-foot">

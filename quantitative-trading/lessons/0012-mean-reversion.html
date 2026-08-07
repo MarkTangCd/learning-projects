@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L12 · 均值回归:反过来押一把</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    /* z-score number-line diagram — reuses course tokens. */
+    .zline { font-family: var(--mono, monospace); font-size: 0.8rem; line-height: 1.7;
+             background: #fff; border: 1px solid var(--rule); border-radius: 6px;
+             padding: 0.9rem 1.1rem; margin: 1.2rem 0 1.6rem; overflow-x: auto; }
+    .zline .buy  { color: var(--good); font-weight: 700; }
+    .zline .sell { color: var(--accent); font-weight: 700; }
+    .zline .dim  { color: var(--ink-faint); }
+    @media (prefers-color-scheme: dark) { .zline { background: #1b1a15; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 12 课 · 工位 1–2(研究)· 回研究端找 edge</p>
+  <h1>均值回归:反过来押一把</h1>
+  <p class="subtitle">SMA 是<strong>趋势</strong>信号——赌"涨的继续涨"。它在 BTC 日线上<a href="0007-walk-forward.html">扛不过滚动前进验证(L7)</a>,没有 edge。趋势的反面是<strong>均值回归</strong>:赌"偏离的会拉回"。这一课换一个信号族,重新过<strong>同一套 gauntlet</strong>。</p>
+
+  <p>两种信号是<strong>相反的赌注</strong>。同一根 K 线,趋势派和回归派会下反向的单:</p>
+
+  <table>
+    <thead><tr><th></th><th>趋势 / 动量(SMA)</th><th>均值回归(本课)</th></tr></thead>
+    <tbody>
+      <tr><td><strong>核心假设</strong></td><td>价格有惯性,会延续</td><td>价格围绕均值摆动,偏离即回归</td></tr>
+      <tr><td><strong>价格猛涨时</strong></td><td>追进去(买)</td><td>觉得"贵了",等回落(不买 / 卖)</td></tr>
+      <tr><td><strong>价格猛跌时</strong></td><td>止损离场(卖)</td><td>觉得"便宜了",接一手(买)</td></tr>
+      <tr><td><strong>什么行情吃香</strong></td><td>单边趋势市(强牛/强熊)</td><td>震荡盘整市(区间来回)</td></tr>
+    </tbody>
+  </table>
+
+  <p>哪种对?<strong>取决于市场处在什么状态(regime)</strong>——你在 <a href="0005-evaluating-strategies.html">L5</a> 已经撞见过这件事:同一组参数,牛市和熊市成绩天差地别。没有"永远对"的信号,只有"这段行情里对"的信号。所以我们不预设立场,让<strong>数据和 gauntlet 来裁</strong>。</p>
+
+  <h2>把"贵 / 便宜"变成一个数:z-score</h2>
+  <p>要押"偏离会拉回",先得量化"偏离多少"。裸价格没法比("跌了 3000 刀"是多是少?)。做法是<span class="term">标准化</span>:算价格离它<strong>滚动均值</strong>差了几个<strong>标准差</strong>——这个数就是 <span class="term">z-score</span>。</p>
+
+  <pre><code>mean = df["close"].rolling(lookback).mean()   # 近 lookback 根的均值 = "正常价"
+std  = df["close"].rolling(lookback).std()    # 近 lookback 根的波动 = "一个标准差"
+z = (df["close"] - mean) / std                # 现价离均值几个标准差</code></pre>
+
+  <p>z 把不同价位、不同波动的市场放到<strong>同一把尺子</strong>上:<code>z = -2</code> 永远意味着"比正常便宜两个标准差",不管币价是 6 万还是 600。均值回归规则就写在这把尺子上:</p>
+
+  <div class="zline">
+  z:  <span class="buy">-2</span> ────── <span class="buy">-1</span> ────── 0 ────── +1 ────── +2
+      <span class="buy">↑ 异常便宜</span>      <span class="dim">均值(公允)</span>       <span class="sell">↑ 异常贵</span>
+      <span class="buy">z ≤ -1 进场做多</span>  ──持有──▶  <span class="sell">z ≥ 0 回到均值,出场</span></div>
+
+  <p>"跌破 −1 个标准差就买、涨回均值就走"。<strong>只做多 / 空仓</strong>两态,于是它和 SMA 信号<strong>输出同一列 <code>position</code></strong>——这正是关键。</p>
+
+  <h2>持仓状态怎么向量化:ffill 技巧</h2>
+  <p>"进场后一直持有到出场"是个<strong>有状态</strong>的规则,天真写法要 for 循环。pandas 的做法:<strong>只在进场/出场那几根标记 1 和 0,中间留空(NaN),再前向填充</strong>让决策"保持到下一次改变":</p>
+
+  <pre><code>raw = pd.Series(index=df.index, dtype="float64")  # 全 NaN
+raw[z <= -entry] = 1        # 便宜 -> 标记进场
+raw[z >= 0]      = 0        # 回到均值 -> 标记出场
+df["signal"]   = raw.ffill().fillna(0)   # 中间的 NaN 前向填充 = "保持上次决策"
+df["position"] = df["signal"].shift(1)   # 下一根才生效 —— 防前视偏差(同 L3 纪律)</code></pre>
+
+  <div class="callout tip">
+    <span class="label">ffill = 无循环的状态机</span>
+    "标记事件点 → 前向填充 → 事件之间保持不变" 是把有状态逻辑向量化的通用套路。你会在无数策略里再见到它。<code>shift(1)</code> 那行和 SMA 信号一字不差:<strong>信号只用已收盘 K 线算,下一根才行动</strong>。
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">同样是价格<strong>大跌</strong>,趋势信号和均值回归信号分别怎么做?</div>
+    <button class="opt">两者都卖出止损,只是均值回归卖得更慢一点而已</button>
+    <button class="opt">趋势卖出离场,均值回归反而买入(赌它拉回均值)</button>
+    <div class="fb right" data-for="right">对。这是两者<strong>相反下注</strong>的本质:趋势派把下跌读成"惯性向下"→ 离场;回归派把下跌读成"跌过头了、变便宜"→ 接一手。谁对取决于当下是趋势市还是震荡市(regime)。</div>
+    <div class="fb nope" data-for="nope">方向正好相反。均值回归在大跌时<strong>买入</strong>(z 变得很负 = 异常便宜),赌价格拉回均值;趋势信号才是止损离场。两者是相反的赌注,不是快慢之分。</div>
+  </div>
+
+  <h2>白捡的红利:整套 gauntlet 原样复用</h2>
+  <p>新信号 <code>zscore_reversion_signal</code> 和 <code>sma_crossover_signal</code> 有<strong>完全相同的接口</strong>:吃一张价格表,吐一列 <code>position</code>。于是你 L4–L7 造的每一件工具——<code>backtest()</code>、<code>scorecard()</code>、<code>oos.py</code>、<code>walkforward.py</code>——<strong>一行不改</strong>就能评这个新信号。这就是 <a href="0001-anatomy-of-a-quant-system.html">L1</a> "一个信号,处处复用"当初埋下的红利:换策略 = 换一个函数,裁判台不动。</p>
+
+  <pre><code># reversion.py —— 同一窗口,回归 vs 趋势 vs 买入持有
+from strategy import zscore_reversion_signal, sma_crossover_signal
+df = backtest(zscore_reversion_signal(price, lookback=20, entry=1.0))
+scorecard(df, "均值回归")     # 同一个 scorecard,新信号直接进</code></pre>
+
+  <div class="callout warn">
+    <span class="label">别急着庆祝:单窗口成绩是冒烟测试,不是判决</span>
+    就算这一窗口回归信号打赢了买入持有,也<strong>什么都还没证明</strong>——你在 <a href="0006-out-of-sample.html">L6</a>/<a href="0007-walk-forward.html">L7</a> 已经学过:单窗口的漂亮数字最会骗人。更糟的是,<code>lookback</code> 和 <code>entry</code> 是<strong>两个新旋钮</strong> = 一片新的<strong>过拟合面</strong>,你可以在一个窗口上把它们拧到最好看。<strong>真正的判决,是让这个信号过和 SMA 一模一样的样本外 + 滚动前进 gauntlet(下一课 L13)。</strong> 同样的怀疑,同样的裁判,只换信号。
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">均值回归信号在<strong>某一个</strong>历史窗口上跑赢了买入持有。正确的解读是?</div>
+    <button class="opt">还不能下结论,得过样本外和滚动前进验证才算数</button>
+    <button class="opt">edge 已经找到,可以接回执行层准备小资金实盘了</button>
+    <div class="fb right" data-for="right">对。单窗口 = 冒烟测试,只证明"信号能跑通",不证明"有 edge"。而且 lookback/entry 是新的过拟合旋钮。判决权在 <strong>OOS + walk-forward</strong>(L13),标准和当初否掉 SMA 时完全一致——否则就是双重标准。</div>
+    <div class="fb nope" data-for="nope">这正是 L6/L7 反复敲打的陷阱:单窗口跑赢极可能是这段行情(regime)的运气 + 参数过拟合。你当初就是用 walk-forward 否掉 SMA 的;对新信号必须用<strong>同一把尺子</strong>,不能因为它是"新宠"就放水。</div>
+  </div>
+
+  <h2>动手挑战:让反向赌注上台</h2>
+  <div class="callout">
+    <span class="label">同一窗口,三方对比</span>
+    已写好 <code>strategy.py</code> 里的 <code>zscore_reversion_signal</code> 和跑分脚本 <code>reversion.py</code>:<br>
+    <strong>①</strong> <code>python reversion.py</code> —— 同一窗口下打印<strong>均值回归 / 趋势 SMA(20,60) / 买入持有</strong>三张成绩单(MaxDD / Sharpe / CAGR + 成交笔数)。<br>
+    <strong>②</strong> 读三件事:回归信号的<strong>成交笔数</strong>比趋势多还是少?它的<strong>最大回撤</strong>更浅吗(均值回归常以"小赢多次"换"回撤更浅")?<strong>夏普</strong>谁高?<br>
+    <strong>③</strong> 拧旋钮找找手感:把 <code>ENTRY</code> 改成 <code>1.5</code>(更挑剔,交易更少)或 <code>lookback</code> 改成 <code>10</code>(更灵敏)。<strong>注意你有多容易把某个窗口的数字调好看</strong>——这份"太容易了"的不安,正是下一课要用 gauntlet 收拾的东西。<br>
+    把三张成绩单贴给我,我们一起读,并决定 L13 拿哪组参数进样本外。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong>《Algorithmic Trading: Winning Strategies and Their Rationale》 — Ernest P. Chan(第 2 章,均值回归)</strong> —— 讲清均值回归<strong>为什么</strong>存在(以及为什么会失效),而不只是给个公式。你书单里已有此书,这一课正是它的用武之处。</p>
+    <p style="margin:0"><strong><a href="https://www.quantstart.com/articles/Basics-of-Statistical-Mean-Reversion-Testing/">QuantStart · Basics of Statistical Mean Reversion Testing</a></strong> —— 免费、代码优先:怎么用统计检验(ADF / Hurst)判断一个序列<strong>到底是不是</strong>均值回归的,而不是凭感觉。为 L13 的严肃检验热身。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清 z-score 里为什么用<strong>滚动</strong>均值而非全样本均值、entry/exit 阈值不对称好不好、为什么加个 <strong>regime 过滤</strong>(只在震荡市开回归、只在趋势市开 SMA)可能比单一信号强、或均值回归天然更适合<strong>配对交易</strong>(两个相关资产的价差回归)——直接问。下一课 <strong>L13:让均值回归过样本外 + 滚动前进 gauntlet</strong>,给这个反向赌注一个诚实判决。
+    </div>
+    <div class="nav">
+      <a href="0011-partial-fills-and-chasing.html">← L11:部分成交与追单</a>
+      <a href="../reference/glossary.html">词表 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

@@ -31,9 +31,9 @@
 9. ✅ L9 真实执行与风控:订单生命周期(open/closed/canceled/partial/rejected)、ccxt 统一订单结构、SEND→READ BACK→RECONCILE、限价 vs 市价/maker-taker、风控闸门(名义上限/最小额)+ 急停 kill switch、testnet(set_sandbox_mode)。脚本 `practice/execution.py`(balance/rest/fill/kill/unkill),参考卡 `execution-recipe.html`,词表 +8 词 ← **已跑通**(挑战③④⑤全过,见 [[0009-execution-lifecycle-on-testnet]])
    - 已验证坑:ccxt 4.5.70 sandbox 仍指 testnet.binance.vision(demo-api.binance.com 也通);两端点公开接口经代理均可达;key 须与端点匹配否则 Invalid API-key。
    - **测试网撒谎两处**(动手抓到):(a)市价单滑点 +0.0 bps —— 合成盘口,测试网测不出真实滑点;(b)手续费在 fills 不在订单头 —— `fetch_order` 的 `fee` 对 Binance 常为 None,须 `fetch_order_trades` 聚合。已补 `fee_from_trades()`。结论:testnet 验代码正确性,不验成本假设准确性。
-10. ✅ L10 幂等下单:异步写+超时=双倍单风险;幂等钥匙=意图纯函数(非时钟);超时先 fetch_order 再同 cid 兜底重发。抓到 L9 脚本"假幂等"真 bug(cid 用毫秒时间戳→重试不去重);修 `intent_cid()` + 加 `dup` 命令演示交易所挡重复单。词表 +幂等钥匙/clientOrderId,recipe +幂等重试块。首选源 Stripe idempotent-requests ← 已发布,待用户跑 `dup` 挑战
-    - 用户选了路线 **C(先补执行细节)**。L10 后候选:部分成交处理(追单 vs 撤单)→ 再回 A 找 edge / B 小资金实盘。
-11. 小资金实盘(paper/testnet 稳定后)← 路线 B
-12. (扩展)传统股票 / AI 量化;或回 gauntlet 给信号找 edge(regime 过滤/均值回归)← 路线 A
-10. Paper trading 稳定后 → 小资金实盘
-11. (扩展)传统股票 / AI 量化(SMA 单族无 edge → 待引入均值回归/波动率过滤/regime 过滤等第二类信号,复用 gauntlet)
+10. ✅ L10 幂等下单:异步写+超时=双倍单风险;幂等钥匙=意图纯函数(非时钟);超时先 fetch_order 再同 cid 兜底重发。抓到 L9 脚本"假幂等"真 bug(cid 用毫秒时间戳→重试不去重);修 `intent_cid()` + 加 `dup` 命令。首选源 Stripe idempotent-requests ← **已跑通**(dup 挑战通过,见 [[0010-idempotent-orders-verified]])
+    - 用户选了路线 **C(先补执行细节)**,L10-L11 为其内容。
+11. ✅ L11 部分成交:filled vs intended(账本记事实)、等/撤/追三选一、撤单/成交竞态(撤单也要回读)、TIF(GTC/IOC/FOK)、IOC 原子撤剩余=无竞态、有界追单(IOC 阶梯 -5/0/+5bps + 市价兜底、每腿独立 cid、每腿过闸门)、急迫成本(VWAP vs ref)。`chase` 命令 + recipe 追单块 + 词表 +4(部分成交/TIF/追单/撤单成交竞态)。首选源 Binance enums + freqtrade unfilledtimeout ← **已跑通**(chase + 急停③ 全过,见 [[0011-partial-fills-and-chase-loop]])。抓修真 bug:残量=0 时 `amount_to_precision` 抛 InvalidOrder(边界住在成功路径终点)→ 改为裸数字先判 min_amount。**执行层四件套(生命周期/风控/幂等/部分成交)到此集齐,路线 C 完成。**
+12. ✅ L12 均值回归(第二信号族):趋势 vs 回归=相反赌注、regime 决定谁对;z-score 标准化;ffill 状态机(无循环持仓);gauntlet 白捡复用(同 position 接口)。诚实框架:单窗=冒烟测试非判决,lookback/entry=新过拟合面。`strategy.py` +`zscore_reversion_signal`(离线验证过状态机)+`reversion.py` 三方对比。词表 +5。首选源 Chan《Algorithmic Trading》ch2 + QuantStart。← 用户选了**路线 A**;已发布,待用户跑 `reversion.py` 贴三张成绩单。见 [[0012-second-signal-family-mean-reversion]]
+13. L13 均值回归过 OOS + walk-forward gauntlet(同 SMA 的裁判,只换信号)→ 定判决。若仍无 edge → regime 过滤 / 配对交易。
+14. 路线 B(小资金实盘)待 A 出个"值得下的单"后再上;(扩展)传统股票 / AI 量化

@@ -37,6 +37,33 @@ def sma_crossover_signal(df, fast=10, slow=30):
     return df
 
 
+def zscore_reversion_signal(df, lookback=20, entry=1.0):
+    """A SECOND signal family: mean reversion (the OPPOSITE bet to SMA).
+
+    SMA bets price CONTINUES; mean reversion bets price SNAPS BACK to its
+    average. We standardize distance-from-mean into a z-score (how many std
+    devs is price from its rolling mean), then:
+        z <= -entry  -> price unusually CHEAP  -> go long
+        z >=  0      -> reverted to the mean    -> exit (flat)
+    Long/flat only, so it drops straight into the L4 backtest — same
+    `position` column, same gauntlet. That's L1's 'one interface' dividend.
+
+    The ffill trick: mark only the entry/exit BARS, leave the rest NaN, then
+    forward-fill to 'hold the last decision' between them. This is the
+    vectorized way to express a stateful hold without a Python loop.
+    """
+    df = df.copy()
+    mean = df["close"].rolling(lookback).mean()
+    std = df["close"].rolling(lookback).std()
+    df["zscore"] = (df["close"] - mean) / std
+    raw = pd.Series(index=df.index, dtype="float64")   # all NaN
+    raw[df["zscore"] <= -entry] = 1                     # cheap -> enter long
+    raw[df["zscore"] >= 0] = 0                          # back to mean -> exit
+    df["signal"] = raw.ffill().fillna(0)               # hold between the marks
+    df["position"] = df["signal"].shift(1)             # act next bar — no look-ahead
+    return df
+
+
 if __name__ == "__main__":
     df = sma_crossover_signal(fetch_ohlcv(), fast=10, slow=30)
     print(df[["close", "sma_fast", "sma_slow", "signal", "position"]].tail(10))

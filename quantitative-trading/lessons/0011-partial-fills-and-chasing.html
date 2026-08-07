@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L11 · 部分成交:等、撤,还是追?</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    /* Ladder diagram — reuses course tokens. */
+    .ladder { font-family: var(--mono, monospace); font-size: 0.82rem; line-height: 1.7;
+              background: #fff; border: 1px solid var(--rule); border-radius: 6px;
+              padding: 0.9rem 1.1rem; margin: 1.2rem 0 1.6rem; overflow-x: auto; }
+    .ladder .bad  { color: var(--accent); font-weight: 700; }
+    .ladder .good { color: var(--good); font-weight: 700; }
+    .ladder .dim  { color: var(--ink-faint); }
+    @media (prefers-color-scheme: dark) { .ladder { background: #1b1a15; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 11 课 · 工位 4(执行)· 收官</p>
+  <h1>部分成交:等、撤,还是追?</h1>
+  <p class="subtitle">L9 你见过 <code>open</code>(挂着没成)和 <code>closed</code>(全成)。真正麻烦的是<strong>中间态</strong>:你要 0.0005 BTC,交易所只给了 0.0002。剩下的 0.0003 怎么办——这是执行层最后一个必答题。</p>
+
+  <p>限价单的本质交换(<a href="0009-execution-and-risk.html">L9</a>):价格有保证,<strong>成交量没保证</strong>。盘口在你的价位上只有多少流动性,你就只能成交多少。于是回读会看到这样一张单:</p>
+
+  <div class="ladder">
+  [回读] id=98721  status=<span class="good">open</span>  type=limit/buy
+         amount=0.0005  filled=<span class="bad">0.0002</span>  remaining=<span class="bad">0.0003</span>  average=64310.0
+  </div>
+
+  <p>这不是错误,是限价单的日常。此刻你的<strong>真实持仓</strong>是 0.0002,不是 0.0005——下游一切(账本、风控、下一个信号的"当前仓位")都必须以 <code>filled</code> 为准。而对剩余的 0.0003,你只有三种选择:</p>
+
+  <table>
+    <thead><tr><th>选择</th><th>做什么</th><th>换到什么</th><th>代价</th></tr></thead>
+    <tbody>
+      <tr><td><strong>等</strong></td><td>让剩余量继续挂着</td><td>维持 maker 低费率、价格不让步</td><td>可能永远不成;行情跑了,信号过期</td></tr>
+      <tr><td><strong>撤</strong></td><td>撤掉剩余量,接受半个仓位</td><td>不再追价、成本锁定</td><td>仓位 ≠ 意图,策略暴露不足</td></tr>
+      <tr><td><strong>追</strong></td><td>撤剩余,用更激进的价格重发</td><td>成交确定性逐步上升</td><td>每追一步,价格让一步(付"急迫成本")</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <span class="label">追单前先认识一个竞态:撤单 ≠ 没成交</span>
+    你决定"撤了重发"的那一瞬间,撤单请求还在路上,<strong>订单可能又成交了一块</strong>。<code>cancel_order</code> 返回成功,只说明"从现在起不再成交",<strong>不说明它之前没成交</strong>。所以撤单后必须再 <code>fetch_order</code> 读一次<strong>终态的 <code>filled</code></strong>——那才是进账本的数字。这是 L9 的 READ BACK 纪律在撤单上的延伸:<strong>撤单也要回读</strong>。
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">部分成交的限价单被你撤掉后,进账本的持仓数量应该取哪个?</div>
+    <button class="opt">撤单后再回读一次,取终态订单里的 filled 数量</button>
+    <button class="opt">撤单已经确认成功,取下单时想要的 amount 数量</button>
+    <div class="fb right" data-for="right">对。撤单和成交在赛跑:cancel 返回成功前,单子可能又成交了一块。只有<strong>终态回读的 <code>filled</code></strong> 是真相——账本永远记"实际发生的",不记"我想要的"。</div>
+    <div class="fb nope" data-for="nope">amount 是你的<strong>意图</strong>,不是事实。部分成交后实际持仓 = 终态回读的 <code>filled</code>(撤单路上可能又成交了一块,所以撤完还要再读一次)。记意图不记事实,账本从此和交易所对不上。</div>
+  </div>
+
+  <h2>让交易所替你撤:Time in Force(订单有效期)</h2>
+  <p>手写"撤了重发"循环要处理上面的竞态。其实交易所提供了现成的原语——下单时附一个 <span class="term">timeInForce</span> 参数,声明这张单的"存活规则":</p>
+
+  <table>
+    <thead><tr><th>TIF</th><th>全称</th><th>行为</th></tr></thead>
+    <tbody>
+      <tr><td><code>GTC</code></td><td>Good-Til-Canceled</td><td>一直挂着直到你撤(默认;L9 的 rest 就是它)</td></tr>
+      <tr><td><code>IOC</code></td><td>Immediate-Or-Cancel</td><td><strong>立刻</strong>成交能成的部分,剩余量<strong>交易所自动撤</strong></td></tr>
+      <tr><td><code>FOK</code></td><td>Fill-Or-Kill</td><td>要么<strong>全额</strong>立刻成交,要么整张单取消(一点不成)</td></tr>
+    </tbody>
+  </table>
+
+  <p>IOC 的妙处:<strong>"成交"和"撤剩余"在撮合引擎里是一个原子动作</strong>——不存在"撤单请求还在路上"这回事,竞态被结构性消灭。一条 IOC 腿打出去,回读一次,拿到确定的 <code>filled</code>,剩多少一清二楚。追单循环因此变得干净:</p>
+
+  <div class="ladder">
+  意图: 买 0.0005 BTC,参考价 $64,300
+  Leg 1  IOC 限价 @ $64,268 (<span class="good">-5 bps</span>,先试便宜价)  → filled 0.0002,<span class="dim">剩 0.0003</span>
+  Leg 2  IOC 限价 @ $64,300 (<span class="dim">±0 bps</span>)             → filled 0.0002,<span class="dim">剩 0.0001</span>
+  Leg 3  IOC 限价 @ $64,332 (<span class="bad">+5 bps</span>,开始付价)    → filled 0,     <span class="dim">剩 0.0001</span>
+  兜底   市价单买剩余 0.0001(<span class="bad">确定成交,价格随缘</span>)   → 意图完成
+  汇总   VWAP $64,297 vs 参考 $64,300 → 急迫成本 <span class="good">-0.5 bps</span></div>
+
+  <p>三条纪律藏在这个循环里:</p>
+  <ul>
+    <li><strong>有界</strong>:腿数有限(3 条)+ 价格带有限(±5 bps)+ 市价兜底收尾。无界的追单等于一张慢动作市价单,还专挑最差的价格成交。</li>
+    <li><strong>每腿一把幂等钥匙</strong>:<code>l11leg1-buy-…</code>、<code>l11leg2-buy-…</code>——每条腿是独立的意图(<a href="0010-idempotent-orders.html">L10</a>),某条腿超时重试时不会和别的腿撞钥匙。</li>
+    <li><strong>每腿都过风控闸门</strong>:追到一半按下急停(L9 的 kill),下一条腿直接被拒——追单不豁免任何前置检查。</li>
+  </ul>
+
+  <div class="callout">
+    <span class="label">一个反直觉的回读:canceled 但 filled &gt; 0</span>
+    IOC 腿的终态 status 常显示 <code>canceled</code> / <code>expired</code>——因为"剩余量被撤"了。但它的 <code>filled</code> 可能大于 0!<strong>status 说的是单子的结局,filled 说的是钱的去向</strong>,两者独立成立。只看 status 不看 filled,你会把成交了一半的腿当成"什么都没发生"。
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">为什么用 IOC 分腿追单,就没有"撤单/成交竞态"了?</div>
+    <button class="opt">因为 IOC 订单发出后成交速度快,竞态窗口小到基本可以忽略</button>
+    <button class="opt">因为成交与撤剩余在撮合引擎里是一个原子动作,没有时间窗口</button>
+    <div class="fb right" data-for="right">对。GTC+手动撤是<strong>两个</strong>隔着网络的动作,中间的窗口里订单还能成交;IOC 把"成交能成的+撤掉剩下的"合并成撮合引擎里的<strong>一个</strong>原子动作,窗口不存在,回读到的 filled 即终局。</div>
+    <div class="fb nope" data-for="nope">"窗口小"仍是有窗口——竞态没消失,只是更难复现(这种 bug 最贵)。IOC 的本质是把成交与撤剩余合并为撮合引擎里的<strong>单个原子动作</strong>,结构上不存在窗口,而不是把窗口变小。</div>
+  </div>
+
+  <h2>动手挑战:跑一次有界追单</h2>
+  <div class="callout tip">
+    <span class="label">看一个意图被分腿完成</span>
+    脚本已加好 <code>chase</code> 命令(约 $20 名义,风控上限内,测试网假钱):<br>
+    <strong>①</strong> <code>python execution.py chase</code> —— 看它沿 -5bps → 0 → +5bps 的阶梯打 IOC 腿,每腿回读 <code>filled</code>,不够再升级市价兜底,最后汇总"意图 vs 实成 vs VWAP vs 急迫成本"。<br>
+    <strong>②</strong> 注意找那条 <strong>status=canceled/expired 但 filled&gt;0</strong> 的腿(测试网盘口合成,不一定每次出现——出现了截给我看)。<br>
+    <strong>③</strong> 进阶:先 <code>kill</code> 再 <code>chase</code>,验证追单的每条腿都被急停拦下;看完 <code>unkill</code>。<br>
+    <span class="dim">测试网提醒(L9 学费):盘口是合成的,腿的成交<strong>模式</strong>(哪条腿成、成多少)不代表真实市场;这课验证的是<strong>循环逻辑</strong>——账本记 filled、有界、每腿过闸门。</span>
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://developers.binance.com/docs/binance-spot-api-docs/enums">Binance Spot API · Enum Definitions</a></strong> —— <code>timeInForce</code>(GTC/IOC/FOK)与订单状态(含 <code>PARTIALLY_FILLED</code>、<code>EXPIRED</code>)的官方定义。一手来源,五分钟读完,从此看懂任何交易所的订单文档。</p>
+    <p style="margin:0"><strong><a href="https://www.freqtrade.io/en/stable/configuration/#understand-unfilledtimeout">freqtrade · unfilledtimeout</a></strong> —— 工业级开源机器人怎么做同一件事:限价单挂多久没成就撤掉重来。对照它的配置项,你会认出这节课的"等/撤/追"三选一。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想聊为什么做市商几乎只用 maker 腿、什么时候该直接市价(信号半衰期 vs 急迫成本)、或者把 chase 循环接回 L8 的 tick 循环替换那行"即时成交"——直接说。执行层四件套(生命周期/风控/幂等/部分成交)到此集齐,下一步是两条路:<strong>A. 回研究端找真 edge</strong>(SMA 无 edge,上新信号族过 gauntlet)或 <strong>B. 小资金实盘</strong>(用真实盘口校准成本假设)。
+    </div>
+    <div class="nav">
+      <a href="0010-idempotent-orders.html">← L10:幂等下单</a>
+      <a href="0012-mean-reversion.html">L12:均值回归找 edge →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>
