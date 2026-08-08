@@ -1,0 +1,126 @@
+<meta charset="utf-8">
+<title>第 8 课 · DCF 入门：把未来的现金折回今天</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+<div class="wrap">
+
+  <p class="eyebrow">股票投资 · 第 8 课 · 估值篇</p>
+  <h1>DCF 入门：把"未来的现金"折回今天</h1>
+  <p class="subtitle">第 1 课那句"价值=未来的现金"，今天变成一个你真能算的公式。</p>
+  <p class="progress">● ● ● ○ &nbsp; 估值篇 3/?</p>
+
+  <div class="keyidea">
+    <strong>今天的小胜利：</strong>你会懂 DCF 唯一的核心直觉——<em class="term">折现</em>，并能亲手算出"一台每年吐现金的机器今天值多少钱"。再也不会被"DCF"这个词唬住。
+  </div>
+
+  <div class="callout">
+    <span class="label">先接回第 1 课</span>
+    <a href="0001-price-vs-value.html">第 1 课</a>说：一家公司的内在价值 = 它未来能产生的<strong>现金</strong>。<a href="0006-relative-valuation.html">相对估值</a>是"跟别人比几倍"，而 <strong>DCF（绝对估值）是直接把这句话算出来</strong>——不依赖别人定价，自己从现金推。
+  </div>
+
+  <h2>唯一要懂的核心：折现</h2>
+  <p>一个问题：<strong>明年的 100 块，和今天的 100 块，一样值钱吗？</strong></p>
+  <p>不一样。今天的 100 块更值钱——因为它能立刻用、能投资生息、而且"明年"总有不确定性。所以<strong>未来的钱，要打个折才能折回今天</strong>。这个"折"，就叫<em class="term">折现</em>。</p>
+  <p>假设你要求每年 <strong>10%</strong> 的回报（这个 10% 叫<em class="term">折现率</em>）。那么：</p>
+  <p style="font-family:var(--font-mono);font-size:.95rem;background:var(--card);padding:.8rem 1rem;border-radius:6px;text-align:center">
+    明年的 110 元　→　今天只值　110 ÷ (1 + 10%) = <strong>100 元</strong>
+  </p>
+  <p>反过来看就顺了：今天的 100 元，按 10% 滚一年正好变 110 元。所以"明年的 110"和"今天的 100"是等价的。公式就一条：</p>
+  <div class="keyidea" style="text-align:center">
+    现值 = 未来现金 ÷ (1 + 折现率)<sup>年数</sup>
+  </div>
+
+  <h2>把一家公司想成"现金机器"</h2>
+  <p>公司每年为股东产生一笔可自由支配的真金白银，叫<em class="term">自由现金流（FCF）</em>——呼应第 3 课"<strong>现金是事实</strong>"。<strong>DCF 就是：把公司未来每一年的自由现金流，逐年折回今天，再全部加起来。</strong>这个总和，就是它的内在价值。</p>
+
+  <h3>最简单的一台：永续现金机</h3>
+  <p>假设一家超稳的公司，每年稳定产生 <strong>10 元/股</strong>自由现金流，永远不变。它今天值多少？不是 10 元，也不是无穷——按你要求的 10% 回报：</p>
+  <p style="font-family:var(--font-mono);font-size:.95rem;background:var(--card);padding:.8rem 1rem;border-radius:6px;text-align:center">
+    永续现金的现值 = 每年现金 ÷ 折现率 = 10 ÷ 10% = <strong>100 元/股</strong>
+  </p>
+  <p>直觉检验：你花 100 元买它，每年拿回 10 元，正好是 10% 回报——合理。<strong>这就是一次最朴素的 DCF。</strong></p>
+
+  <h3>如果现金还能增长呢？</h3>
+  <p>若这 10 元每年还能稳定增长 <strong>3%</strong>（记作 g），公式微调一下（分母减去增长）：</p>
+  <p style="font-family:var(--font-mono);font-size:.95rem;background:var(--card);padding:.8rem 1rem;border-radius:6px;text-align:center">
+    现值 = 现金 ÷ (折现率 − 增长率) = 10 ÷ (10% − 3%) ≈ <strong>143 元/股</strong>
+  </p>
+  <p>能增长的现金机更值钱（100 → 143）。<strong>这正是第 4 课"高增长撑得起高估值"的数学原理。</strong></p>
+
+  <div class="callout"><span class="label">真实的 DCF 只是加长版</span>真公司每年现金不一样，就<strong>一年一年分别折现再相加</strong>；算不完的遥远未来，用一个"<em class="term">终值</em>"（Terminal Value）打包成一笔，也折回今天。<strong>零件更多，但核心还是"折现"这一件事。</strong></p>
+
+  <h2>致命细节：折现率越高，越不值钱</h2>
+  <p>折现率不只是"你要的回报"，它还装着<strong>风险</strong>：生意越不稳、越看不清，你要求的回报越高，折现率就越大，未来现金被折得越狠。</p>
+  <p style="font-family:var(--font-mono);font-size:.9rem;background:var(--card);padding:.7rem 1rem;border-radius:6px">
+    同一台"每年 10 元"的现金机：<br>
+    折现率 10% → 10 ÷ 10% = <strong>100 元</strong>（稳健生意）<br>
+    折现率 15% → 10 ÷ 15% ≈ &nbsp;<strong>67 元</strong>（高风险生意，同样的现金却更不值钱）
+  </p>
+
+  <h2>最大的坑：假设一变，答案翻天</h2>
+  <p class="callout warn"><span class="label">垃圾进，垃圾出（放大版）</span>把折现率从 10% 调到 8%，永续机从 100 变 <strong>125</strong>（+25%）；把 g 从 3% 调到 5%，10÷(10%−5%) 直接变 <strong>200</strong>（翻倍）。<strong>你随手动一个假设，估值就天差地别。</strong></p>
+  <div class="keyidea">
+    所以 DCF 的价值<strong>不在最后那个精确数字</strong>，而在它<strong>逼你想清楚</strong>：这门生意未来到底能产生多少现金、有多稳、风险多大。<br>
+    <strong>宁要模糊的正确，不要精确的错误</strong>——又一次。
+  </div>
+  <p class="callout"><span class="label">什么公司适合 DCF</span>现金流<strong>稳、可预测</strong>的生意（白酒、公用事业、消费龙头）DCF 才靠谱。像<a href="0007-changan-valuation.html">长安</a>这种强周期 + 电动化转型、未来现金忽上忽下的公司，DCF 极其脆弱——这也是第 7 课我们对它更多靠"多把尺交叉"的原因。</p>
+
+  <h2>三把尺，现在合流</h2>
+  <table>
+    <tr><th>方法</th><th>它问的问题</th><th>视角</th></tr>
+    <tr><td>PE / PB（第 4-5 课）</td><td>相对利润/家底，贵不贵？</td><td>快速体检</td></tr>
+    <tr><td>相对估值（第 6-7 课）</td><td>市场给同行几倍，它该几倍？</td><td>跟别人比</td></tr>
+    <tr><td>DCF（今天）</td><td>它未来的现金，折回今天值多少？</td><td>自己算内在逻辑</td></tr>
+  </table>
+  <p><strong>三把尺互相独立，就互相印证。</strong>三个都指向"便宜"，你才更有底气；三个打架（像长安），恰恰提醒你：不确定性在哪、安全边际要留多厚。</p>
+
+  <h2>练一练</h2>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">1. 你要求 10% 年回报。一家公司每年稳定产生 5 元/股自由现金流、永不增长。它每股大约值多少？</div>
+    <button class="opt">5 元，因为每年就赚 5 元</button>
+    <button class="opt">50 元，用每年现金除以折现率</button>
+    <button class="opt">500 元，用现金乘以折现率</button>
+    <div class="fb ok" data-for="correct">对。永续现金机的现值 = 每年现金 ÷ 折现率 = 5 ÷ 10% = 50 元。花 50 买、每年拿 5，正好 10% 回报。</div>
+    <div class="fb no" data-for="wrong">永续现金机的现值 = 每年现金 ÷ 折现率 = 5 ÷ 0.10 = 50 元。不是只值一年的 5 元，也不是乘法；是"现金 ÷ 折现率"。</div>
+  </div>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">2. 两家公司未来现金流预测完全相同，但 A 生意稳、B 风险大。用 DCF 估，谁的内在价值更高？</div>
+    <button class="opt">B 更高，风险大代表未来想象空间大</button>
+    <button class="opt">一样高，因为现金流预测完全相同</button>
+    <button class="opt">A 更高，B 风险大→折现率高→现金被折得更狠</button>
+    <div class="fb ok" data-for="correct">对。风险越大，要求回报（折现率）越高，同样的未来现金被折回今天就更少。所以稳健的 A 内在价值更高。</div>
+    <div class="fb no" data-for="wrong">现金流预测虽相同，但 B 风险大→折现率更高→未来现金折得更狠→现值更低。风险是通过折现率压低估值的，稳健的 A 更值钱。</div>
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">3. 你发现把折现率从 10% 微调到 8%，DCF 估值就涨了 25%。这告诉你什么？</div>
+    <button class="opt">DCF 对假设极敏感,别迷信精确数字,重在想清现金逻辑</button>
+    <button class="opt">说明这只股票一定被低估了,应该马上重仓买入</button>
+    <button class="opt">说明 DCF 是错误方法,以后估值都不该用它</button>
+    <div class="fb ok" data-for="correct">对。假设小变、结果大变，正是 DCF 的固有特性。所以它的价值在"逼你想清生意的现金前景与风险"，而非那个看似精确的数字——要留安全边际。</div>
+    <div class="fb no" data-for="wrong">敏感不代表被低估，也不代表方法没用。它提醒你：DCF 结果高度依赖假设，别当精确真理；重点是想清现金逻辑并留足安全边际。</div>
+  </div>
+
+  <h2>一句话总结</h2>
+  <div class="keyidea">
+    DCF = <strong>把公司未来每年的自由现金流，用折现率折回今天，加起来</strong>。<br>
+    核心只有"折现"一件事；<strong>折现率越高越不值钱</strong>；假设极敏感，所以<strong>重思路、留边际</strong>，并和相对估值互相印证。
+  </div>
+
+  <div class="source">
+    <span class="label">推荐精读（本课主源）</span>
+    DCF 的黄金标准是 <a href="https://pages.stern.nyu.edu/~adamodar/">Aswath Damodaran</a>——他的《The Little Book of Valuation》讲 DCF 最平易；主页有免费的 DCF Excel 模板，想动手搭一个真模型时用。名词查 <a href="https://www.investopedia.com/terms/d/dcf.asp">Investopedia: DCF</a>（英文，可让我翻译）。
+  </div>
+
+  <div class="ask">
+    💬 <strong>随时问我。</strong> 想更进一步就问："<strong>折现率(WACC)到底怎么定？</strong>""<strong>终值怎么算，为什么它常占估值一大半？</strong>"——或者挑一家<strong>现金流很稳的公司</strong>（比如某白酒/公用事业），我们一起搭一个简版 DCF，跟相对估值对一对。
+  </div>
+
+  <div class="lesson-nav">
+    <span>← <a href="0007-changan-valuation.html">第 7 课：长安估值实操</a></span>
+    <span>下一课预告：估值篇收尾——三把尺合一，给出你的第一份完整估值结论（或转技术分析学"何时买"）→</span>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
