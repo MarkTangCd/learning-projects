@@ -37,6 +37,18 @@
     <dt>ffill 状态机 <span class="en">ffill State Trick</span></dt>
     <dd>把"进场后持有到出场"这种有状态规则向量化的套路:只在进/出场那几根标记 1/0、中间留 NaN,再 <code>.ffill()</code> 前向填充("保持上次决策")。无 for 循环表达持仓状态。</dd>
 
+    <dt>市场状态 / Regime <span class="en">Market Regime</span></dt>
+    <dd>市场当前的"性格":趋势市(单边上涨/下跌)vs 震荡市(区间来回)。同一信号在不同 regime 表现天差地别——趋势信号吃趋势市、均值回归吃震荡市。见 <a href="../lessons/0014-regime-filter.html">L14</a>。</dd>
+
+    <dt>Regime 过滤 <span class="en">Regime Filter / Switching</span></dt>
+    <dd>一个"路由器"信号:先判断当下 regime,再决定开哪个子信号(趋势市→SMA,震荡市→均值回归),让互补的两者各打各的天时。本身不发明下单逻辑,照样吐 <code>position</code> 列。风险:多子信号=大过拟合面,须钉死子信号、只调 regime 旋钮,且样本外必须打赢各零件单飞。见 <a href="../lessons/0014-regime-filter.html">L14</a>。</dd>
+
+    <dt>Efficiency Ratio <span class="en">效率比(Kaufman ER)</span></dt>
+    <dd>量化"当前有多像趋势":<code>|净位移| / 总路程</code>(<code>window</code> 根内)。ER→1 单边趋势,ER→0 来回震荡。纯 pandas 可算,regime 过滤最简单的检测器。</dd>
+
+    <dt>奥卡姆剃刀(量化版)<span class="en">Complexity Must Pay Rent</span></dt>
+    <dd>每加一个参数/一层机器,都要在<strong>样本外</strong>换来可测的提升,否则复杂度就是负债。组合信号打不过它更简单的零件单飞 = 该砍掉。防的是"看起来更聪明"的自我催眠。</dd>
+
     <dt>回测 <span class="en">Backtest</span></dt>
     <dd>在历史数据上模拟运行策略,估计它过去<em>本会</em>有的表现。诚实的回测必须计入手续费、滑点,并防前视偏差。</dd>
 

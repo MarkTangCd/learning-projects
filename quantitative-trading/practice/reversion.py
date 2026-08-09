@@ -15,7 +15,7 @@ from backtest import backtest
 from metrics import scorecard
 from strategy import fetch_ohlcv, sma_crossover_signal, zscore_reversion_signal
 
-LOOKBACK, ENTRY = 20, 1.0   # mean-reversion knobs: window, entry z-threshold
+LOOKBACK, ENTRY = 10, 1.0   # mean-reversion knobs: window, entry z-threshold
 
 
 def run(price, label, signal_df):

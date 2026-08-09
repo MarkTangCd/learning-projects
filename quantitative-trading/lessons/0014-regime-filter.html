@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L14 · Regime 过滤:让两个半吊子互补</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .erbar { font-family: var(--mono, monospace); font-size: 0.8rem; line-height: 1.75;
+             background: #fff; border: 1px solid var(--rule); border-radius: 6px;
+             padding: 0.9rem 1.1rem; margin: 1.2rem 0 1.6rem; overflow-x: auto; }
+    .erbar .tr { color: var(--link); font-weight: 700; }
+    .erbar .rg { color: var(--good); font-weight: 700; }
+    .erbar .dim { color: var(--ink-faint); }
+    @media (prefers-color-scheme: dark) { .erbar { background: #1b1a15; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 14 课 · 工位 1–2(研究)· 组合信号</p>
+  <h1>Regime 过滤:让两个半吊子互补</h1>
+  <p class="subtitle">L13 的判决里,最值钱的是 <strong>fold 5</strong>:均值回归在那段强反弹里输给了躺平。那不是 bug——那是均值回归<strong>该输</strong>的地方(单边上涨是趋势的主场)。既然两者的软肋<strong>正好错开</strong>,能不能让它们各打各的天时?</p>
+
+  <p>回顾 L13 给你的两句话,拼起来就是这一课:</p>
+  <ul>
+    <li><strong>均值回归</strong>:震荡市 + 下跌里表现好(空仓躲崩盘,回撤 −46% vs 躺平 −67%),<strong>但单边上涨里跑输</strong>(fold 5)。</li>
+    <li><strong>趋势(SMA)</strong>:单边趋势市是主场,<strong>但震荡市里反复挨割</strong>(L7 里它整体跑输)。</li>
+  </ul>
+  <p>两者的强项和弱项<strong>互为镜像</strong>。<span class="term">Regime 过滤</span>的思路:先判断"当下是趋势市还是震荡市",<strong>再决定这一刻开哪个信号</strong>——趋势市用 SMA,震荡/下跌市用均值回归。一个信号的职责,变成了"挑另一个信号"。</p>
+
+  <h2>怎么判断"趋势 or 震荡":Efficiency Ratio</h2>
+  <p>需要一个数来量化"当前有多像趋势"。用 <span class="term">Efficiency Ratio(ER,效率比)</span>——它问一个极朴素的问题:<strong>过去这段路,价格走的总路程里,有多少是"净前进"?</strong></p>
+
+  <pre><code>net   = (close - close.shift(window)).abs()        # 净位移:起点到终点的直线距离
+total = close.diff().abs().rolling(window).sum()   # 总路程:每天挪动的绝对值之和
+ER = net / total                                   # 0 ~ 1 之间</code></pre>
+
+  <div class="erbar">
+  ER → <span class="tr">1</span>：一路单边走,净位移 ≈ 总路程   <span class="dim">→ 趋势市,交给 SMA</span>
+  ER → <span class="rg">0</span>：来回震荡,走了很多路却没净进展 <span class="dim">→ 震荡市,交给均值回归</span></div>
+
+  <p>直觉:从家走到 1 公里外的公司,如果直线走,总路程≈1 公里,ER≈1(高效、有方向);如果在原地来回踱步走了 1 公里但没离开家门,净位移≈0,ER≈0(瞎忙、没方向)。价格也一样——ER 高 = 有趋势,ER 低 = 在震荡。它<strong>纯 pandas 就能算,不需要新库</strong>。</p>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">某段行情里 Efficiency Ratio 长期很<strong>低</strong>(接近 0),regime 过滤该开哪个信号?</div>
+    <button class="opt">开趋势 SMA:低 ER 说明酝酿大行情,提前埋伏趋势</button>
+    <button class="opt">开均值回归:低 ER = 来回震荡无方向,正是回归的主场</button>
+    <div class="fb right" data-for="right">对。ER 低 = 价格走了很多路却没净进展 = 震荡市 = 没有趋势可追,追进去只会反复挨割。这种行情正是均值回归("偏离就拉回")的天时。ER 高才轮到趋势 SMA。</div>
+    <div class="fb nope" data-for="nope">方向反了。低 ER = 没有净方向 = 震荡市,趋势信号在这里会被反复假突破割死(L7 的教训)。低 ER 该交给<strong>均值回归</strong>;高 ER(单边)才交给趋势。</div>
+  </div>
+
+  <h2>组合信号:同样吐一列 position</h2>
+  <p>关键设计:regime 过滤<strong>不发明新的下单逻辑</strong>,它只是个"路由器"——用 ER 选择用趋势信号的输出还是回归信号的输出。所以它照样吐一列 <code>position</code>,照样进同一台 gauntlet(<a href="0001-anatomy-of-a-quant-system.html">L1</a> 接口红利,第四次):</p>
+
+  <pre><code>er = efficiency_ratio(df["close"], er_window)
+trend_sig  = sma_crossover_signal(df, fast=20, slow=60)["signal"]   # 子信号:趋势
+revert_sig = zscore_reversion_signal(df, lookback=20, entry=1.0)["signal"]  # 子信号:回归
+is_trend = er > er_thresh
+df["signal"]   = np.where(is_trend, trend_sig, revert_sig)   # 按 regime 路由
+df["position"] = df["signal"].shift(1)   # 一次干净的 shift,防前视(同 L3 纪律)</code></pre>
+
+  <div class="callout warn">
+    <span class="label">警报:你刚给过拟合面又添了柴</span>
+    组合信号现在有 <strong>6 个旋钮</strong>:子信号的 <code>fast/slow/lookback/entry</code> + 新的 <code>er_window/er_thresh</code>。参数越多,越容易在历史上拟合出一条假的漂亮曲线。<strong>纪律:把两个子信号钉死在各自族的默认值,只让 gauntlet 调 regime 的那 1–2 个新旋钮。</strong> 每加一个旋钮都要在样本外<strong>自证其值</strong>——加了参数却没换来样本外的提升,就是纯过拟合。
+  </div>
+
+  <h2>唯一的判据:组合能不能打赢它的"零件"?</h2>
+  <p>一个组合信号<strong>看起来</strong>总更聪明(它两头的好处都想要)。但唯一诚实的问题是:<strong>它样本外的成绩,能不能同时超过趋势单飞、回归单飞、和躺平?</strong> 如果不能——如果它打不过 L13 里回归单飞的 <code>Sharpe −0.18</code>——那多出来的机器<strong>没有挣到自己的饭钱</strong>,该被砍掉(奥卡姆剃刀:复杂度必须换来更好的样本外表现,否则复杂度就是负债)。</p>
+
+  <p>所以还是同一台裁判:把 regime 组合喂进和前两课一字不差的 walk-forward,只优化 regime 那一维,拿拼接样本外曲线去比。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">regime 组合样本外 Sharpe −0.20,而 L13 回归单飞是 −0.18。怎么判?</div>
+    <button class="opt">砍掉组合:多了两个旋钮却没打赢更简单的回归单飞,复杂度白加了</button>
+    <button class="opt">保留组合:两者差不多,组合更全面、更能适应不同市场</button>
+    <div class="fb right" data-for="right">对。组合更复杂(多 2 个旋钮 = 更大过拟合面),却<strong>没换来</strong>样本外提升,反而略差。奥卡姆剃刀:复杂度必须自证其值。打不过更简单的零件,就该砍掉——"更全面"是幻觉,真金是样本外数字。</div>
+    <div class="fb nope" data-for="nope">"更全面"是组合信号最诱人的自我催眠。真相:它多了 2 个旋钮(更易过拟合)却连更简单的回归单飞都没打赢。复杂度没自证其值 = 负债。样本外打平或更差 → 选更简单的那个。</div>
+  </div>
+
+  <h2>动手挑战:让组合上台自证</h2>
+  <div class="callout tip">
+    <span class="label">同一台裁判,第三个信号</span>
+    已写好 <code>strategy.py</code> 里的 <code>efficiency_ratio</code> + <code>regime_switch_signal</code>,和 gauntlet 运行器 <code>walkforward_regime.py</code>(子信号钉死默认值,只调 <code>er_window/er_thresh</code>):<br>
+    <strong>①</strong> <code>python walkforward_regime.py</code> —— 同样 1000 根日线(牛+熊+复苏)。脚本会把 <strong>regime 组合 / 买入持有 / 回归单飞(−0.18)</strong> 三行并排打印,直接对比。<br>
+    <strong>②</strong> 读判决:组合样本外 Sharpe <strong>有没有 &gt; −0.18</strong>(打赢它的零件)?<strong>MaxDD</strong> 有没有比回归单飞更浅?<strong>参数漂移</strong>几种?<br>
+    <strong>③</strong> 特别去看 <strong>fold 5(2022-12→2023-03 那段反弹)</strong>:回归单飞在这里输给躺平;组合<strong>有没有在这段切换到趋势、把这一 fold 扳回来</strong>?这是 regime 过滤成立与否的命门。<br>
+    把输出贴给我,我们一起判:组合是真互补,还是只是过拟合穿了件花衣裳。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.quantstart.com/articles/market-regime-detection-using-hidden-markov-models-in-qstrader/">QuantStart · Market Regime Detection using Hidden Markov Models</a></strong> —— 工业界怎么严肃地做 regime 检测(隐马尔可夫模型),比 ER 阈值高级得多。先看懂"regime 切换"的正统做法,再回头体会 ER 只是它的入门近似。</p>
+    <p style="margin:0"><strong>《Algorithmic Trading》 — Ernest P. Chan(regime switching 章节)</strong> —— 讲清 regime 切换策略的收益来源与陷阱(切换点滞后、假信号)。你书单里已有此书。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清为什么 ER 阈值切换会"慢半拍"(regime 确认时行情已走一半)、HMM 凭什么比阈值强、或者为什么"组合打不过零件"其实是<strong>好消息</strong>(它逼你面对 BTC 日线可能真没有简单 edge)——直接说。判决之后:若组合<strong>成立</strong> → 样本外再切一刀 / 换资产复现 / 上小资金(路线 B);若组合<strong>也躺平</strong> → 该认真考虑掉头<strong>股票赛道</strong>(均值回归在股票史更扎实)或引入<strong>更强的特征/ML</strong>。
+    </div>
+    <div class="nav">
+      <a href="0013-mean-reversion-gauntlet.html">← L13:均值回归判决</a>
+      <a href="../reference/glossary.html">词表 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

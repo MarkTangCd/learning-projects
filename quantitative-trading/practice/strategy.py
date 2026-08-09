@@ -7,6 +7,7 @@ effect on the NEXT bar (shift(1)) — otherwise we'd use future info
 """
 
 import ccxt
+import numpy as np
 import pandas as pd
 
 PROXY = "http://127.0.0.1:1087"
@@ -61,6 +62,45 @@ def zscore_reversion_signal(df, lookback=20, entry=1.0):
     raw[df["zscore"] >= 0] = 0                          # back to mean -> exit
     df["signal"] = raw.ffill().fillna(0)               # hold between the marks
     df["position"] = df["signal"].shift(1)             # act next bar — no look-ahead
+    return df
+
+
+def efficiency_ratio(close, window=20):
+    """Kaufman Efficiency Ratio — a pure measure of 'trendiness', no new lib.
+
+    Of all the distance price traveled over the last `window` bars, how much
+    was NET progress?  ER = |net change| / total path length.
+        ER -> 1 : a clean one-way trend (net move ≈ total travel)
+        ER -> 0 : choppy / range-bound (lots of travel, no net progress)
+    This is the axis that separates 'when trend wins' from 'when reversion
+    wins' — exactly what fold 5 (L13) showed by losing in a rally.
+    """
+    net = (close - close.shift(window)).abs()          # net progress over window
+    total = close.diff().abs().rolling(window).sum()   # total path length walked
+    return net / total
+
+
+def regime_switch_signal(df, er_window=20, er_thresh=0.3,
+                         fast=20, slow=60, lookback=20, entry=1.0):
+    """A signal that picks WHICH signal to trust, by market regime.
+
+    Trend-following wins in trends; mean reversion protects on the downside
+    and wins in chop. So measure trendiness (Efficiency Ratio) and ROUTE:
+        trend regime (ER > thresh) -> SMA signal
+        range regime (ER <= thresh) -> reversion signal
+    The sub-signals stay at family DEFAULTS; the only NEW knob is er_thresh,
+    kept deliberately minimal because every added knob is fresh overfitting
+    surface. Same `position` output -> same gauntlet, a third time (L1).
+    """
+    df = df.copy()
+    er = efficiency_ratio(df["close"], er_window)
+    trend_sig = sma_crossover_signal(df, fast=fast, slow=slow)["signal"]
+    revert_sig = zscore_reversion_signal(df, lookback=lookback, entry=entry)["signal"]
+    is_trend = er > er_thresh
+    df["er"] = er
+    df["regime"] = np.where(is_trend, "trend", "range")
+    df["signal"] = np.where(is_trend, trend_sig, revert_sig)   # route by regime
+    df["position"] = df["signal"].shift(1)   # one clean shift — no look-ahead
     return df
 
 

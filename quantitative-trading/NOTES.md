@@ -35,5 +35,8 @@
     - 用户选了路线 **C(先补执行细节)**,L10-L11 为其内容。
 11. ✅ L11 部分成交:filled vs intended(账本记事实)、等/撤/追三选一、撤单/成交竞态(撤单也要回读)、TIF(GTC/IOC/FOK)、IOC 原子撤剩余=无竞态、有界追单(IOC 阶梯 -5/0/+5bps + 市价兜底、每腿独立 cid、每腿过闸门)、急迫成本(VWAP vs ref)。`chase` 命令 + recipe 追单块 + 词表 +4(部分成交/TIF/追单/撤单成交竞态)。首选源 Binance enums + freqtrade unfilledtimeout ← **已跑通**(chase + 急停③ 全过,见 [[0011-partial-fills-and-chase-loop]])。抓修真 bug:残量=0 时 `amount_to_precision` 抛 InvalidOrder(边界住在成功路径终点)→ 改为裸数字先判 min_amount。**执行层四件套(生命周期/风控/幂等/部分成交)到此集齐,路线 C 完成。**
 12. ✅ L12 均值回归(第二信号族):趋势 vs 回归=相反赌注、regime 决定谁对;z-score 标准化;ffill 状态机(无循环持仓);gauntlet 白捡复用(同 position 接口)。诚实框架:单窗=冒烟测试非判决,lookback/entry=新过拟合面。`strategy.py` +`zscore_reversion_signal`(离线验证过状态机)+`reversion.py` 三方对比。词表 +5。首选源 Chan《Algorithmic Trading》ch2 + QuantStart。← 用户选了**路线 A**;已发布,待用户跑 `reversion.py` 贴三张成绩单。见 [[0012-second-signal-family-mean-reversion]]
-13. L13 均值回归过 OOS + walk-forward gauntlet(同 SMA 的裁判,只换信号)→ 定判决。若仍无 edge → regime 过滤 / 配对交易。
-14. 路线 B(小资金实盘)待 A 出个"值得下的单"后再上;(扩展)传统股票 / AI 量化
+    - **L12 动手结果(2026-08-08)**:熊市窗口全员负夏普/全亏;用户三次运行把夏普 −0.83→−0.58,**亲手在单窗口调出过拟合**(本课最值钱体验)。见 [[0013-l12-results-overfitting-felt-on-one-window]]。
+13. ✅ L13 均值回归过 walk-forward gauntlet:拆"手挑参数进样本外"陷阱(walk-forward 每窗自选参、人不碰);换信号裁判台一行不改(build_folds/score/sharpe_key 原样 import,只换 RGRID + 信号调用)=L1 接口红利第三次兑现;判决三态(跑输躺平/险胜漂移大/稳赢参数稳);参数漂移读法。`walkforward_reversion.py`(端到端离线验过)。首选源 QuantStart Successful Backtesting + Chan。← 已发布,待用户跑贴输出。
+    - **L13 判决(2026-08-09)**:均值回归**跑赢**躺平(Sharpe −0.18 vs −0.28,MaxDD −46% vs −67%)——课程首个非躺平!但夏普仍负=**下跌保护非独立 edge**;fold 5(反弹)输躺平=软肋在单边上涨。参数漂移 4/7 黄灯(lb 20→30 有结构)。见 [[0014-mean-reversion-verdict-downside-protection-not-edge]]。用户选 **A regime 过滤**。
+14. ✅ L14 regime 过滤:ER(效率比)检测趋势/震荡→路由 SMA/回归;组合=路由器照样吐 position(gauntlet 复用第4次);核心纪律=奥卡姆剃刀(6 旋钮大过拟合面,钉死子信号只调 regime,组合须样本外打赢零件单飞)。`strategy.py`+efficiency_ratio/regime_switch_signal(离线验路由),`walkforward_regime.py`(三行并排比,端到端跑通)。首选源 QuantStart HMM + Chan。← 已发布,待用户跑贴输出。判据:组合 Sharpe 须 > −0.18 且看 fold 5 是否被扳回。见 [[0015-regime-filter-built]]。
+15. 判决后岔路:组合成立→样本外再切/换资产/小资金实盘(路线 B);组合也躺平→**掉头股票赛道**(均值回归股票史更扎实)或引入更强特征/ML。
