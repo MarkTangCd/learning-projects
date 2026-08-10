@@ -1,22 +1,38 @@
 {
-  "position": 0,
   "coin": 0.0,
+  "weight": 0.0,
   "last_bar": "2026-08-09",
   "trades": [
     {
       "bar": "2026-08-09",
       "side": "buy",
-      "intended": 0.0003,
-      "filled": 0.0003,
-      "avg": 65253.56,
+      "intended": 0.00054,
+      "filled": 0.00054,
+      "avg": 64652.01,
       "cid": "run-buy-20260809"
     },
     {
       "bar": "2026-08-09",
       "side": "sell",
-      "intended": 0.0003,
-      "filled": 0.0003,
-      "avg": 65224.79,
+      "intended": 0.00029,
+      "filled": 0.00029,
+      "avg": 64635.99,
+      "cid": "run-sell-20260809"
+    },
+    {
+      "bar": "2026-08-09",
+      "side": "buy",
+      "intended": 0.00036,
+      "filled": 0.00036,
+      "avg": 64627.86,
+      "cid": "run-buy-20260809"
+    },
+    {
+      "bar": "2026-08-09",
+      "side": "sell",
+      "intended": 0.00061,
+      "filled": 0.00061,
+      "avg": 64625.77,
       "cid": "run-sell-20260809"
     }
   ]

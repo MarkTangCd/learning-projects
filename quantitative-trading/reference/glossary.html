@@ -228,6 +228,18 @@
 
     <dt>配给资本 <span class="en">Allocated Capital</span></dt>
     <dd>划给某个策略的那一块钱,仓位管理对着它算(不对着全部身家)。真实组合里钱分给多策略/多资产。附带好处:单量小、稳落在风控闸门内,闸门作为独立硬后备永不撤除。</dd>
+
+    <dt>永续合约 <span class="en">Perpetual Swap / Perp</span></dt>
+    <dd>没有到期日的期货,用资金费率把价格锚在现货附近。用 USDT 抵押保证金,不真正持有币。关键能力:允许<strong>负持仓</strong> → 能原生做空、能上杠杆——现货物理上做不到的两件事。ccxt 里交易对写作 <code>BTC/USDT:USDT</code>,测试网在 <code>testnet.binancefuture.com</code>(与现货测试网两套账户)。见 <a href="../lessons/0020-perp-testnet-native-short.html">L20</a>。</dd>
+
+    <dt>带符号持仓 <span class="en">Signed Position</span></dt>
+    <dd>perp 上你持有的不是币余额(≥0),而是一个带符号的数:<code>+</code>=多、<code>0</code>=平、<code>−</code>=空。flat 时的卖单=<strong>开空</strong>(建立负持仓、"欠"币),不是"卖掉手里的币"。心智从"我有多少币"切到"我的持仓是正是负"。<code>fetch_positions()</code> 读回这个符号=L9"读回对账"在 perp 上的样子。见 <a href="../lessons/0020-perp-testnet-native-short.html">L20</a>。</dd>
+
+    <dt>只减仓单 <span class="en">reduceOnly</span></dt>
+    <dd>标记一张只能<strong>缩小</strong>持仓、绝不会反向开新仓的订单。平仓永远是持仓符号的<strong>反</strong>方向:平空=买、平多=卖。用它平仓可保证"手滑买过头变开多"不会发生;风控上平仓单可豁免名义上限(减风险的动作永远该放行)。见 <a href="../lessons/0020-perp-testnet-native-short.html">L20</a>。</dd>
+
+    <dt>资金费率 <span class="en">Funding Rate</span></dt>
+    <dd>perp 持仓的"碳税":每 8h(3 次/日)按标记价 vs 现货指数的偏离,在多空之间收付一次。费率>0 → 多头付空头;<0 → 空头付多头。L16 里它是模拟的一笔成本,perp 上是真的、会随持仓真扣。edge 薄时它能把双边收益吃归零(L16 实测 3bp/天即归零)。见 <a href="../lessons/0020-perp-testnet-native-short.html">L20</a>。</dd>
   </dl>
 
   <div class="lesson-foot">

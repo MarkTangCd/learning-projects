@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L20 · 你的第一张原生空单</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .flow { font-family: var(--mono, monospace); font-size: 0.82rem; line-height: 1.7;
+            background: #fff; border: 1px solid var(--rule); border-radius: 6px;
+            padding: 0.9rem 1.1rem; margin: 1.2rem 0 1.6rem; overflow-x: auto; }
+    .flow .hl { color: var(--accent); font-weight: 700; }
+    .flow .neg { color: #b3402e; font-weight: 700; }
+    @media (prefers-color-scheme: dark) { .flow { background: #1b1a15; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 20 课 · 工位 4 · perp 深水区</p>
+  <h1>你的第一张原生空单</h1>
+  <p class="subtitle">L16 你在回测里证明了做空能把 BTC 的样本外夏普顶成全课首个正值;L17–L19 你把一条能按风险下注的活循环焊上了<strong>现货</strong>测试网。但现货有一堵拆不掉的墙:<strong>你只能持有币,不能欠币</strong>——余额永远 ≥ 0,物理上做不了空。这一课换到 <span class="term">perp 永续合约</span>测试网,把那堵墙拆掉。</p>
+
+  <div class="flow">
+  现货(spot)   BTC 余额 = <span class="hl">≥ 0</span>     只能"有多少卖多少" —— <span class="neg">做空不可能</span>
+  perp 合约     持仓     = <span class="neg">−0.001</span> / 0 / <span class="hl">+0.001</span>   空 / 平 / 多 —— 一个<strong>带符号</strong>的数
+  ────────────────────────────────────────────────
+  flat 时 <span class="neg">SELL</span>  = <span class="neg">开空</span>(你从此"欠"BTC)      平空 = <span class="hl">BUY</span>(reduceOnly)
+  flat 时 <span class="hl">BUY</span>   = 开多               平多 = <span class="neg">SELL</span>(reduceOnly)</div>
+
+  <p>核心心智切换:现货上你想的是"<strong>我有多少币</strong>",perp 上你想的是"<strong>我的持仓是正是负</strong>"。<code>fetch_positions()</code> 读回的不再是一个币余额,而是一个<strong>带符号的持仓</strong>——这就是 L9 那条铁律"<strong>别假设,读回来对账</strong>"在 perp 上的样子,只不过读回的真相多了一个符号位。</p>
+
+  <h2>换到 perp,三样东西是新的</h2>
+
+  <p><strong>1. 新 venue,新密钥。</strong> perp 测试网是 <code>testnet.binancefuture.com</code>,和 L9 的现货测试网 <code>testnet.binance.vision</code> 是<strong>两套完全独立的账户</strong>——密钥不通用。ccxt 里用 <code>binanceusdm</code> 客户端,交易对是 <code>BTC/USDT:USDT</code>(USDT 保证金的线性永续),不是现货的 <code>BTC/USDT</code>。</p>
+
+  <p><strong>2. 你抵押保证金,不再持有币。</strong> perp 账户里躺的是 USDT 保证金;你并不真的拥有 BTC,只是持有一个"对 BTC 价格的<strong>带符号敞口</strong>"。开空 = 卖出建立负敞口;价格跌 → 负敞口赚钱。平仓永远是<strong>反方向的 reduceOnly 单</strong>:平空要<em>买回</em>,平多要<em>卖出</em>。<code>reduceOnly</code> 保证这张单<strong>只能缩小持仓,绝不会手滑反向开新仓</strong>。</p>
+
+  <p><strong>3. 最小下单额大得多。</strong> perp 的 BTC 最小名义 ≈ <strong>$50</strong>,现货只要 ~$5。所以 perp 单子"块头很大",L9 那个 $50 名义闸门在这里会卡死每一张单——本课把闸门<strong>按 venue 重新标定</strong>到 $200(闸门的<strong>形状</strong>没变,只是校准值随场子换)。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">你现在持有一个空头仓位(−0.001 BTC)。要把它平掉,你该发一张什么单?</div>
+    <button class="opt">买入(BUY),并带 reduceOnly —— 买回来把负持仓抵消回 0</button>
+    <button class="opt">卖出(SELL),因为平仓就是把手里的东西卖掉换回现金</button>
+    <div class="fb right" data-for="right">对。空头是<strong>负</strong>持仓,要回到 0 得往<strong>正</strong>方向推 → <strong>买</strong>。<code>reduceOnly</code> 让这张买单只能缩小空头、不会一不小心买过头变成开多。平多才是卖。记住:平仓方向 = 持仓符号的<strong>反</strong>方向。</div>
+    <div class="fb nope" data-for="nope">直觉"平仓=卖掉"是<strong>现货</strong>脑子。perp 上空头是<strong>负</strong>持仓,你要把它推回 0 就得往正方向走 = <strong>买入</strong>(买回你"欠"的那份)。平空=买、平多=卖。方向永远是持仓符号的相反。</div>
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">你的 perp 账户里一个 BTC 都没有(只有 USDT 保证金)。你发了一张市价<strong>卖单</strong>。会发生什么?</div>
+    <button class="opt">报错或被拒:你手里没有 BTC,没有东西可以卖出</button>
+    <button class="opt">开出一个空头:flat 时的卖单 = 建立负持仓,你从此"欠"BTC</button>
+    <div class="fb right" data-for="right">对。这正是 perp 拆掉的那堵墙。flat 时的 SELL <strong>不是</strong>"卖掉手里的币"(你没有币)——它是<strong>开空</strong>:凭 USDT 保证金建立一个负敞口。价格跌你就赚。现货做不到这件事,因为现货余额不能为负。</div>
+    <div class="fb nope" data-for="nope">这是<strong>现货</strong>的规则(没币不能卖)。perp 不一样:你抵押的是 USDT 保证金,卖单在 flat 时是<strong>开空</strong>——建立一个<strong>负</strong>持仓,等于"借 BTC 来卖"。这就是本课的整个重点:perp 允许负持仓,所以能做空。</div>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">两个最容易栽的坑</span>
+    <strong>① 密钥用错场子。</strong> perp 测试网密钥必须在 <code>testnet.binancefuture.com</code> 生成;把 L9 的现货测试网密钥填进来会报 <code>Invalid API-key</code>(它俩是两套账户)。<br>
+    <strong>② $40 配给在 perp 上 1 倍杠杆下不出单。</strong> perp 最小名义 ≈ $50 > 你 L19 的配给资本 $40。含义:<strong>perp 上杠杆不是"可选加速",而是小账户能下单的前提</strong>——这正是下一课 L21 的入口。本课先用 $60 的演示单(略高于最小额)把空开出来,杠杆按测试网默认值(通常 20x),不去碰它。
+  </div>
+
+  <div class="callout tip">
+    <span class="label">动手挑战:开出你的第一张原生空单,读回一个负持仓</span>
+    先在 <code>testnet.binancefuture.com</code> 生成密钥并 <code>export</code>(见 <code>perp.py</code> 顶部),然后按顺序:<br>
+    <strong>①</strong> <code>python perp.py balance</code> —— 确认能看到 perp 测试网的 USDT 保证金(和现货是两套钱)。<br>
+    <strong>②</strong> <code>python perp.py funding</code> —— 看当前<strong>资金费率</strong>:L16 里那笔"碳税"现在是<strong>真的</strong>了,持仓期间每 8h 收/付一次(本课只<strong>预览</strong>,L22 再让它真扣)。<br>
+    <strong>③</strong> <code>python perp.py short</code> —— flat 时市价<strong>卖出开空</strong> $60,过闸门 → 回读订单 → <strong>读回一个负持仓</strong>(现货永远打印不出这一行)。<br>
+    <strong>④</strong> <code>python perp.py position</code> —— 盯住那个 <code>仓位=−…</code> 和<strong>未实现盈亏</strong>随价格跳动。<br>
+    <strong>⑤</strong> <code>python perp.py close</code> —— reduceOnly <strong>买回</strong>平仓,持仓回到 0。<br>
+    把 ③⑤ 的输出贴给我 —— 我们确认:你真的在真实撮合上开了一张<strong>现货物理上下不出</strong>的单,并且干净地平回了 flat。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://developers.binance.com/docs/derivatives/usds-margined-futures/general-info">Binance USDⓈ-M Futures API 文档</a></strong> —— 永续合约的一手规则:one-way vs hedge 持仓模式、<code>reduceOnly</code>、最小名义过滤器、资金费率结算。你这张空单背后的撮合规则都在这里。</p>
+    <p style="margin:0"><strong><a href="https://docs.ccxt.com/#/README?id=positions">ccxt 文档 · Positions / Funding</a></strong> —— <code>fetch_positions</code> / <code>set_leverage</code> / <code>fetch_funding_rate</code> 的统一接口:带符号持仓、名义、未实现盈亏、杠杆各字段怎么读。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清 one-way 和 hedge 持仓模式到底差在哪、为什么平仓一定要 <code>reduceOnly</code>、资金费率是怎么按"标记价 vs 现货指数"算出来的、或者"负持仓的盈亏"该怎么记进账本——直接说。往下的岔路:<strong>①</strong> <strong>L21 杠杆</strong>:放开 <code>weight>1.0</code>、<code>set_leverage</code>、认识保证金与<span class="term">强平价</span>(小账户在 perp 下单的前提);<strong>②</strong> <strong>L22 焊进 runner</strong>:把 perp 接进 <code>strategy_runner</code>,让信号能真吐 −1,并让<strong>真实 funding</strong> 随持仓 8h 一扣,攒一条双边 track record;<strong>③</strong> 掉头股票赛道。
+    </div>
+    <div class="nav">
+      <a href="0019-wiring-sizing-into-the-runner.html">← L19:把风险旋钮焊进系统</a>
+      <a href="../reference/glossary.html">词表 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>
