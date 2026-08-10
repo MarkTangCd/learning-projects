@@ -28,17 +28,25 @@ def fetch_ohlcv(symbol="BTC/USDT", timeframe="1d", limit=400, since=None):
     return df.set_index("ts")
 
 
-def sma_crossover_signal(df, fast=10, slow=30):
-    """Add sma_fast, sma_slow, signal, position columns (long/flat only)."""
+def sma_crossover_signal(df, fast=10, slow=30, long_short=False):
+    """Add sma_fast, sma_slow, signal, position columns.
+
+    long_short=False (default): long/flat, signal in {0, +1} — the L3 behavior,
+        kept byte-for-byte so every prior lesson still reproduces.
+    long_short=True: two-sided, signal in {-1, +1} — SHORT when fast < slow
+        instead of sitting flat. Lets the strategy profit in downtrends, not
+        just 'lose less'. Same `position` column -> same gauntlet (L1).
+    """
     df = df.copy()
     df["sma_fast"] = df["close"].rolling(fast).mean()
     df["sma_slow"] = df["close"].rolling(slow).mean()
-    df["signal"] = (df["sma_fast"] > df["sma_slow"]).astype(int)
+    up = df["sma_fast"] > df["sma_slow"]
+    df["signal"] = np.where(up, 1, -1) if long_short else up.astype(int)
     df["position"] = df["signal"].shift(1)  # act on the next bar — no look-ahead
     return df
 
 
-def zscore_reversion_signal(df, lookback=20, entry=1.0):
+def zscore_reversion_signal(df, lookback=20, entry=1.0, long_short=False):
     """A SECOND signal family: mean reversion (the OPPOSITE bet to SMA).
 
     SMA bets price CONTINUES; mean reversion bets price SNAPS BACK to its
@@ -56,10 +64,17 @@ def zscore_reversion_signal(df, lookback=20, entry=1.0):
     df = df.copy()
     mean = df["close"].rolling(lookback).mean()
     std = df["close"].rolling(lookback).std()
-    df["zscore"] = (df["close"] - mean) / std
+    z = (df["close"] - mean) / std
+    df["zscore"] = z
     raw = pd.Series(index=df.index, dtype="float64")   # all NaN
-    raw[df["zscore"] <= -entry] = 1                     # cheap -> enter long
-    raw[df["zscore"] >= 0] = 0                          # back to mean -> exit
+    if long_short:
+        # Symmetric, SAME single `entry` knob — no new overfitting surface.
+        raw[(np.sign(z) != np.sign(z.shift(1)))] = 0   # crossed the mean -> flat
+        raw[z <= -entry] = 1                           # unusually cheap -> long
+        raw[z >= entry] = -1                           # unusually rich  -> SHORT
+    else:
+        raw[z <= -entry] = 1                           # cheap -> enter long
+        raw[z >= 0] = 0                                # back to mean -> exit
     df["signal"] = raw.ffill().fillna(0)               # hold between the marks
     df["position"] = df["signal"].shift(1)             # act next bar — no look-ahead
     return df
@@ -81,7 +96,8 @@ def efficiency_ratio(close, window=20):
 
 
 def regime_switch_signal(df, er_window=20, er_thresh=0.3,
-                         fast=20, slow=60, lookback=20, entry=1.0):
+                         fast=20, slow=60, lookback=20, entry=1.0,
+                         long_short=False):
     """A signal that picks WHICH signal to trust, by market regime.
 
     Trend-following wins in trends; mean reversion protects on the downside
@@ -94,8 +110,8 @@ def regime_switch_signal(df, er_window=20, er_thresh=0.3,
     """
     df = df.copy()
     er = efficiency_ratio(df["close"], er_window)
-    trend_sig = sma_crossover_signal(df, fast=fast, slow=slow)["signal"]
-    revert_sig = zscore_reversion_signal(df, lookback=lookback, entry=entry)["signal"]
+    trend_sig = sma_crossover_signal(df, fast=fast, slow=slow, long_short=long_short)["signal"]
+    revert_sig = zscore_reversion_signal(df, lookback=lookback, entry=entry, long_short=long_short)["signal"]
     is_trend = er > er_thresh
     df["er"] = er
     df["regime"] = np.where(is_trend, "trend", "range")

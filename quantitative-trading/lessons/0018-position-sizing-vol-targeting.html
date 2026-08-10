@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L18 · 仓位管理:按风险下注,不按拍脑袋</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .dial { width: 100%; border-collapse: collapse; margin: 1.2rem 0 0.4rem; font-size: 0.9rem; }
+    .dial th, .dial td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--rule); text-align: right; }
+    .dial th:first-child, .dial td:first-child { text-align: left; }
+    .dial thead th { border-bottom: 2px solid var(--rule); }
+    .dial .keep { color: var(--good); font-weight: 700; }
+    .dial tr.raw td { color: var(--ink-faint); }
+    .cap { font-size: 0.8rem; color: var(--ink-faint); margin: 0.2rem 0 1.6rem; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 18 课 · 工位 4 · 风控 / 仓位管理</p>
+  <h1>仓位管理:按风险下注,不按拍脑袋</h1>
+  <p class="subtitle">到 L17 为止,你所有的下注大小都是<strong>风险瞎子</strong>:回测里仓位是满仓 <code>±1</code>,runner 里是硬编码的 <code>$20</code> 名义。同样一个数,在平静的市场是小注,在崩盘的狂暴里就是鲁莽。上真钱前必须回答的问题不是"做多还是做空",而是——<strong>下多大?</strong></p>
+
+  <p>专业机构的默认答案是<span class="term">波动率目标定量(vol targeting)</span>:<strong>让策略的预期波动率钉在一个固定目标上</strong>。市场变狂就缩仓,市场平静就加仓。一个公式:</p>
+
+  <pre><code>weight = target_vol / realized_vol      # 再截断到一个杠杆上限
+# 实际波动 60% 而你想要 20% → weight = 20/60 ≈ 0.33,只上三分之一仓</code></pre>
+
+  <p>它天然治好了 L16 暴露的病:双边策略"永远满仓在市场里",在崩盘的高波动里被反复重创。vol 定量在波动飙升时<strong>自动缩仓</strong>,把最危险的时候的暴露压下来。</p>
+
+  <div class="callout warn">
+    <span class="label">诚实:edge 越薄越不确定,越要保守下注</span>
+    你的 edge 很薄(L16)。所以要<strong>保守</strong>:适中的目标 + 硬杠杆上限。别碰<span class="term">全 Kelly</span>——它假设你<strong>确切知道</strong>自己的 edge;而你的 edge 估计充满噪声,全 Kelly 会过度下注、一把归零。仓位管理首先是<strong>风控工具</strong>:它决定一个<strong>错的信号</strong>最多能让你亏多少。
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">市场波动从平静的 20% 飙到崩盘的 80%。vol 目标定 20% 的策略会怎么做?</div>
+    <button class="opt">加仓:波动大 = 机会大,应该趁乱多下注抓反弹</button>
+    <button class="opt">缩仓到约 1/4:weight = 20/80 = 0.25,危险时候自动把暴露压下来</button>
+    <div class="fb right" data-for="right">对。<code>weight = target/realized = 20/80 = 0.25</code>,自动把仓位砍到四分之一。波动率定量的灵魂就是<strong>危险时缩、平静时放</strong>——把每个时刻承担的风险拉回同一水平。这正好把 L16 里"崩盘中满仓被重创"的病治了。</div>
+    <div class="fb nope" data-for="nope">"趁乱加仓"是爆仓的经典写法。波动飙到 80% 意味着每一份仓位的风险翻了几倍;vol 定量反过来做——<code>weight = 20/80 = 0.25</code>,危险时<strong>缩</strong>到四分之一。目标是让你每时每刻承担的风险恒定,而不是在最狂暴时押最大。</div>
+  </div>
+
+  <h2>真实对比:同一个信号,满仓 vs 波动率定量</h2>
+  <p>拿 L16 的双边 BTC 组合,同一段行情跑两遍(vol 目标 20%/年,杠杆上限 3x):</p>
+
+  <table class="dial">
+    <thead><tr><th>BTC 双边组合</th><th>Sharpe</th><th>CAGR</th><th>MaxDD</th><th>实际年化波动</th></tr></thead>
+    <tbody>
+      <tr class="raw"><td>① 满仓(原始 ±1)</td><td>+0.32</td><td>+1.5%</td><td>−59.1%</td><td>59%</td></tr>
+      <tr><td>② 波动率定量</td><td class="keep">+0.35</td><td class="keep">+5.4%</td><td class="keep">−25.2%</td><td>21%</td></tr>
+    </tbody>
+  </table>
+  <p class="cap">全样本口径,固定参数,仅用于演示<strong>下注大小</strong>的效果 —— edge 结论仍以 L16 的样本外 +0.12 为准,这里只看①②的<strong>差异</strong>。</p>
+
+  <p>三件事同时发生:实际波动被拉到目标(59%→<strong>21%</strong>);最大回撤<strong>砍掉一半以上</strong>(−59%→−25%);而 Sharpe 不降反微升。CAGR 反而更高(+1.5%→+5.4%)——因为躲开了那些深不见底的回撤,复利没被<span class="term">波动率拖累</span>吃掉(L16 学的那个词,这里兑现)。</p>
+
+  <h2>关键洞察:vol 目标是「风险旋钮」,不改你的 edge</h2>
+  <p>把目标从 10% 拧到 40%,看会发生什么:</p>
+  <table class="dial">
+    <thead><tr><th>vol 目标</th><th>Sharpe</th><th>CAGR</th><th>MaxDD</th><th>实际波动</th></tr></thead>
+    <tbody>
+      <tr><td>10%</td><td>+0.35</td><td>+3.2%</td><td>−13.1%</td><td>11%</td></tr>
+      <tr><td>20%</td><td>+0.35</td><td>+5.4%</td><td>−25.2%</td><td>21%</td></tr>
+      <tr><td>40%</td><td>+0.36</td><td>+6.4%</td><td>−46.0%</td><td>42%</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Sharpe 几乎不动(0.35 上下),但回撤和收益随目标同步放大缩小。</strong> 这就是仓位管理的本质:<strong>Sharpe 是信号本身的属性,你改不了;你能改的是「为了收获这个 edge,愿意承担多大风险」。</strong> vol 目标就是那个旋钮——把它拧到你的风险承受力上,而不是拧到"回测收益最大"上(那是把风控偷换成过拟合)。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">你把 vol 目标从 20% 拧到 40%,回测 CAGR 从 5.4% 涨到 6.4%。该据此选 40% 吗?</div>
+    <button class="opt">不该只看收益:40% 的回撤 −46% 几乎是 20% 的两倍,该按你能扛多大回撤来选</button>
+    <button class="opt">该选 40%:CAGR 更高,而且 Sharpe 还略好,收益风险双赢</button>
+    <div class="fb right" data-for="right">对。目标越高收益越高是<strong>定义使然</strong>(你就是在加杠杆),代价是回撤同步放大(−25%→−46%)。Sharpe 几乎没变说明这不是"变强",只是"承担更多风险换更多收益"。该锚定的是<strong>你能睡着觉的最大回撤</strong>,不是回测里最高的 CAGR——后者会把你诱回过拟合和过度杠杆。</div>
+    <div class="fb nope" data-for="nope">这正是仓位管理最危险的错觉。CAGR 涨是因为你<strong>加了杠杆</strong>,不是策略变强了(Sharpe 几乎没动)。代价写在 MaxDD 上:−25% 变 −46%。按"回测收益最大"选目标 = 把风险旋钮拧到爆、把风控偷换成过拟合。该按<strong>你能承受的回撤</strong>反推目标。</div>
+  </div>
+
+  <h2>接回你的系统</h2>
+  <p>这一层是<strong>纯叠加</strong>,不碰信号:<code>vol_target_position()</code> 吃一列 <code>{-1,0,+1}</code> 的 position,吐一列<strong>连续加权</strong>的 position,照样进同一台回测(<a href="0001-anatomy-of-a-quant-system.html">L1</a> 接口第 7 次)。接到 L17 的 runner 也只是一行:把硬编码的 <code>ORDER_NOTIONAL</code> 换成 <code>weight × equity</code>——下单量第一次由<strong>账户规模 + 当前波动</strong>算出,而不是拍脑袋。</p>
+
+  <div class="callout tip">
+    <span class="label">动手挑战:给系统装上风险旋钮</span>
+    已写好 <code>sizing.py</code>(<code>vol_target_position</code>)+ <code>sizing_compare.py</code>:<br>
+    <strong>①</strong> <code>python sizing_compare.py</code> —— 满仓 vs 波动率定量,读全三列 + 实际波动 + 换手。看回撤被砍多少、Sharpe 变没变。<br>
+    <strong>②</strong> <code>python sizing_compare.py --target 0.10</code> 和 <code>--target 0.40</code> —— 亲手拧风险旋钮,确认 <strong>Sharpe 基本不动、回撤随目标缩放</strong>。<br>
+    <strong>③</strong> 观察<strong>换手</strong>那一列:vol 定量既因连续调仓 +换手、又因仓位常<1 −换手,净向哪边?(别假设,读数)<br>
+    <strong>④</strong> 回答:按你自己的风险承受力(能睡着觉的最大回撤),你会把 vol 目标定在几?把选择和理由贴给我。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong>《Advances in Financial Machine Learning》 — Marcos López de Prado(Bet Sizing 章 / Kelly 部分)</strong> —— 讲清"下多大"是和"赌哪边"独立的一层,以及为什么在 edge 估计有噪声时必须<strong>分数化</strong>下注(半 Kelly / vol 定量),全 Kelly 会毁掉你。承接 L15 的同一作者。</p>
+    <p style="margin:0"><strong><a href="https://www.quantstart.com/articles/Money-Management-via-the-Kelly-Criterion/">QuantStart · Money Management via the Kelly Criterion</a></strong> —— Kelly 判据的入门推导与实操警告,理解为什么实盘用分数 Kelly / 波动率定量而非满仓。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清 vol 定量为什么能在 Sharpe 不变的情况下改善 CAGR(波动率拖累的数学)、realized_vol 的窗口该多长(太短噪声、太长滞后)、或者为什么"按最大回撤反推目标"比"按最大收益选目标"是纪律而非保守——直接说。往下的岔路:<strong>①</strong> 把 vol 定量接进 L17 的 runner(下单量=weight×equity),让纸上交易用真实风险下注;<strong>②</strong> perp 测试网真跑双边+实测 funding;<strong>③</strong> 循环跑几天攒 track record;<strong>④</strong> 掉头股票赛道。
+    </div>
+    <div class="nav">
+      <a href="0017-closing-the-loop-paper-trading.html">← L17:闭环</a>
+      <a href="../reference/glossary.html">词表 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

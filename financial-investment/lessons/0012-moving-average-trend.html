@@ -1,0 +1,138 @@
+<meta charset="utf-8">
+<title>第 12 课 · 技术分析入门：均线与趋势</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+<div class="wrap">
+
+  <p class="eyebrow">股票投资 · 第 12 课 · 技术分析篇 · 第 2 课</p>
+  <h1>均线与趋势</h1>
+  <p class="subtitle">上一课看懂了一根蜡烛。今天把很多根连起来，看它们整体在往哪走。</p>
+  <p class="progress">● ○ ○ ○ ○ &nbsp; 技术分析篇 · 第 2 课</p>
+
+  <div class="keyidea">
+    <strong>今天的小胜利：</strong>看懂一条<strong>均线（MA）</strong>——它把最近 N 天的收盘价<strong>抹平成一条线</strong>，帮你一眼看出<strong>趋势往上、往下还是走平</strong>。单根 K 线太吵，均线是把噪音过滤掉的"趋势之眼"。
+  </div>
+
+  <div class="callout warn">
+    <span class="label">先接上一课</span>
+    一根 K 线信息量有限、还很<strong>吵</strong>——今天涨明天跌，你根本看不清方向。均线的作用就是<strong>把这些跳动平均掉</strong>，留下"大方向"。本课示范，不构成任何交易建议。
+  </div>
+
+  <h2>什么是均线？就是"最近 N 天收盘价的平均"</h2>
+  <p><em class="term">均线</em>（<strong>MA</strong>，Moving Average，移动平均线）算法简单到不能再简单：把<strong>最近 N 天的收盘价加起来除以 N</strong>，得到一个点；每天都这么算一个新点，连起来就是一条平滑的线。</p>
+  <p>为什么只用<strong>收盘价</strong>？回忆上一课——收盘是这一局的"最终比分"，最能代表市场当天的态度。</p>
+
+  <div class="callout">
+    <span class="label">动手算一次 MA5</span>
+    某只股票最近 5 天收盘价：<strong>10、11、12、11、13</strong>。<br>
+    MA5 = (10 + 11 + 12 + 11 + 13) ÷ 5 = 57 ÷ 5 = <strong>11.4</strong>。<br>
+    明天收盘 14，就<strong>丢掉最早的 10</strong>、加进 14，用 11、12、11、13、14 再算一个新点——所以叫"<strong>移动</strong>"平均。
+  </div>
+
+  <p>常见的几条日均线：<strong>MA5</strong>（5 日，约一周）、<strong>MA20</strong>（约一月）、<strong>MA60</strong>（约一季度）。数字就是 N。</p>
+
+  <h2>为什么要抹平？一张图看懂</h2>
+  <p>下图：<strong>灰色蜡烛</strong>忽上忽下（真实价格很吵），<strong>蓝线</strong>是均线——同样一段行情，均线把噪音磨掉，方向立刻清楚。</p>
+
+  <div style="background:var(--card);border-radius:10px;padding:1rem;margin:1.4rem 0;text-align:center">
+    <svg viewBox="0 0 420 220" width="100%" style="max-width:420px" role="img" aria-label="吵闹的蜡烛与平滑的均线对比图">
+      <!-- baseline grid -->
+      <line x1="30" y1="185" x2="405" y2="185" stroke="#8a8a8a" stroke-width="1" stroke-dasharray="2 3"/>
+      <!-- noisy candles (grey) -->
+      <g stroke="#9a9a9a" fill="#c8c4bb">
+        <line x1="55"  y1="150" x2="55"  y2="180"/><rect x="49"  y="158" width="12" height="16"/>
+        <line x1="90"  y1="120" x2="90"  y2="165"/><rect x="84"  y="128" width="12" height="26"/>
+        <line x1="125" y1="140" x2="125" y2="172"/><rect x="119" y="148" width="12" height="18"/>
+        <line x1="160" y1="100" x2="160" y2="150"/><rect x="154" y="108" width="12" height="30"/>
+        <line x1="195" y1="118" x2="195" y2="158"/><rect x="189" y="126" width="12" height="22"/>
+        <line x1="230" y1="80"  x2="230" y2="128"/><rect x="224" y="88"  width="12" height="28"/>
+        <line x1="265" y1="95"  x2="265" y2="140"/><rect x="259" y="103" width="12" height="24"/>
+        <line x1="300" y1="60"  x2="300" y2="110"/><rect x="294" y="68"  width="12" height="30"/>
+        <line x1="335" y1="78"  x2="335" y2="120"/><rect x="329" y="86"  width="12" height="22"/>
+        <line x1="370" y1="45"  x2="370" y2="95" /><rect x="364" y="53"  width="12" height="30"/>
+      </g>
+      <!-- smooth MA line (blue) -->
+      <polyline points="55,168 90,158 125,152 160,140 195,132 230,120 265,112 300,98 335,88 370,74"
+                fill="none" stroke="#1f6f86" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="370" cy="74" r="4" fill="#1f6f86"/>
+      <text x="378" y="70" font-family="var(--font-sans)" font-size="12" fill="#1f6f86">均线 MA</text>
+      <text x="40" y="205" font-family="var(--font-sans)" font-size="11" fill="#8a8a8a">灰蜡烛=真实价格（很吵） · 蓝线=均线（趋势）</text>
+    </svg>
+  </div>
+
+  <h2>均线怎么读趋势？看两件事：斜率 + 位置</h2>
+  <p>整条技术分析里最有用的一句话就藏在这里——<strong>趋势是你的朋友</strong>。而趋势方向，看均线：</p>
+  <table>
+    <tr><th>均线在做什么</th><th>意味着</th><th>叫法</th></tr>
+    <tr><td>斜率<strong>向上</strong>，价格站在均线<strong>上方</strong></td><td>买方主导，一浪高过一浪</td><td><em class="term">上升趋势</em>（多头）</td></tr>
+    <tr><td>斜率<strong>向下</strong>，价格待在均线<strong>下方</strong></td><td>卖方主导，一浪低过一浪</td><td><em class="term">下降趋势</em>（空头）</td></tr>
+    <tr><td>均线<strong>走平</strong>，价格在它上下反复穿</td><td>多空僵持、没方向</td><td><em class="term">横盘 / 震荡</em></td></tr>
+  </table>
+  <div class="keyidea">
+    <strong>一句心法：斜率讲"往哪走"，位置讲"谁在赢"。</strong>均线向上翘 + 价格在上方 = 健康的上升趋势；反过来就是下降。<strong>横着走平最难做，也最容易来回被打脸——方向不明时，观望本身就是一种选择。</strong>
+  </div>
+
+  <h2>短均线 vs 长均线：快和稳的取舍</h2>
+  <p>N 越小，均线越<strong>灵敏</strong>但越<strong>吵</strong>；N 越大，越<strong>平稳</strong>但越<strong>迟钝</strong>。这是个逃不掉的取舍：</p>
+  <table>
+    <tr><th></th><th>短均线（如 MA5）</th><th>长均线（如 MA60）</th></tr>
+    <tr><td>反应</td><td>快，贴着价格走</td><td>慢，滞后</td></tr>
+    <tr><td>优点</td><td>早发现变化</td><td>过滤假信号，看大方向</td></tr>
+    <tr><td>缺点</td><td>容易被小波动骗</td><td>转向了它还没反应</td></tr>
+  </table>
+  <p class="callout"><span class="label">所以实战常配着看</span>短均线看"近期强弱"，长均线看"大方向有没有变"。当<strong>短均线上穿/下穿长均线</strong>时，很多人把它当趋势转向的信号——那有个专门名字，<strong>下一课</strong>再讲（金叉 / 死叉）。今天先把"一条线怎么读"吃透。</p>
+
+  <div class="callout warn">
+    <span class="label">别把均线当水晶球</span>
+    均线是<strong>滞后</strong>指标——它是对<strong>过去</strong> N 天的总结，不预测未来。它会帮你"顺着趋势"，但趋势拐弯时它总慢半拍。技术分析永远是<strong>辅助</strong>：用前 10 课的估值挑好公司，用均线大致判断"现在是顺风还是逆风"。
+  </div>
+
+  <h2>练一练</h2>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">1. 某股最近 5 天收盘：12、13、14、13、13。它今天的 MA5（5 日均线）是多少？</div>
+    <button class="opt">13.6，取这几天里出现最多的那个价</button>
+    <button class="opt">13.0，把五天收盘相加再除以五天</button>
+    <button class="opt">13.5，用最高价和最低价折中平均</button>
+    <div class="fb ok" data-for="correct">对。MA5 =（12+13+14+13+13）÷5 = 65÷5 = 13.0。均线就是"最近 N 天收盘价的平均"，别的都不算。</div>
+    <div class="fb no" data-for="wrong">均线只做一件事：把最近 N 天的收盘价相加除以 N。（12+13+14+13+13）÷5 = 13.0，与众数、最高最低都无关。</div>
+  </div>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">2. 一只股票的 MA20 明显<strong>向上倾斜</strong>，而且价格一直待在这条均线<strong>上方</strong>。最合理的判断是？</div>
+    <button class="opt">已经涨太多，价格必然马上要反转向下</button>
+    <button class="opt">方向完全看不出，均线对趋势毫无帮助</button>
+    <button class="opt">处在上升趋势，买方主导，属于顺风格局</button>
+    <div class="fb ok" data-for="correct">对。均线向上 + 价格在上方 = 典型上升趋势（多头），买方占优。斜率讲方向、位置讲谁赢，两个都指向"顺风"。</div>
+    <div class="fb no" data-for="wrong">向上的均线加价格在上方，正是上升趋势的样子。均线不预测顶部，"涨多必反转"不是它能告诉你的；它讲的是当下方向。</div>
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">3. 关于短均线（MA5）和长均线（MA60）的区别，哪句对？</div>
+    <button class="opt">短线反应快但易被小波动骗，长线稳却滞后</button>
+    <button class="opt">短线永远比长线更准，长线基本没有用处</button>
+    <button class="opt">两条线完全一样，天数不同不影响灵敏度</button>
+    <div class="fb ok" data-for="correct">对。N 越小越灵敏也越吵，N 越大越平稳也越迟钝——这是逃不掉的取舍。所以短线看近期强弱、长线看大方向，常配着看。</div>
+    <div class="fb no" data-for="wrong">灵敏度就取决于 N：短线快但吵、易被小波动骗；长线稳但转向慢。没有哪条"永远更准"，两者各管一段，配合着用。</div>
+  </div>
+
+  <h2>一句话总结</h2>
+  <div class="keyidea">
+    均线 = <strong>最近 N 天收盘价的平均</strong>，把吵闹的蜡烛<strong>抹平成一条趋势线</strong>。读它看两样：<strong>斜率</strong>（往上/往下/走平 = 多头/空头/震荡）和<strong>价格的位置</strong>（在均线上方还是下方）。短均线灵敏、长均线稳——它是<strong>滞后</strong>的辅助工具，帮你顺势，不预测未来。
+  </div>
+
+  <div class="source">
+    <span class="label">最佳一手资源（推荐精读）</span>
+    <a href="https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/moving-averages">StockCharts ChartSchool — Moving Averages</a>（英文，清晰无炒作，讲 SMA/EMA 与用法）。系统学纪律：<a href="https://book.douban.com/subject/1216551/">John J. Murphy《金融市场技术分析》</a>。见 <a href="../RESOURCES.md">RESOURCES</a>。
+  </div>
+
+  <div class="ask">
+    💬 <strong>随时问我。</strong> 想动手就发我<strong>一张带均线的自选股日 K 截图</strong>，我们一起判断它现在是上升、下降还是横盘；或深问："<strong>MA5 和 EMA（指数均线）有什么区别？</strong>""<strong>为什么很多人盯 MA60 / 年线？</strong>" 下一课：<strong>两条均线交叉——金叉与死叉</strong>。
+  </div>
+
+  <div class="lesson-nav">
+    <span>← <a href="0011-candlestick-basics.html">第 11 课：读懂一根 K 线</a></span>
+    <span>下一课预告：金叉与死叉——均线交叉信号 →</span>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>

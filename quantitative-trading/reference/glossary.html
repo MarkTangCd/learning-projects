@@ -177,6 +177,48 @@
 
     <dt>测试网 <span class="en">Testnet / Sandbox</span></dt>
     <dd>交易所提供的真实撮合、假钱环境。ccxt 用 <code>set_sandbox_mode(True)</code> 切入。接真钱前把执行 bug(时区/精度/端点/鉴权)全撞一遍的地方。</dd>
+
+    <dt>稳健性检验 <span class="en">Robustness / Cross-asset Replication</span></dt>
+    <dd>把整台已验证的机器<strong>原封不动</strong>搬到另一个资产/时段上再跑一遍,一个参数都不为新数据重调。查的是策略是否只拟合了原数据的具体波纹。纪律:一旦为新资产调参,就把 asset #2 也过拟合了,检验作废。见 <a href="../lessons/0015-robustness-cross-asset.html">L15</a>。</dd>
+
+    <dt>形状判决 <span class="en">Shape, not Number</span></dt>
+    <dd>换资产后绝对数字(Sharpe/CAGR)必然不同,不可直接比。看的是<strong>相对排名有没有保持</strong>:组合是否<em>仍</em> &gt; 各零件单飞、&gt; 躺平。形状保持 = edge 泛化;形状破 = 原来那次多半是过拟合。</dd>
+
+    <dt>多重检验 <span class="en">Multiple Testing</span></dt>
+    <dd>试的参数组合/资产越多,纯靠运气蒙出一条样本内漂亮曲线的概率越大。是<a href="#">回测过拟合</a>的根源。对抗它:样本外 + 换资产的诚实复现,并如实计入试过多少次。</dd>
+
+    <dt>回测过拟合 <span class="en">Backtest Overfitting</span></dt>
+    <dd>在足够多的尝试里,总能找到一个在历史上完美、却对未来一无所知的策略。样本内越漂亮、旋钮越多、试得越多,越可疑。López de Prado 等的核心警告;换资产/样本外是主要解药。见 <a href="../lessons/0015-robustness-cross-asset.html">L15</a>。</dd>
+
+    <dt>双边信号 / 做空 <span class="en">Two-sided / Short</span></dt>
+    <dd>把仓位从 <code>{0,+1}</code>(空仓/做多)放开到 <code>{−1,0,+1}</code>:下跌里<strong>做空</strong>而非干坐。打穿"只做多"在熊市的天花板(最好只能少亏)——熊市能真赚,可能首次正 Sharpe。回测天生支持(<code>position*ret</code> 自动取反)。见 <a href="../lessons/0016-going-two-sided-shorting.html">L16</a>。</dd>
+
+    <dt>永续合约 <span class="en">Perpetual / Perp</span></dt>
+    <dd>无到期日的合约,现货做不了空时用它做空。价格靠资金费率锚定现货。做空的载体 = funding 成本的来源。</dd>
+
+    <dt>资金费率 <span class="en">Funding Rate</span></dt>
+    <dd>持有 perp 每隔几小时多空之间互付的费用,让 perp 价格贴住现货。是让做空/持仓<strong>不免费</strong>的碳税:回测里按 <code>|position|·funding</code> 每 bar 计提。热门行情可飙到 ~0.3%/天,能把薄的做空 edge 吃光——<strong>做双边策略必做 funding 敏感性</strong>。见 <a href="../lessons/0016-going-two-sided-shorting.html">L16</a>。</dd>
+
+    <dt>空头挤压 <span class="en">Short Squeeze</span></dt>
+    <dd>熊市里的暴力反弹专治做空:价格急拉逼空头平仓、进一步推高。做多最多亏 100%,做空理论上亏损无上限。双边策略"永远在市场里"=在震荡/反弹里被反复扫损(whipsaw)的新风险。</dd>
+
+    <dt>波动率拖累 <span class="en">Volatility Drag</span></dt>
+    <dd>几何收益(CAGR)总 ≤ 算术均值,差距随波动放大。所以会出现"Sharpe(基于算术均值)为正、CAGR(几何)却为负":每 bar 平均略赚,但大起大落把复利吃回负。读成绩单要同时看两者。</dd>
+
+    <dt>信号→执行闭环 <span class="en">Signal-to-Execution Loop</span></dt>
+    <dd>把已验证的信号(大脑)接上执行管路(手)的一次决策循环:收盘K线→目标仓位→仓位差→风控闸门→幂等下单→回读对账→账本。使命里"回测→纸上交易"那一步的实现。串起 L8 三纪律 + L9 闸门 + L10 幂等 + L11 回读 + L12–L16 信号。见 <a href="../lessons/0017-closing-the-loop-paper-trading.html">L17</a>。</dd>
+
+    <dt>纸上交易 / Dry-run <span class="en">Paper Trading</span></dt>
+    <dd>真实行情 + 真实信号 + 假钱,跑完整管路。验的是<strong>管路</strong>(下单/对账/幂等/时区/精度/竞态),<strong>不是 edge 会不会赚钱</strong>(小样本证明不了)。真钱进场前把执行 bug 全撞一遍的地方;工业机器人(freqtrade)把它做成实盘的一个开关。见 <a href="../lessons/0017-closing-the-loop-paper-trading.html">L17</a>。</dd>
+
+    <dt>仓位管理 / 下注大小 <span class="en">Position Sizing / Bet Sizing</span></dt>
+    <dd>回答"下多大",与"赌哪边"(信号)是<strong>独立的一层</strong>。风险瞎子(固定名义/满仓)在崩盘里会过度暴露。纯叠加在 position 列上,不碰信号。见 <a href="../lessons/0018-position-sizing-vol-targeting.html">L18</a>。</dd>
+
+    <dt>波动率目标定量 <span class="en">Volatility Targeting</span></dt>
+    <dd>把仓位缩放到让策略预期波动钉在固定目标:<code>weight = target_vol / realized_vol</code>(截断到杠杆上限)。危险时缩、平静时放。是<strong>风险旋钮</strong>——几乎不改 Sharpe(信号属性),只缩放你承担的回撤/收益。按<strong>能扛的最大回撤</strong>反推目标,不按最大 CAGR(那是把风控偷换成过拟合)。见 <a href="../lessons/0018-position-sizing-vol-targeting.html">L18</a>。</dd>
+
+    <dt>Kelly 判据 <span class="en">Kelly Criterion</span></dt>
+    <dd>最大化长期复利增长的最优下注比例。致命前提:假设你<strong>确切知道</strong>自己的 edge。edge 估计有噪声时(实盘常态),全 Kelly 会过度下注、一把归零 → 实盘用<strong>分数 Kelly / 波动率定量</strong>。edge 越薄越不确定,下注越要保守。</dd>
   </dl>
 
   <div class="lesson-foot">

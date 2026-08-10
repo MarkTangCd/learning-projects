@@ -1,0 +1,23 @@
+{
+  "position": 0,
+  "coin": 0.0,
+  "last_bar": "2026-08-09",
+  "trades": [
+    {
+      "bar": "2026-08-09",
+      "side": "buy",
+      "intended": 0.0003,
+      "filled": 0.0003,
+      "avg": 65253.56,
+      "cid": "run-buy-20260809"
+    },
+    {
+      "bar": "2026-08-09",
+      "side": "sell",
+      "intended": 0.0003,
+      "filled": 0.0003,
+      "avg": 65224.79,
+      "cid": "run-sell-20260809"
+    }
+  ]
+}

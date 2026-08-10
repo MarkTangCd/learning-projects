@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L17 · 闭环:让信号亲手下单</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .pipe { list-style: none; padding: 0; margin: 1.3rem 0 1.6rem; }
+    .pipe li { position: relative; padding: 0.55rem 0 0.55rem 2.4rem;
+               border-left: 2px solid var(--rule); margin-left: 0.8rem; }
+    .pipe li::before { content: attr(data-n); position: absolute; left: -0.95rem; top: 0.5rem;
+               width: 1.7rem; height: 1.7rem; border-radius: 50%; background: var(--accent);
+               color: #fff; font-size: 0.8rem; font-weight: 700; display: flex;
+               align-items: center; justify-content: center; }
+    .pipe li:last-child { border-left-color: transparent; }
+    .pipe .src { font-size: 0.72rem; color: var(--ink-faint); font-weight: 700;
+                 text-transform: uppercase; letter-spacing: 0.04em; }
+    .pipe code { font-size: 0.82rem; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 17 课 · 工位 3 → 4 · 闭环(使命里程碑)</p>
+  <h1>闭环:让信号亲手下单</h1>
+  <p class="subtitle">你的系统一直是<strong>两个半边,分居两地</strong>:<strong>大脑</strong>(L12–L16 的信号)在离线 gauntlet 里被证明;<strong>手</strong>(L9–L11 的执行管路)靠手动命令一个个演练。它们从没握过手。这一课把它们<strong>接通</strong>——一次 tick,串起你到目前为止造的每一个零件。</p>
+
+  <div class="callout tip">
+    <span class="label">这是一堂 capstone:它不教新概念,它把旧零件焊成一台机器</span>
+    <code>strategy_runner.py</code> 的一次决策循环,依次触发:<strong>L12–L16 信号 → L8 三纪律 → L9 风控闸门 → L10 幂等钥匙 → L11 回读对账 → 账本</strong>。这是你使命里"从回测推进到<strong>纸上交易</strong>"的那一步,第一次真正闭合。
+  </div>
+
+  <ol class="pipe">
+    <li data-n="1"><span class="src">BRAIN · L12–L16</span><br>拉最新<strong>收盘</strong>K线 → <code>regime_switch_signal</code> → 目标仓位 <code>target ∈ {0,+1}</code>。信号在<strong>最后一根已收盘 bar</strong> 上读出,就是回测里 <code>shift(1)</code> 的实盘形态。</li>
+    <li data-n="2"><span class="src">L8 · 三纪律</span><br>丢掉正在形成的 bar(只用收盘);<strong>只在严格更新的 bar 上动作</strong>(挡住重复/倒退触发);<strong>目标==当前就不下单</strong>(账本即真相)。</li>
+    <li data-n="3"><span class="src">L9 · 风控闸门</span><br>把仓位变化翻译成一张订单,<strong>发送前必过 <code>guarded_create</code></strong>:名义上限 / 最小额 / 急停,任一不过即拒单,账本不变。</li>
+    <li data-n="4"><span class="src">L10 · 幂等钥匙</span><br><code>cid = run-{side}-{bar}</code>——钥匙来自<strong>意图(哪根 bar)</strong>而非时钟。崩溃重启后重跑同一根 bar,交易所认出同一 cid、拒绝重复 → <strong>永不下重单</strong>。</li>
+    <li data-n="5"><span class="src">L11 · 回读对账</span><br><strong>绝不信 <code>create()</code> 的回执</strong>。<code>fetch_order</code> 读回真相,拿到<strong>实际成交 filled</strong> 与均价。</li>
+    <li data-n="6"><span class="src">账本 · L11 铁律</span><br>账本记<strong>实成 filled,不是意图 intended</strong>。持仓 = 交易所真给你的,不是你以为下出去的。</li>
+  </ol>
+
+  <div class="callout warn">
+    <span class="label">诚实的边界:现货测试网不能做空</span>
+    L16 里做空是主角,但 Binance <strong>现货</strong>测试网只能 long/flat。所以这座桥先跑 <code>{0,+1}</code>——<strong>真正执行双边(做空)需要 perp 永续测试网</strong>(连着 L16 的资金费率,留给后面一课)。这不削弱本课:<strong>这一课的主角是「管路」,不是「edge」。</strong> 我们要证明的是——真订单能不能安全地、幂等地、对完账地走完全程。
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">runner 刚发出买单就崩溃了,你重启后在<strong>同一根</strong>日线上又跑了一次。什么挡住了重复下单?</div>
+    <button class="opt">运气:两次间隔太短,交易所还没处理第一单</button>
+    <button class="opt">幂等钥匙:cid 绑定在 bar 上,重跑同一 bar 复用同一 cid,交易所拒绝重复</button>
+    <div class="fb right" data-for="right">对。<code>cid = run-buy-{bar}</code> 是<strong>意图的纯函数</strong>(哪根 bar + 买还是卖),不含时钟。重启重跑同一根 bar,cid 一模一样,交易所认出重复直接拒单(L10)。再加 L8 的"只在更新 bar 上动作",双保险。靠的是设计,不是运气。</div>
+    <div class="fb nope" data-for="nope">靠运气就等着某天双倍下单。真正挡住它的是<strong>幂等钥匙</strong>:cid 由(bar + side)算出、不含时钟,重跑同一根 bar 必得同一 cid,交易所拒绝重复(L10)。异步世界里"发出去没回执"是常态,幂等是唯一可靠的防重手段。</div>
+  </div>
+
+  <h2>纸上交易在验的是「管路」,不是「会不会赚钱」</h2>
+  <p>L16 给了你 BTC 上 <code>+0.12</code> 的样本外夏普——但那个 edge <strong>薄且怕资金费</strong>。所以要说清楚这一课<strong>不</strong>在做什么:跑几天纸上交易,<strong>无法</strong>确认这个 edge 真能赚钱(样本太小,且这里还是 long/flat 版)。纸上交易验的是另一件同等重要、且<strong>与 edge 无关</strong>的事:</p>
+  <blockquote>我的信号,能不能安全地、幂等地、对完账地,驱动真实订单走完全程——在真钱进场<strong>之前</strong>,把时区/精度/端点/竞态/重复单这些管路 bug 全撞一遍。</blockquote>
+  <p>这正是使命要的:先让<strong>系统</strong>可靠,再谈<strong>策略</strong>赚钱。两者分开验,别混。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">纸上交易跑了两周,账户小赚。下面哪个结论是<strong>诚实</strong>的?</div>
+    <button class="opt">管路验证通过(下单/对账/幂等都对);两周太短,证明不了 edge 会赚钱</button>
+    <button class="opt">策略确认能赚钱,可以上真钱满仓了</button>
+    <div class="fb right" data-for="right">对。两周、long/flat、样本极小——只够验<strong>管路</strong>(订单有没有安全走完、账本对不对、幂等灵不灵),远不够验<strong>edge</strong>。L15/L16 反复教的:小样本上的漂亮结果最会骗人。管路 OK 是真进展,但它和"策略会赚钱"是两件事。</div>
+    <div class="fb nope" data-for="nope">这就是把"管路能用"误读成"策略能赚"。两周纸上交易样本太小,且这里跑的是薄 edge 的 long/flat 版——它能证明<strong>订单管路</strong>可靠,证明不了<strong>策略盈利</strong>。混淆这两者,正是 L15/L16 警告的小样本自欺。上真钱前两者都要单独立住。</div>
+  </div>
+
+  <h2>动手挑战:让信号打出你系统的第一枪</h2>
+  <div class="callout tip">
+    <span class="label">用 L9 的同一套测试网密钥,信号第一次接管下单</span>
+    <code>strategy_runner.py</code> 已写好(复用 <code>execution.py</code> 的 <code>connect/guarded_create</code> + <code>strategy.py</code> 的信号):<br>
+    <strong>①</strong> <code>python strategy_runner.py --reset --target 1</code> —— <strong>手动覆盖</strong>目标为"做多",逼管路点火:看它过风控闸门 → 发市价买单 → <code>fetch_order</code> 回读 → 账本按<strong>实成 filled</strong> 更新。这是你系统"大脑接手手"的第一枪。<br>
+    <strong>②</strong> 紧接着 <code>python strategy_runner.py --target 1</code> 再跑一次(不 reset)—— 目标已==当前,应<strong>不下单</strong>(幂等/账本即真相)。<br>
+    <strong>③</strong> <code>python strategy_runner.py --target 0</code> —— 平仓卖出,回读对账,账本归零。<br>
+    <strong>④</strong> 最后 <code>python strategy_runner.py</code>(不带 target)—— 让<strong>真实信号</strong>决定当下该 0 还是 1,看它自己的判断。<br>
+    <strong>⑤</strong> 急停演练:<code>python execution.py kill</code> 后再 <code>--target 1</code> —— 风控该<strong>拒单</strong>;<code>execution.py unkill</code> 解除。<br>
+    把 ①③⑤ 的输出贴给我,我们一起确认:六个零件是不是真的焊成了一台机器。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.freqtrade.io/en/stable/bot-basics/#dry-run">Freqtrade · Dry-run(纸上交易)文档</a></strong> —— 工业级开源交易机器人怎么定义"dry-run":用真实行情、真实信号、假钱,验证整条管路。看它把纸上交易和实盘切换做成<strong>一个开关</strong>——正是你这座桥的目标形态。</p>
+    <p style="margin:0"><strong><a href="https://docs.ccxt.com/#/README?id=orders">ccxt 手册 · Orders / Order Structure</a></strong> —— <code>create_order</code>/<code>fetch_order</code> 的统一订单结构权威说明。你回读对账时读的每个字段(<code>status/filled/average/cost</code>)都在这里定义。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清为什么"账本记实成不记意图"在部分成交时是生死线、live 信号怎么处理数据源临时断连(重试 vs 跳过)、或者这座桥怎么升级成<strong>perp 测试网</strong>去真跑做空——直接说。往下的岔路:<strong>①</strong> 让 runner 循环跑几天,攒一条纸上交易 track record;<strong>②</strong> 搭 perp 测试网路径,把 L16 的双边(做空)版真正执行、把 funding 从假设变成实测;<strong>③</strong> 加仓位管理(波动率目标/固定风险)让下单量不再是拍脑袋的固定名义;<strong>④</strong> 掉头股票赛道。
+    </div>
+    <div class="nav">
+      <a href="0016-going-two-sided-shorting.html">← L16:引入做空</a>
+      <a href="../reference/paper-trading-recipe.html">纸上交易参考卡 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

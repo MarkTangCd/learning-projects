@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L16 · 打穿天花板:让信号做空</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .grid { width: 100%; border-collapse: collapse; margin: 1.2rem 0 0.4rem; font-size: 0.9rem; }
+    .grid th, .grid td { padding: 0.4rem 0.55rem; border-bottom: 1px solid var(--rule); text-align: right; }
+    .grid th:first-child, .grid td:first-child { text-align: left; }
+    .grid thead th { border-bottom: 2px solid var(--rule); }
+    .grid .pos { color: var(--good); font-weight: 700; }
+    .grid tr.head td { font-weight: 700; padding-top: 0.7rem; }
+    .grid .sub td { color: var(--ink-faint); }
+    .cap { font-size: 0.8rem; color: var(--ink-faint); margin: 0 0 1.6rem; }
+    .fund { font-family: var(--mono, monospace); font-size: 0.82rem; line-height: 1.75;
+            background: #fff; border: 1px solid var(--rule); border-radius: 6px;
+            padding: 0.9rem 1.1rem; margin: 1.2rem 0 1.6rem; overflow-x: auto; }
+    @media (prefers-color-scheme: dark) { .fund { background: #1b1a15; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 16 课 · 工位 1–2(研究)· 信号进化</p>
+  <h1>打穿天花板:让信号做空</h1>
+  <p class="subtitle">L12→L15 有一条贯穿始终、甩不掉的坏消息:<strong>样本外夏普永远 ≤ 0</strong>。BTC、ETH、SOL,趋势、回归、regime 组合,换资产复现——全都负。这不是策略不够聪明,是一个<strong>结构性天花板</strong>。这一课我们拆掉它。</p>
+
+  <p>坏消息的根因只有一句话:<strong>你所有的信号都只会"做多或空仓"。</strong> 在一段跌了两年的市场里,一个只能做多的策略,最好的结局<strong>只能是"少亏"</strong>——它可以躲开崩盘(空仓),但永远没法在下跌里<strong>赚钱</strong>。数学上,少亏的天花板就是 0,再往上够不到。</p>
+
+  <div class="callout tip">
+    <span class="label">解法朴素得惊人:允许仓位取 −1</span>
+    到目前为止 <code>position ∈ {0, +1}</code>(空仓 / 做多)。只要放开到 <code>{−1, 0, +1}</code>——下跌趋势里<strong>做空</strong>,而不是干坐着——策略就能在熊市里<strong>真正赚钱</strong>,而非只是少亏。天花板就被抬走了。
+  </div>
+
+  <h2>回测引擎一行都不用改(L1 红利,第 6 次)</h2>
+  <p>还记得 <a href="0004-honest-backtest.html">L4</a> 那个向量化回测吗?它当初就写得足够通用,<strong>天生支持做空</strong>:</p>
+
+  <pre><code>df["strat_ret"] = df["position"] * df["ret"]   # position=-1 → 收益自动取反(跌 = 赚)
+df["trade"]     = df["position"].diff().abs()  # +1 → -1 翻转 = 2 倍换手(平多+开空)</code></pre>
+
+  <p>把 <code>-1</code> 乘进去,做空收益<strong>自动</strong>算对;多空翻转的双倍手续费也<strong>自动</strong>被 <code>diff().abs()</code> 抓到。信号照样吐一列 <code>position</code>,照样进同一台冻结的 gauntlet——它甚至不知道信号学会了做空。我们只在信号里加一个 <code>long_short=True</code>:趋势腿 <code>fast&lt;slow</code> 时从"空仓"改成"做空",回归腿"太贵"时从"空仓"改成"做空"(<strong>不加新旋钮</strong>,对称复用同一个 <code>entry</code>,守住奥卡姆纪律)。</p>
+
+  <h2>但做空不是免费午餐:资金费率</h2>
+  <p>现货没法直接做空,你用的是<span class="term">永续合约(perp)</span>。持有 perp 要周期性支付/收取<span class="term">资金费率(funding rate)</span>——这是让做空<strong>不免费</strong>的那笔成本。只做多的回测把它当 0 忽略了;一个<strong>永远在市场里</strong>的双边策略,必须每根 bar 都为持仓付这笔碳税:</p>
+
+  <pre><code># backtest 新增一项:按 |position| 收持仓成本
+df["cost"] = df["trade"] * fee + df["position"].abs() * funding</code></pre>
+
+  <div class="callout warn">
+    <span class="label">新增的三个风险,不止一个旋钮</span>
+    做空打开了上限,也打开了新的坑:<strong>①资金费率</strong>会持续啃收益;<strong>②永远在市场里</strong>=双倍暴露=震荡里被来回<strong>扫损(whipsaw)</strong>;<strong>③<span class="term">空头挤压</span></strong>——熊市里的暴力反弹专治做空,亏损无上限(做多最多亏 100%,做空理论上无限)。所以判断做空到底值不值,<strong>必须把 funding 建进回测,并读全三列指标</strong>。
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">你的双边策略回测夏普 +0.3,很漂亮。上线前<strong>第一件</strong>该做的诚实检查是?</div>
+    <button class="opt">直接上小资金:样本外正夏普已经很稀有,别浪费机会</button>
+    <button class="opt">把 funding 调高做敏感性:看这个 +0.3 是不是一关资金费就塌</button>
+    <div class="fb right" data-for="right">对。做空的收益极易被资金费吃掉——尤其热门行情里 funding 会飙到 0.3%/天。把 funding 从 0 扫到偏高值,看夏普掉多少:如果一加真实成本就从 +0.3 塌到 ~0,那这个 edge 是幻觉。<strong>正夏普必须在保守 funding 假设下依然站得住</strong>才算数。</div>
+    <div class="fb nope" data-for="nope">危险。做空最容易骗人的地方就是<strong>零成本假设</strong>。永续合约的资金费率会持续啃收益,热门行情里能到 0.3%/天。一个 funding=0 时 +0.3 的夏普,加上真实 funding 可能只剩 0。上真钱前<strong>必做 funding 敏感性</strong>。</div>
+  </div>
+
+  <h2>真实结果:天花板被打穿了,但只在 BTC 上</h2>
+  <p>把双边组合喂进和 L15 一字不改的冻结 gauntlet(BTC/ETH/SOL,funding=1bp/天):</p>
+
+  <table class="grid">
+    <thead><tr><th>资产 / 策略</th><th>Sharpe</th><th>CAGR</th><th>MaxDD</th></tr></thead>
+    <tbody>
+      <tr class="head"><td>BTC 双边(做空)</td><td class="pos">+0.12</td><td>−6.7%</td><td>−36.8%</td></tr>
+      <tr class="sub"><td>BTC 只做多(L15)</td><td>−0.02</td><td>−7.1%</td><td>−46.2%</td></tr>
+      <tr class="head"><td>ETH 双边(做空)</td><td>−0.36</td><td>−39.2%</td><td>−64.0%</td></tr>
+      <tr class="sub"><td>ETH 只做多(L15)</td><td>−0.25</td><td>−18.5%</td><td>−49.2%</td></tr>
+      <tr class="head"><td>SOL 双边(做空)</td><td>−0.46</td><td>−62.5%</td><td>−84.6%</td></tr>
+      <tr class="sub"><td>SOL 只做多(L15)</td><td>−0.91</td><td>−57.4%</td><td>−79.3%</td></tr>
+    </tbody>
+  </table>
+  <p class="cap">BTC 双边 Sharpe +0.12 = <strong>全课 12 课以来第一个正的样本外夏普</strong>,回撤也历来最浅。ETH 上做空反而更差;SOL 上夏普改善但 CAGR/回撤更糟。</p>
+
+  <p>funding 敏感性一扫,BTC 那个正夏普的<strong>脆弱</strong>就暴露了:</p>
+  <div class="fund">
+  funding = 0      →  Sharpe <span style="color:var(--good);font-weight:700">+0.18</span>   CAGR −3.9%
+  funding = 1bp/天  →  Sharpe <span style="color:var(--good);font-weight:700">+0.12</span>   CAGR −6.7%
+  funding = 3bp/天  →  Sharpe <span style="color:var(--warn);font-weight:700">+0.01</span>   CAGR −12.1%   <span style="color:var(--ink-faint)">← edge 基本被资金费吃光</span></div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">做空让 BTC 首次正夏普,却让 ETH 比只做多更差。最诚实的一句话总结是?</div>
+    <button class="opt">做空能打穿"只做多"天花板,但代价是更颠簸、更依赖资产、更怕资金费——不是白捡的胜利</button>
+    <button class="opt">做空是更高级的做法,BTC 已证明它更强,ETH 只是碰巧的例外</button>
+    <div class="fb right" data-for="right">对。三列一起读:BTC 打穿天花板(真突破),但 ETH 双边被熊市反弹扫损、反而更差,SOL 夏普改善却回撤更深。你用"上限打开"换来了"稳健性下降"。做空是把双刃剑,不是免费升级——这跟 L15 的教训一脉相承:任何提升都要跨资产验证。</div>
+    <div class="fb nope" data-for="nope">"更高级所以更强"正是陷阱。数据不支持:ETH 上双边(−0.36)明显<strong>差于</strong>只做多(−0.25),因为永远在市场里 + 熊市反弹 = 空头被反复扫损。做空打开了上限,也打开了新风险。它是双刃剑,ETH 不是例外而是提醒:必须跨资产读全三列。</div>
+  </div>
+
+  <h2>动手挑战:亲手打穿天花板,再看它多脆</h2>
+  <div class="callout tip">
+    <span class="label">同一台冻结机器,信号学会做空</span>
+    已改好 <code>strategy.py</code>(三个信号都加了 <code>long_short</code> 开关,默认 False 保证旧课复现)+ <code>backtest.py</code>(加 <code>funding</code> 项)+ 运行器 <code>walkforward_shorts.py</code>:<br>
+    <strong>①</strong> <code>python walkforward_shorts.py</code> —— 三资产并排打印 <strong>双边组合 / 只做多组合 / 躺平</strong> × 三列指标。看 BTC 的 Sharpe 有没有<strong>首次 &gt; 0</strong>;ETH/SOL 上做空是帮忙还是帮倒忙。<br>
+    <strong>②</strong> <code>python walkforward_shorts.py --funding 0.0</code> 和 <code>--funding 0.0003</code> —— 亲手扫资金费,看 BTC 的正夏普<strong>在多高的 funding 下塌成 0</strong>。这就是"做空 edge 有多薄"的体感。<br>
+    <strong>③</strong> 读全三列后回答:你愿意拿"BTC 上 +0.12、但 ETH 上被打脸"的双边组合,去接执行层跑纸上交易吗?还是先把它<strong>只用在做空真正帮上忙的资产</strong>上?把结论贴给我。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.binance.com/en/support/faq/introduction-to-binance-futures-funding-rates-360033525031">Binance · Introduction to Funding Rates</a></strong> —— 你刚建进回测的那笔成本,官方权威解释:资金费率怎么算、多空谁付谁、为什么它是做空/持仓的真实碳税。做双边策略前必读。</p>
+    <p style="margin:0"><strong>《Algorithmic Trading》 — Ernest P. Chan(long-short / 做空章节)</strong> —— 讲清做空的机制与陷阱(借券成本、挤空、亏损无上限),以及为什么 long-short / 市场中性能拿到 long-only 拿不到的收益。你书单里已有。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清为什么正夏普能配负 CAGR(<span class="term">波动率拖累</span>:算术均值 vs 几何收益)、空头挤压到底怎么让做空亏损无上限、或者"BTC 能做、ETH 不能"该不该逼你走<strong>按资产筛选</strong>的路——直接说。往下的岔路:把双边组合<strong>只用在验证过的资产</strong>上接执行层跑纸上交易(路线 B);或继续磨信号(更强特征/波动率择时/ML);或此时掉头股票赛道验证同样的双边思路。
+    </div>
+    <div class="nav">
+      <a href="0015-robustness-cross-asset.html">← L15:换资产复现</a>
+      <a href="../reference/glossary.html">词表 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

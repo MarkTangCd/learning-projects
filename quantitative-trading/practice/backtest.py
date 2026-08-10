@@ -11,15 +11,26 @@ import pandas as pd
 from strategy import fetch_ohlcv, sma_crossover_signal
 
 FEE = 0.001  # 0.1% per side — stands in for fees + slippage. Try 0.0 to compare.
+# Perp funding: you PAY carry to hold a leveraged position, either side. This is
+# the cost that makes shorting NOT a free lunch. Long-only backtests left it 0;
+# a two-sided strategy that is always in the market must pay it every bar.
+# ~1 bp/day ≈ 3.7%/yr — a conservative stand-in for average BTC/ETH perp funding.
+FUNDING = 0.0  # default 0 keeps every prior long-only lesson byte-identical
 
 
-def backtest(df, fee=FEE):
-    """Add return / cost / equity columns. Assumes df has a 'position' column."""
+def backtest(df, fee=FEE, funding=FUNDING):
+    """Add return / cost / equity columns. Assumes df has a 'position' column.
+
+    `position` may now be -1 (short), 0 (flat) or +1 (long). The math already
+    handles shorts: position*ret inverts the return, and a +1->-1 flip counts as
+    2 units of turnover in `trade` (close long + open short) -> double fee.
+    `funding` charges carry on |position| every bar (perp holding cost).
+    """
     df = df.copy()
     df["ret"] = df["close"].pct_change()                  # per-bar asset return
-    df["strat_ret"] = df["position"] * df["ret"]          # only earn when holding
-    df["trade"] = df["position"].diff().abs()             # 1 on each entry/exit
-    df["cost"] = df["trade"] * fee
+    df["strat_ret"] = df["position"] * df["ret"]          # short (-1) earns when price falls
+    df["trade"] = df["position"].diff().abs()             # turnover: 2 on a long<->short flip
+    df["cost"] = df["trade"] * fee + df["position"].abs() * funding  # fees + carry
     df["strat_ret_net"] = df["strat_ret"] - df["cost"]    # net of costs
 
     df["equity_gross"] = (1 + df["strat_ret"].fillna(0)).cumprod()

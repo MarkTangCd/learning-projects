@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L15 · 换资产复现:edge 是真的,还是 BTC 的花衣裳?</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .shape { width: 100%; border-collapse: collapse; margin: 1.2rem 0 0.4rem;
+             font-size: 0.92rem; }
+    .shape th, .shape td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--rule);
+                           text-align: right; }
+    .shape th:first-child, .shape td:first-child { text-align: left; }
+    .shape thead th { border-bottom: 2px solid var(--rule); }
+    .shape .win { color: var(--good); font-weight: 700; }
+    .shape tr.combo td { font-weight: 700; }
+    .cap { font-size: 0.8rem; color: var(--ink-faint); margin: 0 0 1.6rem; }
+    .frozen { font-family: var(--mono, monospace); font-size: 0.82rem; line-height: 1.7;
+              background: #fff; border: 1px solid var(--rule); border-radius: 6px;
+              padding: 0.9rem 1.1rem; margin: 1.2rem 0 1.6rem; overflow-x: auto; }
+    @media (prefers-color-scheme: dark) { .frozen { background: #1b1a15; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 15 课 · 工位 1–2(研究)· 稳健性</p>
+  <h1>换资产复现:这套 edge 是真的,还是只在 BTC 上过拟合?</h1>
+  <p class="subtitle">L14 里 regime 组合<strong>成立</strong>了——样本外 Sharpe −0.02,同时打赢回归单飞(−0.18)和躺平(−0.28),还把命门 fold 5 从输 2.0 补成只差 0.04。真正的胜利。但请立刻按住兴奋:<strong>一个资产、一段行情,只是一次抽样。</strong></p>
+
+  <p>量化里最吓人的失败模式,不是"策略亏钱"——是<strong>策略在历史上很漂亮,一上真钱就死</strong>。原因几乎总是同一个:你以为找到的 edge,其实只是<strong>拟合了 BTC 2021–2023 那段具体波纹的形状</strong>。参数漂移刚刚变差(7 个 fold 选了 5 种参数)正是这个警报在响。</p>
+
+  <div class="callout warn">
+    <span class="label">这一课要证伪自己</span>
+    我们不是来给组合"再加分"的。我们是来<strong>努力把它搞死</strong>的:换一个它从没见过的资产,看那套"组合 &gt; 零件 &gt; 躺平"的关系还成不成立。搞不死,才敢往下走。
+  </div>
+
+  <h2>稳健性检验:冻结机器,换一块市场</h2>
+  <p>做法极简单,纪律极重要:<strong>把整台机器原封不动搬到另一个资产上再跑一遍。</strong> 同样的 folds、同样的参数网格、同样钉死的子信号默认值——<strong>一个数都不许为新资产重调</strong>。</p>
+
+  <div class="callout tip">
+    <span class="label">纪律:不许为 ETH 重新调参</span>
+    如果你看 ETH 结果不好,就去把网格改一改、把 ER 阈值挪一挪,直到 ETH 也好看——那你只是<strong>把 asset #2 也过拟合了一遍</strong>,啥也没证明。稳健性检验唯一有效的前提,就是机器<strong>全程锁死</strong>。这也是为什么代码里 <code>GGRID</code> / <code>RGRID</code> 标了大写注释 "FROZEN"。
+  </div>
+
+  <p>而且这几乎不花力气——还记得 <a href="0002-crypto-data-pipeline.html">L2</a> 起 <code>fetch_ohlcv</code> 就带了 <code>symbol</code> 参数吗?换资产<strong>真的只改一个字符串</strong>(<a href="0001-anatomy-of-a-quant-system.html">L1</a> 接口红利,第 5 次兑现):</p>
+
+  <pre><code>price = fetch_ohlcv(symbol="ETH/USDT", since="2021-01-01", limit=1000)  # 唯一改动
+# 下面 folds / GGRID / RGRID / score / sharpe_key 一字不改地 import 进来</code></pre>
+
+  <h2>怎么读:看形状,不看数字</h2>
+  <p>换资产后,<strong>绝对数字一定不一样</strong>(ETH 那几年比 BTC 摔得更狠)。所以判据<strong>不是</strong>"Sharpe 是不是还等于 −0.02"。判据是<strong>形状(相对排名)有没有保持</strong>:</p>
+
+  <div class="frozen">
+  组合 &gt; 回归单飞  <span style="color:var(--ink-faint)">且</span>  组合 &gt; 躺平   →  <span style="color:var(--good);font-weight:700">形状保持</span>:互补关系不是 BTC 独有 = edge 更可能是真的
+  组合 ≤ 任一条         →  <span style="color:var(--accent);font-weight:700">形状破了</span>:BTC 那次八成是过拟合穿了件花衣裳</div>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">你在 ETH 上跑组合,Sharpe −0.25,比 BTC 的 −0.02 差远了。这说明 edge 假吗?</div>
+    <button class="opt">说明 edge 假:换个资产就从 −0.02 掉到 −0.25,根本不稳</button>
+    <button class="opt">不一定:要看它在 ETH 上有没有<strong>同样</strong>打赢自己的回归单飞和躺平</button>
+    <div class="fb right" data-for="right">对。不同资产/行情的绝对 Sharpe 天生不同(ETH 那几年摔得更惨,躺平都更负)。稳健性看的是<strong>相对形状</strong>:只要组合在 ETH 上仍然 &gt; 它的零件、&gt; 躺平,那套"互补"关系就泛化了,edge 更可信。绝对值下滑不等于 edge 破。</div>
+    <div class="fb nope" data-for="nope">你被绝对数字骗了。ETH 2022 崩得比 BTC 更狠,所有策略的 Sharpe 都会更负——躺平自己也更差。该问的不是"数字掉没掉",而是"在 ETH 这块新市场上,组合<strong>还是不是</strong>同时打赢它的零件和躺平"。形状保持才是重点。</div>
+  </div>
+
+  <h2>为什么这一步值这么多</h2>
+  <p>每多测一个资产、多试一组参数,你都在做一次<strong>多重检验(multiple testing)</strong>:试的次数越多,纯靠运气蒙出一条漂亮曲线的概率越大。这正是 López de Prado 等人反复警告的<span class="term">回测过拟合</span>——"在足够多的尝试里,总有一个组合在历史上完美,却对未来一无所知"。</p>
+  <p>对抗它的唯一武器,就是<strong>样本外 + 换资产的诚实复现</strong>:一个真 edge 应该在它没被调过的市场上、依然保住形状。这一步不产出更漂亮的数字,它产出的是<strong>你敢不敢往下走的底气</strong>。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">组合在 ETH 上保住了形状(仍 &gt; 零件 &gt; 躺平),但绝对 Sharpe 还是负的。下一步最诚实的姿态是?</div>
+    <button class="opt">edge 更可信了,但它仍是"下跌保护"非"正收益";可以推进,但上真钱前心里有数</button>
+    <button class="opt">两个资产都成立 = 稳了,可以直接上小资金满仓干</button>
+    <div class="fb right" data-for="right">对。形状泛化 → 互补是真的,不是 BTC 独有,这是实打实的进步。但两个资产的样本外 Sharpe 都 ≤ 0 意味着它的本质仍是<strong>少亏/下跌保护</strong>,不是"会赚钱"。可以推进到下一阶段(纸上交易验管路),但绝不能把"形状保持"误读成"稳赚"。</div>
+    <div class="fb nope" data-for="nope">刹车。"保住形状"证明的是<strong>互补关系泛化</strong>,不是"稳赚"。两个资产的样本外 Sharpe 都还 ≤ 0——它仍是下跌保护,不是正 edge。上真钱前必须分清这两件事,否则你是在给一个"少亏"策略满仓下注。</div>
+  </div>
+
+  <h2>动手挑战:亲手证伪,再加一块试金石</h2>
+  <div class="callout tip">
+    <span class="label">同一台冻结的机器,换市场</span>
+    已写好 <code>walkforward_robust.py</code>(<code>GGRID</code>/<code>RGRID</code> 全部 FROZEN,symbol 走命令行参数):<br>
+    <strong>①</strong> <code>python walkforward_robust.py</code> —— 默认 <strong>ETH/USDT</strong>。它并排打印 <strong>regime 组合 / 回归单飞 / 买入持有</strong> 三条拼接样本外曲线 + 形状判决 + 参数漂移。看"形状保持"还是"破了"。<br>
+    <strong>②</strong> <code>python walkforward_robust.py BTC/USDT</code> —— 复现 L14 的 BTC 锚点,确认脚本和你上一课的数字对得上(组合 −0.02 &gt; 回归 −0.18 &gt; 躺平 −0.28)。<br>
+    <strong>③ 先预测,再验证</strong>:在跑之前,<strong>写下你猜 <code>SOL/USDT</code> 会不会保住形状</strong>,然后 <code>python walkforward_robust.py SOL/USDT</code>。第三块试金石,也是你自己的一次"样本外"——你的直觉准不准。<br>
+    把三个资产的输出贴给我,我们一起判:那套互补关系,到底是真泛化,还是只认识 BTC。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong>Bailey, Borwein, López de Prado &amp; Zhu · <a href="https://www.davidhbailey.com/dhbpapers/finance-charlatanism-notices-full.pdf">Pseudo-Mathematics and Financial Charlatanism: The Effects of Backtest Overfitting on Out-of-Sample Performance</a></strong>(Notices of the AMS, 2014)—— 这一课的思想源头。用数学讲清:试的组合越多,越容易蒙出一条"样本内完美、样本外崩盘"的曲线。读完你会明白为什么"换资产复现"不是可选项,是必修课。</p>
+    <p style="margin:0"><strong><a href="https://www.quantstart.com/articles/Successful-Backtesting-of-Algorithmic-Trading-Strategies-Part-I/">QuantStart · Successful Backtesting of Algorithmic Trading Strategies</a></strong> —— 稳健性、样本外、多重检验的实操清单(L13 已推,这一课重点看它讲 robustness 的部分)。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清"多重检验"为什么会系统性地骗人、为什么绝对 Sharpe 换资产会变但形状该稳、或者"下跌保护"到底能不能算一种能拿去配置的 edge——直接说。判决之后:三个资产都保住形状 → 把已验证信号接上 <a href="0009-execution-and-risk.html">L9–L11</a> 执行层跑<strong>纸上交易</strong>(验管路,不是上真钱);形状在 ETH/SOL 上破了 → 说明 BTC 那次是过拟合,该<strong>掉头股票赛道</strong>或引入更强特征/ML。
+    </div>
+    <div class="nav">
+      <a href="0014-regime-filter.html">← L14:Regime 过滤</a>
+      <a href="../reference/glossary.html">词表 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>
