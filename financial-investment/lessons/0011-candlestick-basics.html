@@ -1,0 +1,153 @@
+<meta charset="utf-8">
+<title>第 11 课 · 技术分析入门：读懂一根 K 线</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+<div class="wrap">
+
+  <p class="eyebrow">股票投资 · 第 11 课 · 技术分析篇 · 第 1 课</p>
+  <h1>读懂一根 K 线</h1>
+  <p class="subtitle">换一条轨道——从"值多少"到"现在大家怎么投票"。今天只学一件事：一根蜡烛。</p>
+  <p class="progress">○ ○ ○ ○ ○ &nbsp; 技术分析篇 · 起步</p>
+
+  <div class="keyidea">
+    <strong>今天的小胜利：</strong>看懂<strong>一根 K 线</strong>讲的故事——它把一段时间里的 <strong>4 个价格</strong>压进一根蜡烛，还告诉你这一局是<strong>买方赢还是卖方赢</strong>。这是技术分析的最小积木，后面所有形态、均线都由它搭起来。
+  </div>
+
+  <div class="callout warn">
+    <span class="label">先说清楚</span>
+    技术分析是<strong>辅助</strong>，帮你判断"<strong>什么时候</strong>买卖"；它<strong>不能</strong>告诉你一家公司好不好——那是前十课估值的活。两条腿走路，别用 K 线代替基本面。本课示范，不构成任何交易建议。
+  </div>
+
+  <h2>先换脑子：从称重机到投票机</h2>
+  <p>还记得第 1 课的<a href="../reference/glossary.html#top">格雷厄姆名言</a>吗——<em class="term">短期市场是投票机，长期是称重机</em>。</p>
+  <p>前十课我们一直站在<strong>称重机</strong>那边：算公司到底"<strong>值</strong>多少钱"。从今天起换到<strong>投票机</strong>这边：不问值多少，只问<strong>此刻市场情绪在往哪投票</strong>——价格在怎么动、买卖双方谁更有劲。这就是<em class="term">技术分析</em>。</p>
+  <table>
+    <tr><th></th><th>价值分析（前 10 课）</th><th>技术分析（从今天起）</th></tr>
+    <tr><td>比喻</td><td>称重机</td><td>投票机</td></tr>
+    <tr><td>回答</td><td>值多少 → 买<strong>什么</strong></td><td>怎么走 → <strong>何时</strong>买卖</td></tr>
+    <tr><td>材料</td><td>财报、利润、现金流</td><td>价格、成交量、图形</td></tr>
+    <tr><td>时间尺度</td><td>长期</td><td>短中期</td></tr>
+  </table>
+  <div class="callout">
+    <span class="label">别丢了旧脑子</span>
+    换轨道不是抛弃估值。理想是：<strong>用估值挑出好公司（买什么），再用技术分析找相对好的时点（何时买）。</strong>
+  </div>
+
+  <h2>一根 K 线 = 一段时间的 4 个价格</h2>
+  <p>一根 <em class="term">K 线</em>（又叫<strong>蜡烛图</strong> candlestick）代表<strong>一段时间</strong>——可以是一天（日 K）、一周（周 K），也可以是一分钟。这一段时间里，价格会有 4 个关键点，全被这根蜡烛记下来：</p>
+
+  <div style="background:var(--card);border-radius:10px;padding:1rem;margin:1.4rem 0;text-align:center">
+    <svg viewBox="0 0 360 300" width="100%" style="max-width:360px" role="img" aria-label="一根阳线和一根阴线的结构图">
+      <!-- ===== 阳线 (bullish, red = up, CN) ===== -->
+      <!-- wick -->
+      <line x1="105" y1="28" x2="105" y2="262" stroke="#c0392b" stroke-width="2.5"/>
+      <!-- body: close(top) 92 ~ open(bottom) 198 -->
+      <rect x="80" y="92" width="50" height="106" fill="#c0392b" rx="2"/>
+      <!-- markers -->
+      <line x1="60" y1="28" x2="130" y2="28" stroke="#8a8a8a" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="60" y1="262" x2="130" y2="262" stroke="#8a8a8a" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="55" y="32" text-anchor="end" font-family="var(--font-sans)" font-size="12" fill="#8a8a8a">最高</text>
+      <text x="55" y="266" text-anchor="end" font-family="var(--font-sans)" font-size="12" fill="#8a8a8a">最低</text>
+      <text x="138" y="96" font-family="var(--font-sans)" font-size="12" fill="#c0392b">收盘 ↑</text>
+      <text x="138" y="200" font-family="var(--font-sans)" font-size="12" fill="#c0392b">开盘</text>
+      <text x="105" y="288" text-anchor="middle" font-family="var(--font-sans)" font-size="13" fill="#c0392b" font-weight="600">阳线（收＞开）</text>
+
+      <!-- ===== 阴线 (bearish, green = down, CN) ===== -->
+      <line x1="280" y1="48" x2="280" y2="262" stroke="#16a34a" stroke-width="2.5"/>
+      <!-- body: open(top) 92 ~ close(bottom) 210 -->
+      <rect x="255" y="92" width="50" height="118" fill="#16a34a" rx="2"/>
+      <text x="312" y="96" font-family="var(--font-sans)" font-size="12" fill="#16a34a">开盘</text>
+      <text x="312" y="214" font-family="var(--font-sans)" font-size="12" fill="#16a34a">收盘 ↓</text>
+      <text x="280" y="288" text-anchor="middle" font-family="var(--font-sans)" font-size="13" fill="#16a34a" font-weight="600">阴线（收＜开）</text>
+
+      <!-- labels for body & wick on 阳线 -->
+      <path d="M 150 145 L 132 145" stroke="#8a8a8a" stroke-width="1" fill="none" marker-end=""/>
+      <text x="152" y="149" font-family="var(--font-sans)" font-size="11" fill="#8a8a8a">实体 = 开↔收</text>
+      <text x="152" y="60" font-family="var(--font-sans)" font-size="11" fill="#8a8a8a">上影线</text>
+      <text x="152" y="240" font-family="var(--font-sans)" font-size="11" fill="#8a8a8a">下影线</text>
+    </svg>
+  </div>
+
+  <dl class="terms">
+    <dt>开盘价 <span class="en">Open</span></dt><dd>这段时间<strong>第一笔</strong>成交的价。</dd>
+    <dt>收盘价 <span class="en">Close</span></dt><dd>这段时间<strong>最后一笔</strong>成交的价。<strong>最重要的一个</strong>——它是这一局的"最终比分"。</dd>
+    <dt>最高价 / 最低价 <span class="en">High / Low</span></dt><dd>这段时间摸到的最高、最低点，画成蜡烛两端细细的<strong>影线</strong>。</dd>
+  </dl>
+  <p><strong>实体</strong>（body）：开盘价和收盘价之间那根<strong>粗柱子</strong>。<br><strong>影线</strong>（shadow / 引线）：实体上下伸出的<strong>细线</strong>——上影线顶到最高价，下影线探到最低价。</p>
+
+  <h2>阳线还是阴线？只看一件事：收盘 vs 开盘</h2>
+  <ul>
+    <li><strong>收盘 ＞ 开盘</strong> → 这段时间价格<strong>涨了</strong> → <em class="term">阳线</em>（买方赢）</li>
+    <li><strong>收盘 ＜ 开盘</strong> → 这段时间价格<strong>跌了</strong> → <em class="term">阴线</em>（卖方赢）</li>
+  </ul>
+
+  <div class="callout warn">
+    <span class="label">最容易踩的坑：颜色，中美是反的！</span>
+    <strong>A 股 / 港股：红涨绿跌</strong>（红=阳，绿=阴）。<br>
+    <strong>美股 / 欧洲：绿涨红跌</strong>（green=up，red=down）——正好相反。<br>
+    你 A 股、美股、港股都看，<strong>换市场先认颜色规则</strong>，别用直觉。记死一句：<strong>看涨跌永远认"收 vs 开"，别只认颜色。</strong>
+  </div>
+
+  <h2>影线在说话：一根蜡烛里的多空博弈</h2>
+  <p>蜡烛的<strong>形状</strong>本身就是一段故事。把买方叫<strong>多方</strong>、卖方叫<strong>空方</strong>，一根 K 线就是这一局的<em class="term">多空博弈</em>记录：</p>
+  <table>
+    <tr><th>形状</th><th>在说什么</th></tr>
+    <tr><td>实体长</td><td>一方力量强、一边倒。长阳=多方强势，长阴=空方强势。</td></tr>
+    <tr><td>实体短（十字附近）</td><td>多空僵持、没分出胜负 → 常是<strong>犹豫/可能变盘</strong>的信号。</td></tr>
+    <tr><td><strong>下</strong>影线长</td><td>盘中被砸下去，但<strong>多方把它抬了回来</strong>——下方有买盘承接（潜在支撑）。</td></tr>
+    <tr><td><strong>上</strong>影线长</td><td>盘中冲高，但<strong>被空方打下来了</strong>——上方有抛压（潜在压力）。</td></tr>
+  </table>
+  <div class="keyidea">
+    <strong>一句心法：实体讲"谁赢了"，影线讲"路上打得多惨"。</strong>一根长下影的阴线，可能比一根光头小阳线更"强"——因为它显示低位有人拼命买。<strong>形状比颜色更会说话。</strong>
+  </div>
+  <p class="callout"><span class="label">先别急着用它做买卖</span>单独一根 K 线信息量有限，真正有用的是<strong>它出现在什么位置、和前后蜡烛怎么接力</strong>。那是后面几课的事——今天先把这块积木认牢。</p>
+
+  <h2>练一练</h2>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">1. 某只 A 股今天：开盘 10.0、收盘 10.8、最高 11.0、最低 9.9。这根日 K 线是？</div>
+    <button class="opt">阴线，因为最高价离收盘很近</button>
+    <button class="opt">说不准，还要看成交量才知道</button>
+    <button class="opt">阳线，因为收盘 10.8 高于开盘 10.0</button>
+    <div class="fb ok" data-for="correct">对。判断阳/阴只看一件事：收盘 vs 开盘。收 10.8＞开 10.0，价格涨了，就是阳线（A 股画成红色）。</div>
+    <div class="fb no" data-for="wrong">阳阴只由"收 vs 开"决定，和最高价远近、成交量都无关。这里收 10.8＞开 10.0 → 阳线。</div>
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">2. 你在美股看到一根<strong>绿色</strong>蜡烛，在 A 股看到一根<strong>绿色</strong>蜡烛。分别代表？</div>
+    <button class="opt">美股绿=上涨；A 股绿=下跌，两者相反</button>
+    <button class="opt">都代表上涨，全球颜色规则是统一的</button>
+    <button class="opt">都代表下跌，绿色在哪都是跌</button>
+    <div class="fb ok" data-for="correct">对。颜色规则中美相反：美股/欧洲绿涨红跌，A 股/港股红涨绿跌。所以同样一抹绿，含义正好反过来——换市场先认规则。</div>
+    <div class="fb no" data-for="wrong">颜色规则不统一。美股绿=涨，A 股绿=跌，正好相反。永远回到"收 vs 开"才不会错。</div>
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">3. 一根蜡烛实体很小，却拖着一条<strong>很长的下影线</strong>。最合理的解读是？</div>
+    <button class="opt">全天单边下跌，空方从头压到尾没有对手</button>
+    <button class="opt">盘中被砸下去，但多方把价格抬了回来，下方有承接</button>
+    <button class="opt">颜色是红的就一定看多，是绿的就一定看空</button>
+    <div class="fb ok" data-for="correct">对。长下影=价格一度被打到很低，但收盘又拉了回来，说明低位有买盘承接（潜在支撑）。影线讲的是"路上打得多惨"。</div>
+    <div class="fb no" data-for="wrong">长下影恰恰说明<strong>不是</strong>单边下跌——跌下去又被买回来了。解读靠形状（实体+影线），不能只凭颜色下结论。</div>
+  </div>
+
+  <h2>一句话总结</h2>
+  <div class="keyidea">
+    一根 K 线 = 一段时间的<strong>开、收、高、低</strong>四个价，压进一根蜡烛。<strong>收＞开是阳、收＜开是阴</strong>（颜色中美相反，认收开别认色）；<strong>实体讲谁赢，影线讲多空怎么打</strong>。这是技术分析的第一块积木。
+  </div>
+
+  <div class="source">
+    <span class="label">最佳一手资源（推荐精读）</span>
+    <a href="https://chartschool.stockcharts.com/table-of-contents/chart-analysis/introduction-to-candlesticks">StockCharts ChartSchool — Introduction to Candlesticks</a>（英文，清晰无炒作）。想系统学纪律：<a href="https://book.douban.com/subject/1216551/">John J. Murphy《金融市场技术分析》</a>。见 <a href="../RESOURCES.md">RESOURCES</a>。
+  </div>
+
+  <div class="ask">
+    💬 <strong>随时问我。</strong> 想动手就发我<strong>一张你自选股的日 K 截图</strong>，我们一起逐根读；或深问："<strong>为什么收盘价比开盘价更重要？</strong>""<strong>为什么很多人爱看周 K 而不是分钟 K？</strong>" 下一课：<strong>把很多根 K 线连起来看——均线（MA）与趋势</strong>。
+  </div>
+
+  <div class="lesson-nav">
+    <span>← <a href="0010-moutai-vs-changan.html">第 10 课：茅台实操</a></span>
+    <span>下一课预告：均线与趋势——从"一根"到"一串" →</span>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
