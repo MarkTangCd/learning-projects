@@ -1,26 +1,28 @@
-"""L17 practice: CLOSE THE LOOP — the validated signal drives the real
-execution pipeline (工位 3 研究 → 工位 4 执行,第一次接通).
+"""L17+L18: CLOSE THE LOOP, now with RISK-BASED SIZING.
 
-Until now the two halves lived apart:
-  - the SIGNAL (L12-L16) was proven OFFLINE in the walk-forward gauntlet;
-  - the EXECUTION pipe (L9-L11) was exercised by hand via command demos.
-This runner is the bridge. One decision cycle wires ALL of it together:
+L17 wired the validated signal to the real execution pipe (工位 3 → 工位 4).
+L18 replaces the hardcoded $20 order with VOLATILITY TARGETING: each bar the
+runner rebalances toward a target dollar exposure computed from your chosen risk
+level and the CURRENT market volatility — not a pulled-from-thin-air number.
 
-  fetch closed bars -> regime_switch_signal -> target position   (BRAIN, L12-L16)
-    -> diff vs ledger (idempotent target-compare)                (L8 discipline 3)
-    -> guarded_create: RISK GATE + intent_cid idempotency         (L9 + L10)
-    -> SEND -> fetch_order READ BACK -> RECONCILE filled vs intent (L11)
-    -> write ledger from FILLED, never from intended              (L11 rule)
+  fetch closed bars -> regime_switch_signal -> signal 0/1            (BRAIN, L12-16)
+    -> vol_target_weight: weight = target_vol / realized_vol         (SIZE, L18)
+    -> target_value = signal * weight * allocated_capital
+    -> delta vs current holding; skip if within the no-trade band    (L8 discipline)
+    -> guarded_create: RISK GATE + intent_cid idempotency            (L9 + L10)
+    -> SEND -> fetch_order READ BACK -> RECONCILE filled vs intent    (L11)
+    -> ledger from FILLED, never from intended                       (L11 rule)
 
-Honest scope: Binance SPOT testnet cannot SHORT, so this runs LONG/FLAT
-(position in {0,+1}). Executing the two-sided signal for real needs the
-PERP venue (funding, L16) — a later lesson. The point HERE is the PIPE, not
-the edge: prove the plumbing carries a real (funny-money) order end to end.
+Honest scope: SPOT testnet cannot SHORT (long/flat) and cannot lever (weight
+capped at 1.0). Sizing is against ALLOCATED_CAPITAL — the slice you give this
+strategy — so orders stay under the L9 $50 gate, which remains the hard backstop.
+The perp venue (short + leverage + real funding) is a later lesson.
 
 Setup: same testnet keys as L9 (BINANCE_TESTNET_KEY / _SECRET).
-Run:  python strategy_runner.py            # one tick: signal decides
-      python strategy_runner.py --target 1 # OVERRIDE target to exercise the pipe
-      python strategy_runner.py --reset    # wipe the local ledger
+Run:  python strategy_runner.py                 # signal decides, vol sizes
+      python strategy_runner.py --vol 0.22       # set your annualized vol target
+      python strategy_runner.py --target 1        # force long to exercise the pipe
+      python strategy_runner.py --reset           # wipe the local ledger
 """
 
 import argparse
@@ -28,12 +30,15 @@ import json
 import os
 import time
 
-from execution import (connect, guarded_create, show_order, SYMBOL,
-                       MAX_NOTIONAL_USDT)
+from execution import connect, guarded_create, show_order, SYMBOL
 from strategy import fetch_ohlcv, regime_switch_signal
+from sizing import vol_target_weight
 
 TIMEFRAME = "1d"
-ORDER_NOTIONAL = MAX_NOTIONAL_USDT * 0.4   # sized well under the risk-gate cap
+ALLOCATED_CAPITAL = 40.0    # $ given to this strategy; sizing base (stays < $50 gate)
+TARGET_VOL = 0.20           # annualized vol target — YOUR risk dial (--vol overrides)
+VOL_WINDOW = 20
+MAX_LEVERAGE = 1.0          # SPOT can't lever; the perp venue could
 LEDGER = os.path.join(os.path.dirname(__file__), "runner_ledger.json")
 
 
@@ -41,7 +46,7 @@ def load_ledger():
     if os.path.exists(LEDGER):
         with open(LEDGER) as f:
             return json.load(f)
-    return {"position": 0, "coin": 0.0, "last_bar": None, "trades": []}
+    return {"coin": 0.0, "weight": 0.0, "last_bar": None, "trades": []}
 
 
 def save_ledger(led):
@@ -52,66 +57,69 @@ def save_ledger(led):
 def bar_cid(side, bar_key):
     """Idempotency key from the INTENT (side + which bar), not the clock (L10).
     Re-running the same bar reuses this cid -> the venue rejects the duplicate,
-    so a crash-and-restart within one bar cannot double-fill. Kept short and
-    charset-safe for Binance's clientOrderId limits."""
+    so a crash-and-restart within one bar cannot double-fill."""
     return f"run-{side}-{bar_key.replace('-', '')}"
 
 
 def target_from_signal(price_df):
-    """BRAIN: the validated regime combo, LONG/FLAT (long_short=False on spot).
-    Live uses ONE fixed param set — walk-forward was to VALIDATE the approach,
-    not to re-optimize every bar. Read the signal on the LAST CLOSED bar."""
+    """BRAIN: the validated regime combo, LONG/FLAT on spot. Read on the LAST
+    CLOSED bar — the live form of shift(1). Live uses ONE fixed param set."""
     sig = regime_switch_signal(price_df, er_window=20, er_thresh=0.30)
-    return int(sig["signal"].iloc[-1])   # {0, +1}; the live form of shift(1)
+    return int(sig["signal"].iloc[-1])   # {0, +1}
 
 
-def tick(ex, forced_target=None):
+def tick(ex, forced_target=None, target_vol=TARGET_VOL):
     led = load_ledger()
-    # Discipline 1 (L8): the last candle is still forming -> use CLOSED bars only.
+    # Discipline 1 (L8): last candle still forming -> use CLOSED bars only.
     df = fetch_ohlcv(symbol=SYMBOL, timeframe=TIMEFRAME, limit=120).iloc[:-1]
     bar_obj = df.index[-1]
     bar_key = str(bar_obj.date())
     price = float(df["close"].iloc[-1])
 
-    target = forced_target if forced_target is not None else target_from_signal(df)
+    signal = forced_target if forced_target is not None else target_from_signal(df)
+    # SIZE (L18): weight from CURRENT realized vol; target exposure = signal*weight*capital.
+    ret = df["close"].pct_change()
+    weight = vol_target_weight(ret, target_vol, VOL_WINDOW, MAX_LEVERAGE)
+    target_weight = signal * weight
+    target_value = target_weight * ALLOCATED_CAPITAL
+    current_value = led["coin"] * price
+    delta_value = target_value - current_value
+
     tag = "手动覆盖" if forced_target is not None else "信号"
-    print(f"[{bar_key}] {SYMBOL} 收盘 ${price:,.2f} | {tag}目标仓位={target} "
-          f"当前={led['position']}")
+    rv_ann = ret.rolling(VOL_WINDOW).std().iloc[-1] * (365 ** 0.5)
+    print(f"[{bar_key}] {SYMBOL} ${price:,.2f} | {tag}={signal} 当前波动 {rv_ann:.0%} "
+          f"-> 权重 {weight:.2f} 目标仓位 {target_weight:.2f}")
+    print(f"  目标敞口 ${target_value:.2f}  当前 ${current_value:.2f}  "
+          f"差额 ${delta_value:+.2f}(配给资本 ${ALLOCATED_CAPITAL:.0f}, vol目标 {target_vol:.0%})")
 
-    # Discipline 2 (L8): act only on a STRICTLY NEWER closed bar (block stale/rewound).
-    # Compare ISO date STRINGS (bar_key), not Timestamps: last_bar is stored as a
-    # naive date string, bar_obj is tz-aware UTC -> comparing them raises. And put
-    # forced_target FIRST so an override short-circuits before any compare (--target
-    # must never touch this guard). Both were live-plumbing bugs paper trading is
-    # exactly meant to catch.
+    # Discipline 2 (L8): act only on a STRICTLY NEWER closed bar (forced overrides).
     if forced_target is None and led["last_bar"] is not None and bar_key <= led["last_bar"]:
-        print("  同一根收盘K线,已处理过 -> 不动作(防重复触发)。")
+        print("  同一根收盘K线,已处理过 -> 不动作。")
         return
 
-    # Discipline 3 (L8) = idempotent target-compare: trade only if target changed.
-    if target == led["position"]:
-        print("  目标 == 当前,无需下单(账本即真相)。")
+    # No-trade band (L8 discipline 3, sized version): don't churn on tiny deltas.
+    # A rebalance smaller than the exchange min-notional cannot be traded anyway.
+    market = ex.market(SYMBOL)
+    min_cost = (market.get("limits", {}).get("cost", {}) or {}).get("min") or 5.0
+    if abs(delta_value) < min_cost:
+        print(f"  差额 ${abs(delta_value):.2f} < 最小下单额 ${min_cost} -> 在不动区间内,不调仓。")
+        led["weight"] = target_weight
         led["last_bar"] = bar_key
         save_ledger(led)
         return
 
-    # A change. Translate the position delta into ONE order, then run it through
-    # the SAME guarded pipeline the L9-L11 demos used.
-    if target == 1:                                   # flat -> long: BUY
-        side = "buy"
-        amount = float(ex.amount_to_precision(SYMBOL, ORDER_NOTIONAL / price))
-    else:                                             # long -> flat: SELL what we hold
-        side = "sell"
-        amount = float(ex.amount_to_precision(SYMBOL, led["coin"]))
+    # Rebalance toward target: buy the shortfall / sell the excess.
+    side = "buy" if delta_value > 0 else "sell"
+    raw_amt = abs(delta_value) / price
+    if side == "sell":
+        raw_amt = min(raw_amt, led["coin"])          # never sell more than we hold
+    amount = float(ex.amount_to_precision(SYMBOL, raw_amt))
     if amount <= 0:
-        print("  数量为 0(无持仓可平)-> 跳过。")
-        led["position"] = target
-        led["last_bar"] = bar_key
-        save_ledger(led)
+        print("  调仓量为 0 -> 跳过。")
         return
 
     cid = bar_cid(side, bar_key)                      # L10: bar-keyed idempotency
-    print(f"  下单意图: {side} {amount} BTC (cid={cid}) -> 过风控闸门:")
+    print(f"  调仓: {side} {amount} BTC (cid={cid}) -> 过风控闸门:")
     order = guarded_create(ex, "market", side, amount, cid=cid)   # L9 gate inside
     if not order:
         print("  风控拒单,未发送。账本不变。")
@@ -124,24 +132,24 @@ def tick(ex, forced_target=None):
     filled = float(done.get("filled") or 0)
     avg = done.get("average") or price
 
-    # Write the ledger from what ACTUALLY filled, not what we intended (L11).
-    if side == "buy":
-        led["coin"] = round(led["coin"] + filled, 8)
-    else:
-        led["coin"] = round(max(0.0, led["coin"] - filled), 8)
-    led["position"] = target
+    # Ledger from what ACTUALLY filled, not what we intended (L11).
+    led["coin"] = round(led["coin"] + filled if side == "buy"
+                        else max(0.0, led["coin"] - filled), 8)
+    led["weight"] = target_weight
     led["last_bar"] = bar_key
     led["trades"].append({"bar": bar_key, "side": side, "intended": amount,
                           "filled": filled, "avg": avg, "cid": cid})
     save_ledger(led)
-    print(f"  账本更新: position={led['position']}  coin={led['coin']} BTC  "
-          f"(记的是实成 {filled},非意图 {amount})")
+    print(f"  账本: coin={led['coin']} BTC (${led['coin'] * price:.2f})  "
+          f"目标权重={target_weight:.2f}  (记实成 {filled},非意图 {amount})")
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(description="signal -> real execution pipe (testnet)")
+    ap = argparse.ArgumentParser(description="signal -> vol-sized -> real execution")
+    ap.add_argument("--vol", type=float, default=TARGET_VOL,
+                    help="annualized vol target (your risk dial)")
     ap.add_argument("--target", type=int, choices=(0, 1),
-                    help="override the signal's target to exercise the pipe")
+                    help="override the signal to exercise the pipe")
     ap.add_argument("--reset", action="store_true", help="wipe the local ledger")
     args = ap.parse_args()
 
@@ -149,6 +157,6 @@ if __name__ == "__main__":
         os.remove(LEDGER)
         print("账本已重置。")
 
-    print(f"=== L17 signal->execution  regime 组合(long/flat) {SYMBOL} {TIMEFRAME} "
-          f"| 单笔名义 ${ORDER_NOTIONAL:,.0f} ===")
-    tick(connect(), forced_target=args.target)
+    print(f"=== L18 signal->vol-sized->execution  regime 组合 {SYMBOL} {TIMEFRAME} "
+          f"| 配给 ${ALLOCATED_CAPITAL:.0f}  vol目标 {args.vol:.0%} ===")
+    tick(connect(), forced_target=args.target, target_vol=args.vol)

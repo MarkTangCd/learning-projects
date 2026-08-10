@@ -42,3 +42,13 @@ def vol_target_position(df, target_vol=0.20, window=20, max_leverage=3.0):
     df["weight"] = weight.shift(1)                 # size known one bar early
     df["position"] = df["position"] * df["weight"]  # risk-sized position
     return df
+
+
+def vol_target_weight(returns, target_vol=0.20, window=20, max_leverage=1.0):
+    """Scalar vol-target weight from the LAST CLOSED bar — the live form of
+    vol_target_position for the runner. Uses realized vol through the last
+    closed bar to size the position held next (no look-ahead when live).
+    max_leverage defaults to 1.0: SPOT cannot lever; the perp venue could."""
+    rv = realized_vol(returns, window)
+    w = (target_vol / rv).clip(upper=max_leverage)
+    return float(w.iloc[-1])

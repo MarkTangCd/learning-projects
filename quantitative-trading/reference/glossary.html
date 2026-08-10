@@ -219,6 +219,15 @@
 
     <dt>Kelly 判据 <span class="en">Kelly Criterion</span></dt>
     <dd>最大化长期复利增长的最优下注比例。致命前提:假设你<strong>确切知道</strong>自己的 edge。edge 估计有噪声时(实盘常态),全 Kelly 会过度下注、一把归零 → 实盘用<strong>分数 Kelly / 波动率定量</strong>。edge 越薄越不确定,下注越要保守。</dd>
+
+    <dt>向目标再平衡 <span class="en">Rebalance-to-target</span></dt>
+    <dd>每根 bar 算一个目标敞口(=信号×权重×资本),和当前持仓比,只交易<strong>差额</strong>——而非全进/全出。vol 定量削回撤靠的就是它:<strong>持仓中波动一涨就减仓</strong>,只在入场定大小会漏掉这份保护。见 <a href="../lessons/0019-wiring-sizing-into-the-runner.html">L19</a>。</dd>
+
+    <dt>不动区间 <span class="en">No-trade Band</span></dt>
+    <dd>再平衡差额小于阈值(最小下单额/自设带宽)就<strong>不动</strong>,避免为几毛钱的漂移反复交易被手续费 churn 死。太窄=churn,太宽=偏离目标。见 <a href="../lessons/0019-wiring-sizing-into-the-runner.html">L19</a>。</dd>
+
+    <dt>配给资本 <span class="en">Allocated Capital</span></dt>
+    <dd>划给某个策略的那一块钱,仓位管理对着它算(不对着全部身家)。真实组合里钱分给多策略/多资产。附带好处:单量小、稳落在风控闸门内,闸门作为独立硬后备永不撤除。</dd>
   </dl>
 
   <div class="lesson-foot">

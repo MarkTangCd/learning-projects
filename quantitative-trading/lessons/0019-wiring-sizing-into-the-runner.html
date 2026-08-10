@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L19 · 把风险旋钮焊进系统</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .flow { font-family: var(--mono, monospace); font-size: 0.82rem; line-height: 1.7;
+            background: #fff; border: 1px solid var(--rule); border-radius: 6px;
+            padding: 0.9rem 1.1rem; margin: 1.2rem 0 1.6rem; overflow-x: auto; }
+    .flow .hl { color: var(--accent); font-weight: 700; }
+    @media (prefers-color-scheme: dark) { .flow { background: #1b1a15; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 19 课 · 工位 4 · 系统集成</p>
+  <h1>把风险旋钮焊进系统</h1>
+  <p class="subtitle">L18 你给出了一个风险决定(vol 目标 ~20–22%,给 30% 红线留缓冲)。L17 你有了一条能下真单的活循环。这一课把两者<strong>焊在一起</strong>:runner 的下单量不再是硬编码的 <code>$20</code>,而是<strong>由你的风险目标 + 当下市场波动实时算出来</strong>。</p>
+
+  <div class="flow">
+  signal(0/1)  ×  <span class="hl">weight = vol目标 / 当前波动</span>  ×  配给资本  =  <span class="hl">目标敞口 $</span>
+  目标敞口 − 当前持仓  =  差额  →  过闸门下单补齐(小于最小额就不动)</div>
+
+  <p>下注大小第一次由三样东西决定:<strong>信号方向、你的风险目标、市场此刻有多狂</strong>。市场波动飙升时,同一个"做多"信号会自动对应<strong>更小的仓位</strong>——这正是 L18 里把回撤从 −59% 砍到 −25% 的那台机制,现在长在了活系统里。</p>
+
+  <h2>三个焊接时冒出来的新决定</h2>
+
+  <p><strong>1. 从"翻转 0/1"升级到"向目标再平衡"。</strong> L17 的 runner 只会全进/全出。现在每根 bar 都算一个<strong>目标敞口</strong>,和当前持仓比,只交易<strong>差额</strong>。这一步是关键:只在入场时定一次大小<strong>不够</strong>——vol 定量削减回撤,靠的是<strong>持仓期间波动一涨就减仓</strong>,那必须每根 bar 重新对齐目标。</p>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">你已持有多头。三天后市场波动翻倍(信号仍看多)。"每根 bar 向目标再平衡"会做什么?</div>
+    <button class="opt">什么都不做:仓位是入场时定的,信号没变就一直持有到平仓</button>
+    <button class="opt">主动减仓:波动翻倍 → 权重减半 → 目标敞口砍半 → 卖掉一半持仓</button>
+    <div class="fb right" data-for="right">对。波动翻倍 → <code>weight = 目标/波动</code> 减半 → 目标敞口减半 → 和当前持仓的差额是"卖一半",系统主动减仓。这就是 vol 定量削回撤的<strong>发动机</strong>:危险变大时不等信号翻转,先把暴露收回来。只在入场定大小会漏掉这一整份保护。</div>
+    <div class="fb nope" data-for="nope">"入场定一次就不管"恰好丢掉了 vol 定量最值钱的部分。L18 里回撤从 −59% 砍到 −25%,靠的不是入场大小,而是<strong>持仓中波动一涨就减仓</strong>。波动翻倍 → 权重减半 → 目标敞口减半 → 系统卖掉一半。不每根 bar 再平衡,这份保护就没了。</div>
+  </div>
+
+  <p><strong>2. 不动区间(no-trade band)。</strong> 每根 bar 都可能算出一个略微不同的目标,若每次都去交易那几毛钱的差额,会被手续费<strong>churn 死</strong>。规则:差额小于交易所最小下单额(或一个你设的带宽)就<strong>不动</strong>。省下的是无谓的过路费——呼应 L11 学的"急迫成本/换手是有代价的"。</p>
+
+  <p><strong>3. 对着「配给资本」下注,不对着全部身家。</strong> 你给这个策略划一小块资本(demo 里 <code>$40</code>),<code>目标敞口 = 权重 × 配给资本</code>。这既让单量落在 L9 <code>$50</code> 闸门之下(闸门仍是<strong>硬后备</strong>,永不撤除),也符合真实做法:一个策略只动它被分到的那一份钱。</p>
+
+  <div class="callout warn">
+    <span class="label">现货的天花板:权重被截到 1.0</span>
+    某天市场很平静(年化波动 25%),而你的 vol 目标是 30% —— 公式想要 <code>weight = 30/25 = 1.2</code>(120% 仓位)。但<strong>现货买不了超过 100% 的仓</strong>(那要借钱/杠杆),所以权重被<strong>截到 1.0</strong>。含义:平静市里,现货<strong>够不到</strong>高 vol 目标——想要就得上 <span class="term">perp 永续合约</span>(能杠杆,连着 L16 的资金费率)。截断本身也是保护:它挡住了系统在平静期悄悄加杠杆。
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">你把下单量对着"配给资本 $40"算,而不是测试网账户里的几万假钱。为什么这样更对?</div>
+    <button class="opt">一个策略只该动分给它的那份钱;且这样单量自然落在 L9 风控闸门之下,闸门仍是硬后备</button>
+    <button class="opt">因为测试网余额是假的,用真实账户余额算才准</button>
+    <div class="fb right" data-for="right">对。仓位管理是对着<strong>分配给这个策略的资本</strong>做的,不是对着你的全部身家——真实组合里你会把钱分给多个策略/资产。用配给资本还有个附带好处:单量小、稳稳落在 L9 的 $50 闸门内,而闸门作为<strong>独立的硬后备</strong>永不撤除(sizing 算错了它还能兜住)。</div>
+    <div class="fb nope" data-for="nope">问题不在余额真假。核心是:一个策略只该动<strong>分给它的那一份资本</strong>,而不是账户里的全部钱——否则任何单个策略都能押上你的全部身家。对着配给资本下注,单量自然落在 L9 闸门内,而闸门作为独立硬后备始终在兜底。</div>
+  </div>
+
+  <div class="callout tip">
+    <span class="label">动手挑战:让系统按你的风险目标下第一张「算出来的」单</span>
+    <code>strategy_runner.py</code> 已把 <code>vol_target_weight</code> 焊入,单量 = 信号 × 权重 × 配给资本:<br>
+    <strong>①</strong> <code>python strategy_runner.py --reset --target 1 --vol 0.22</code> —— 强制做多,用你的 22% 目标。看它打印<strong>当前波动 → 权重 → 目标敞口 $</strong>,然后过闸门下一张<strong>大小算出来的</strong>市价单(不再是 $20)。<br>
+    <strong>②</strong> 紧接着 <code>python strategy_runner.py --target 1 --vol 0.22</code> 再跑 —— 目标敞口≈当前持仓,差额落进<strong>不动区间</strong>,应<strong>不调仓</strong>。<br>
+    <strong>③</strong> <code>--target 1 --vol 0.10</code> vs <code>--vol 0.30</code> —— 同一个多头信号,<strong>看目标敞口随 vol 目标缩放</strong>;留意 0.30 在平静市里权重是否被<strong>截到 1.0</strong>。<br>
+    <strong>④</strong> <code>--target 0</code> 平掉,再 <code>python strategy_runner.py</code>(不带 target)让真实信号 + 当下波动自己决定。<br>
+    把 ①③ 的输出贴给我 —— 我们确认:你的风险决定,现在真的在驱动系统的下单量。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong>《Systematic Trading》 — Robert Carver(volatility targeting / position sizing 章)</strong> —— 系统化交易者写给系统化交易者的仓位管理圣经:怎么用波动率把不同资产/策略的风险<strong>标准化</strong>到同一水平、怎么设目标、为什么再平衡。你这座桥的成熟形态就在这本书里。</p>
+    <p style="margin:0"><strong><a href="https://qoppac.blogspot.com/2016/03/diversification-and-small-account-size.html">Rob Carver 博客 · 波动率目标与小账户</a></strong> —— 实操视角:小资金下 vol 定量、最小下单额、再平衡门槛(正是你这一课的不动区间)怎么处理。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清再平衡的门槛该多宽(太窄churn、太宽漂移)、配给资本该用固定值还是随盈亏 mark-to-market、或者为什么"现货截到 1.0"其实在替你挡杠杆风险——直接说。往下的岔路:<strong>①</strong> perp 测试网:真跑双边(做空)+ 杠杆 + 实测 funding,把 L16/L18 没法在现货落地的部分补齐;<strong>②</strong> 让 runner 循环跑几天,攒一条按真实风险下注的纸上交易曲线;<strong>③</strong> 多资产组合:把 vol 定量用于把 BTC/ETH 的风险标准化后合仓;<strong>④</strong> 掉头股票赛道。
+    </div>
+    <div class="nav">
+      <a href="0018-position-sizing-vol-targeting.html">← L18:仓位管理</a>
+      <a href="../reference/glossary.html">词表 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>
