@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L22 · 你一直在优化错的参数</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .flow { font-family: var(--mono, monospace); font-size: 0.82rem; line-height: 1.7;
+            background: #fff; border: 1px solid var(--rule); border-radius: 6px;
+            padding: 0.9rem 1.1rem; margin: 1.2rem 0 1.6rem; overflow-x: auto; }
+    .flow .hl { color: var(--accent); font-weight: 700; }
+    .flow .good { color: var(--good); font-weight: 700; }
+    .flow .dim { color: var(--ink-soft); }
+    table.g { width: 100%; border-collapse: collapse; font-size: 0.82rem;
+              margin: 1.1rem 0 0.5rem; font-variant-numeric: tabular-nums; }
+    table.g th, table.g td { padding: 0.36rem 0.5rem; border-bottom: 1px solid var(--rule);
+                             text-align: right; }
+    table.g th:first-child, table.g td:first-child { text-align: left; }
+    table.g th { font-size: 0.7rem; letter-spacing: 0.03em; color: var(--ink-soft);
+                 text-transform: uppercase; border-bottom: 2px solid var(--rule); }
+    table.g td.pos { color: var(--good); font-weight: 700; }
+    table.g td.neg { color: var(--accent); }
+    table.g tr.win td { background: #e9f5ee; }
+    .caption { font-size: 0.78rem; color: var(--ink-soft); line-height: 1.5; margin: 0 0 1.4rem; }
+    @media (prefers-color-scheme: dark) { .flow { background: #1b1a15; }
+      table.g tr.win td { background: #16241b; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 22 课 · 工位 3 · 研究纪律</p>
+  <h1>你一直在优化错的参数</h1>
+  <p class="subtitle">L20–L21 你花了两课在真实撮合上把交易成本量出来:<strong>4 bp 单边</strong>,替换掉 L4 拍脑袋填的 10 bp。这是一次真实的校准。然后顺手做的一次检查,把优先级整个掀翻了。</p>
+
+  <div class="flow">
+  费率填错 6 bp(10 → 4)          Sharpe 移动  <span class="dim">0.14</span>
+  网格上挪一格(er_window 20 → 30)  Sharpe 移动  <span class="hl">1.85</span>
+  ────────────────────────────────────────────────
+  你测了两课的那个参数,影响力不到<strong>选参</strong>的<span class="hl">十分之一</span>。</div>
+
+  <p>这不是说测成本白费——手续费是<strong>确定性</strong>支出,你实测的两趟来回已经证明:毛盈亏连符号都在变(噪声),而 8 bp 的费用<em>分毫不差</em>。但排序错了。而且 <a href="0013-mean-reversion-gauntlet.html">L13</a> 起那个"参数漂移"黄灯(4/7 → 5/7)一直在响,只是从没被换算成夏普单位。现在换算了:<strong>1.85</strong>。</p>
+
+  <h2>walk-forward 消灭了前视,没消灭「选择方差」</h2>
+
+  <p>你的 walk-forward 是诚实的:每个 fold 只用<strong>训练窗口</strong>挑参数,测试段从不参与选择。前视偏差确实没了。但还剩一样东西:</p>
+
+  <div class="flow">
+  9 个参数 → 9 个<strong>带噪声</strong>的训练期估计 → 挑出最大的那个
+                                            <span class="hl">↑ 这一步本身在制造方差</span>
+  你挑中的往往不是"最好的参数",而是"<strong>噪声最眷顾的参数</strong>"。</div>
+
+  <p>实际后果:7 个 fold 里有 <strong>2 个</strong>,样本内的冠军是样本外<em>最差</em>的参数族(<code>er_window=30</code>,该族三个格子全负)。挑最好这个动作,把你送进了最坏的房间。</p>
+
+  <h2>核心技能:分辨「高原」和「尖峰」</h2>
+
+  <p>一个参数在训练窗口跑出高分,只有两种可能:它踩在一片<strong>真实的结构</strong>上,或者它<strong>运气好</strong>。区分方法极其朴素——<mark>看它的邻居</mark>。</p>
+
+  <div class="flow">
+  <span class="good">高原</span>  ...  1.2  1.4  <span class="good">1.5</span>  1.3  1.1  ...   邻居也好 → 是一片结构
+  <span class="hl">尖峰</span>  ...  0.1  0.0  <span class="hl">1.5</span>  0.2  0.1  ...   邻居全差 → 是一次运气
+  ────────────────────────────────────────────────
+  下个季度参数会漂。<strong>高原上漂一格还在高原;尖峰上漂一格摔下悬崖。</strong></div>
+
+  <p>所以稳健的选法不是"训练期夏普最大的格子",而是"<strong>训练期邻域均值最大的格子</strong>"。同样只用样本内信息,只是换了一个<strong>抗噪的统计量</strong>:用邻域平均代替点最大值。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">两组参数在训练窗口的夏普都是 1.5。A 的邻居平均 1.3,B 的邻居平均 0.1。选哪个?</div>
+    <button class="opt">选 A:邻居也好说明踩在结构上,下个窗口更可能延续</button>
+    <button class="opt">选 B:邻居都差说明它独特,抓到了别人没有的规律</button>
+    <div class="fb right" data-for="right">对。两者训练期<strong>分数相同</strong>,但含义完全不同。A 周围是一片高原——参数漂一格仍在高原上;B 是孤峰,漂一格就摔下去。而参数<strong>一定会漂</strong>(你从 L13 起就在看这个漂移指标)。B 那种孤立高分,最常见的来源是噪声恰好在那个格子对齐了。</div>
+    <div class="fb nope" data-for="nope">"独特 = 抓到了别人没有的规律"正是过拟合最爱的自我叙事。孤立的高分格子,最常见的来源是<strong>噪声恰好在那里对齐</strong>——它在下个窗口没有理由重现。而参数一定会漂:高原上漂一格还在高原,尖峰上漂一格摔下悬崖。选 A。</div>
+  </div>
+
+  <h2>四种「怎么用这 9 组参数」</h2>
+
+  <p>机器完全冻结(同一个网格、同样的 fold、L21 实测的 4 bp、L18 的 20% 波动率目标)。变的只有<strong>选择策略</strong>。四种全部<strong>只用训练窗口信息</strong>,所以四种都诚实:</p>
+
+  <table class="g">
+    <thead><tr><th>方法</th><th>BTC</th><th>ETH</th><th>SOL</th><th>三资产都没变差?</th></tr></thead>
+    <tbody>
+      <tr><td>① 挑样本内最好<span class="dim">(至今所有课的做法)</span></td><td>0.41</td><td class="neg">−0.37</td><td class="neg">−0.98</td><td>基准</td></tr>
+      <tr><td>② 样本内 top3 平均</td><td class="pos">0.82</td><td class="neg">−0.30</td><td class="neg">−1.39</td><td>✗ SOL 大幅恶化</td></tr>
+      <tr class="win"><td>③ 挑邻域最好<span class="dim">(高原)</span></td><td class="pos">0.67</td><td>−0.05</td><td>−0.96</td><td><strong>✓ 三个全部改善</strong></td></tr>
+      <tr><td>④ 全网格等权</td><td class="pos">0.61</td><td class="neg">−0.46</td><td class="neg">−1.54</td><td>✗ ETH/SOL 恶化</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">样本外 Sharpe。② 在 BTC 上翻倍最猛(0.41 → 0.82),但那正是<a href="0015-robustness-cross-asset.html">L15</a> 教你不要单看一列的原因——换到 SOL 它把 −0.98 打到 −1.39。</p>
+
+  <p><strong>只有 ③ 三个资产全部改善。</strong> 机制上说得通:</p>
+
+  <div class="flow">
+  <span class="hl">平均(②④)</span> = <strong>强制分散</strong>。所有参数都差时,你被拖向"平均的差"。
+  <span class="good">高原(③)</span> = <strong>仍然在选</strong>,只是换了个抗噪统计量(邻域均值 vs 点最大值)。
+                    参数都差时它挑"最不差的那片",不会把最差的也平均进来。</div>
+
+  <div class="callout warn">
+    <span class="label">集成不制造 edge —— 这是本课最容易误用的一句话</span>
+    看 SOL 那一列:k=1 时 −0.98,k 越大越差,一路到 −1.54。<strong>集成只降低「你拿到哪个参数」的方差,它不改变均值。</strong> 均值是正的,降方差 = 更可靠地赚;<strong>均值是负的,降方差 = 更可靠地亏。</strong><br>
+    所以"永远做集成"是错的口号。正确的说法是:<em>当你有理由相信均值为正时</em>,集成能帮你少受选参运气的摆布。而"均值是否为正"这个前提,恰恰是你到现在<strong>只在 BTC 上</strong>看到过的东西。
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">某策略等权集成后,BTC 的夏普升了,SOL 的夏普反而更低。最可能的原因是什么?</div>
+    <button class="opt">SOL 的网格太小,参数不够多,集成的分散效果没能生效</button>
+    <button class="opt">集成只降方差不改均值,SOL 均值为负,降方差=更稳地亏</button>
+    <div class="fb right" data-for="right">对。集成做的是把"你拿到哪个参数"的运气抹平,它<strong>不改变均值</strong>。BTC 均值为正 → 抹平运气后更可靠地赚;SOL 均值为负 → 抹平运气后<strong>更可靠地亏</strong>。所以"永远做集成"是错的口号:它的前提是<em>你有理由相信均值为正</em>,而那个前提本身才是全部难点。</div>
+    <div class="fb nope" data-for="nope">网格大小不是关键——同样 9 个格子,BTC 上集成有效,SOL 上有害,机器完全一样。真正的机制:集成抹平的是"<strong>你拿到哪个参数</strong>"的运气,它不改变均值。均值为正 → 更可靠地赚;<strong>均值为负 → 更可靠地亏</strong>。SOL 的均值是负的,所以降方差反而让亏损更稳定。</div>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">一个你现在必须直视的问题:三个资产,一个赢家</span>
+    从 <a href="0015-robustness-cross-asset.html">L15</a> 到这一课,同一个模式反复出现:<strong>BTC 有东西,ETH 和 SOL 没有</strong>。这一课也一样——③ 在 BTC 上 0.67,ETH −0.05,SOL −0.96。<br>
+    诚实的问法不是"为什么 BTC 特别",而是:<strong>如果我试了三个资产,其中一个好看,这本身有多值得惊讶?</strong> 这就是词表里那个 <span class="term">多重检验</span>——你已经在 L15 学过它的名字,现在它指着你自己唯一的正结果。<br>
+    这不是说 BTC 的结果一定是假的。是说<strong>它目前的证据强度,不足以支撑"上真钱"这个决定</strong>。
+  </div>
+
+  <div class="callout tip">
+    <span class="label">动手挑战:把选择方差量出来</span>
+    <strong>①</strong> <code>python param_stability.py</code> —— 三张东西:参数曲面、四方法对比、k 敏感性。<br>
+    <strong>②</strong> 看<strong>曲面</strong>那张表(第一张)。<code>er_window</code> 从 3 排到 45,行均值在哪里断崖?<strong>先自己判断:这是高原还是尖峰?</strong> 顺带回答:L14 冻结的那个网格(10/20/30),边界选得合理吗?<br>
+    <strong>③</strong> 看 <strong>k 敏感性</strong>那张表。BTC 那行从 k=1 的 0.41 跳到 k=2 的 0.65,之后基本走平——<strong>这个"跳一下然后走平"的形状说明了什么?</strong>(提示:大部分收益来自"不再只押一个",而不是来自"押多少个"。)<br>
+    <strong>④</strong> <code>python param_stability.py ETH/USDT</code> —— 单独看 ETH。方法 ③ 把它从 −0.37 提到 −0.05,<strong>这算改善吗?值得高兴吗?</strong><br>
+    把 ②③④ 的判断说给我 —— 尤其是 ④,我想看你怎么处理一个"变好了但仍然是负的"结果。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.qoppac.net/">Rob Carver《Systematic Trading》/ Investment Idea 博客</a></strong> —— 他对本课的立场最鲜明:<em>没有"最优参数"这回事</em>,应当在合理参数上做<strong>组合平均</strong>而不是挑选。他也讲清了什么时候平均反而有害。这是把 ①→③④ 那张表变成一套可复用方法论的最佳来源。</p>
+    <p style="margin:0"><strong><a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2308659">Bailey, Borwein, López de Prado, Zhu · 《Pseudo-Mathematics and Financial Charlatanism》</a></strong> —— <span class="term">多重检验</span>与<span class="term">回测过拟合</span>的一手论文:试的组合越多,最好那个结果的期望夏普越高——<em>哪怕真实 edge 为零</em>。上面那个"三个资产一个赢家"的问题,答案在这篇里。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清邻域该取多大、参数漂移指标和高原判据的关系、"去膨胀夏普"(Deflated Sharpe Ratio)怎么算、或者"BTC 这个结果要多强的证据才够上真钱"——直接说。往下的岔路:<strong>①</strong> <strong>多重检验的解药</strong>:把 Deflated Sharpe / 试验次数惩罚算出来,给 BTC 那个 0.67 一个诚实的置信区间;<strong>②</strong> <strong>L23 焊进 runner</strong>:perp 接 <code>strategy_runner</code>、真 funding 8h 真扣,用方法 ③ 而不是"挑最好";<strong>③</strong> 掉头股票赛道——crypto 日线上信号研究的边际收益已经很薄了,换个市场可能比继续抠这里划算。
+    </div>
+    <div class="nav">
+      <a href="0021-leverage-margin-liquidation.html">← L21:杠杆不是加速器</a>
+      <a href="../reference/glossary.html">词表 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

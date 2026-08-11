@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L23 · 换到股票:先把时钟调对</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .flow { font-family: var(--mono, monospace); font-size: 0.82rem; line-height: 1.7;
+            background: #fff; border: 1px solid var(--rule); border-radius: 6px;
+            padding: 0.9rem 1.1rem; margin: 1.2rem 0 1.6rem; overflow-x: auto; }
+    .flow .hl { color: var(--accent); font-weight: 700; }
+    .flow .good { color: var(--good); font-weight: 700; }
+    .flow .dim { color: var(--ink-soft); }
+    table.g { width: 100%; border-collapse: collapse; font-size: 0.83rem;
+              margin: 1.1rem 0 0.5rem; font-variant-numeric: tabular-nums; }
+    table.g th, table.g td { padding: 0.36rem 0.5rem; border-bottom: 1px solid var(--rule);
+                             text-align: right; }
+    table.g th:first-child, table.g td:first-child { text-align: left; }
+    table.g th { font-size: 0.7rem; letter-spacing: 0.03em; color: var(--ink-soft);
+                 text-transform: uppercase; border-bottom: 2px solid var(--rule); }
+    table.g td.bad { color: var(--accent); font-weight: 700; }
+    .caption { font-size: 0.78rem; color: var(--ink-soft); line-height: 1.5; margin: 0 0 1.4rem; }
+    @media (prefers-color-scheme: dark) { .flow { background: #1b1a15; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 23 课 · 工位 5 · 换战场</p>
+  <h1>换到股票:先把时钟调对</h1>
+  <p class="subtitle">留出集给了你一个诚实的否定:crypto 日线上那个 0.67 掉到 0.17,<strong>不上钱</strong>。但那次判决同时证明了一件更重要的事——你手里这台研究机器<strong>能证伪自己</strong>。现在把它整台搬到股票上。搬家本身几乎不用干活;真正的活是<strong>校准时钟</strong>,而错的时钟不会报错。</p>
+
+  <h2>机器原样搬过去,只需要一个 6 行的转接头</h2>
+
+  <p>从 <a href="0001-anatomy-of-a-quant-system.html">L1</a> 起你的每个部件都只认一件事:一个带时间索引、有 <code>open/high/low/close/volume</code> 列的 DataFrame。信号、回测、walk-forward、vol 定量、高原选参——<strong>没有一个部件知道它面对的是 BTC 还是 SPY</strong>。</p>
+
+  <div class="flow">
+  <span class="dim"># stocks.py 的全部"移植工作"</span>
+  df = yf.Ticker(symbol).history(start=since, <span class="hl">auto_adjust=True</span>)
+  df = df.rename(columns=str.lower)[["open","high","low","close","volume"]]
+  ────────────────────────────────────────────────
+  <span class="good">接口红利第 8 次兑现。</span>换市场,策略代码<strong>一行没改</strong>。</div>
+
+  <p><code>auto_adjust=True</code> 那个参数不是可选项:它给的是<strong>拆股+分红双复权</strong>后的价格,也就是<span class="term">总收益</span>序列。关掉它你建模的就只是价格收益,对分红股来说那是一笔<strong>单向</strong>的系统性误差。(好消息:yfinance 默认就会做拆股复权,所以"拆股日看到 −50% 假暴跌"这个经典雷,在这个数据源上不存在。)</p>
+
+  <h2>不能搬的是日历,而它藏在两个常数里</h2>
+
+  <div class="flow">
+  metrics.py:16   BARS_PER_YEAR    = <span class="hl">365</span>   <span class="dim"># crypto 7x24</span>
+  sizing.py:21    PERIODS_PER_YEAR = <span class="hl">365</span>
+  ────────────────────────────────────────────────
+  实测股票日历: <span class="good">251.4</span> bar/年。这两个常数从 L5 起你一直背着。</div>
+
+  <p>把它们留在 365 上,程序<strong>不会崩,不会警告,不会有任何异常</strong>。它只是安静地把每一个夏普放大 <code>sqrt(365/252) = 1.204</code>:</p>
+
+  <table class="g">
+    <thead><tr><th>标的</th><th>实测 bar/年</th><th>Sharpe@365</th><th>Sharpe@252</th><th>虚高</th><th>CAGR@365</th><th>CAGR@252</th></tr></thead>
+    <tbody>
+      <tr><td>SPY</td><td>251.4</td><td class="bad">0.92</td><td>0.77</td><td class="bad">+20.4%</td><td class="bad">12.5%</td><td>8.5%</td></tr>
+      <tr><td>AAPL</td><td>251.4</td><td class="bad">0.96</td><td>0.80</td><td class="bad">+20.4%</td><td class="bad">22.7%</td><td>15.2%</td></tr>
+      <tr><td>KO</td><td>251.4</td><td class="bad">0.35</td><td>0.29</td><td class="bad">+20.4%</td><td class="bad">4.6%</td><td>3.2%</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">同一个策略、同一段数据,只换了除数。虚高倍数<strong>恒为 1.204</strong>——与策略无关、与标的无关,是纯粹的测量错误。CAGR 也同向虚高,但机制不同:<code>years = bar数/365</code> 把 10 年数据当成 6.9 年,同样的总收益被摊进更少的年份。<strong>两个指标一起骗你。</strong></p>
+
+  <p>把这件事放进上下文:你辛苦了 22 课,BTC 留出集的夏普是 <strong>0.17</strong>。而一个填错的常数能凭空造出 <strong>+20%</strong>。<mark>不会抛异常的错误常数,比会抛的危险得多</mark>——因为没有任何东西会来提醒你。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">你把 crypto 的代码原样跑在股票上,<code>BARS_PER_YEAR</code> 仍然是 365。会发生什么?</div>
+    <button class="opt">照常运行,夏普被系统性高估约两成,不报任何错误</button>
+    <button class="opt">计算年化时会抛异常,因为交易日数量和常数对不上</button>
+    <div class="fb right" data-for="right">对,而这正是它危险的地方。<code>sharpe = 均值/标准差 × sqrt(bars_per_year)</code> —— 常数填多大它就乘多大,没有任何一处会去核对"这一年真的有 365 根 bar 吗"。<strong>会崩的 bug 是免费的,不会崩的 bug 要你自己去发现。</strong>这类错误只能靠"测量而不是假设"来防:实测 bar/年,别写死。</div>
+    <div class="fb nope" data-for="nope">不会。代码里没有任何一处会去核对"这一年真的有 365 根 bar 吗"——<code>sqrt(bars_per_year)</code> 填多大就乘多大。程序照常输出一个好看的数字,<strong>安静地高估两成</strong>。这就是为什么它比会崩溃的 bug 危险:崩溃的 bug 会自己举手,这个不会。</div>
+  </div>
+
+  <h2>第二件事:股票会关门,而收益偏偏在关门时产生</h2>
+
+  <table class="g">
+    <thead><tr><th>标的</th><th>总累计</th><th>只吃隔夜</th><th>只吃盘中</th><th>隔夜占比</th></tr></thead>
+    <tbody>
+      <tr><td>SPY</td><td>355.6%</td><td>166.2%</td><td>70.3%</td><td>62.4%</td></tr>
+      <tr><td>AAPL</td><td>1175.3%</td><td>32.9%</td><td>842.0%</td><td>16.2%</td></tr>
+      <tr><td>KO</td><td>195.6%</td><td>204.5%</td><td class="bad">−3.2%</td><td>92.5%</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">隔夜 = 前一日收盘 → 当日开盘(市场关着,你动不了)。盘中 = 开盘 → 收盘(你能交易)。KO 十年里<strong>盘中是亏的</strong>,全部收益来自你睡觉的时候。</p>
+
+  <p>这直接指向你从 <a href="0003-first-signal.html">L3</a> 就在用的那行代码:</p>
+
+  <div class="flow">
+  df["position"] = df["signal"].<span class="hl">shift(1)</span>
+  ────────────────────────────────────────────────
+  <span class="dim">crypto:</span> 收盘算出信号,<span class="good">立刻就能按那个价成交</span>(永不收市)。
+  <span class="dim">股票:</span>  收盘算出信号,<span class="hl">最早只能等次日开盘</span>——中间那道跳空你吃不到。</div>
+
+  <p>同一行代码,在两个市场里表达的<strong>不是同一个假设</strong>。而上表说明,被跳过的那一段恰恰是收益最集中的地方。这不是说 <code>shift(1)</code> 错了——是说<strong>它在股票上需要被重新论证一次</strong>,而不是继承下来。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">股票信号在收盘后算出、最早次日开盘成交。为什么这件事比在 crypto 上严重?</div>
+    <button class="opt">隔夜跳空无法交易,而收益恰恰最集中在这一段时间</button>
+    <button class="opt">开盘价波动更剧烈,滑点会比收盘时段高出一个数量级</button>
+    <div class="fb right" data-for="right">对。crypto 永不收市,"收盘算信号、按收盘成交"是个诚实假设。股票有一段<strong>物理上无法交易</strong>的窗口,而 SPY 六成、KO 九成以上的收益就在那段里产生。持有的时候你照样吃到跳空(这没问题);问题出在<strong>换仓的那一天</strong>——你的进出场价被推到跳空的另一侧。</div>
+    <div class="fb nope" data-for="nope">开盘确实更波动,但那是<strong>成本</strong>问题(几个 bp 量级)。真正的问题大得多:隔夜是一段<strong>物理上无法交易</strong>的窗口,而 SPY 六成、KO 九成以上的收益就在那里产生。这不是成本变贵,是你的进出场价被整段跳空推到了另一侧。</div>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">第三件事:你能列出来的股票,已经全是活下来的</span>
+    向数据源索要死掉的公司,结果是这样的:<br>
+    <code>SPY → 2917 根 bar</code> · <code>SIVBQ(硅谷银行)→ 空</code> · <code>LEHMQ(雷曼)→ 空</code> · <code>ENRNQ(安然)→ 空</code><br>
+    <strong>今天你能想到的每一个代码,都已经通过了"没倒闭"这道筛子。</strong> 用它们做出来的回测,天然继承了一条未来信息。想诚实处理,只能用带退市记录的数据库(CRSP、Norgate 之类),或者接受并<em>写下</em>这个偏差。<br>
+    <em>顺带:crypto 上你也一直有这个问题,而且更严重(死掉的币比死掉的上市公司多得多)。只是当时没人提醒你。</em>
+  </div>
+
+  <div class="callout tip">
+    <span class="label">动手挑战:在自己代码里抓一个 20% 的 bug</span>
+    <strong>①</strong> <code>python stocks.py clock</code> —— 看那三行。<strong>先别看结论:虚高倍数为什么对三个标的完全相同?</strong> 自己推一遍。<br>
+    <strong>②</strong> <code>python stocks.py overnight</code> —— KO 的盘中收益是 <strong>负</strong>的。<strong>那它十年 195% 的总收益是从哪来的?</strong><br>
+    <strong>③</strong> <code>python stocks.py dead</code> —— 三个死掉的公司返回空。<strong>提一个具体的策略,它的回测会被这件事骗得最惨。</strong>(提示:什么样的策略最爱买"跌得很惨的便宜货"?)<br>
+    <strong>④</strong> 打开 <code>sizing.py:21</code>。<code>PERIODS_PER_YEAR = 365</code> 还在那儿。<strong>vol 定量用它算已实现波动,那么在股票上它会把仓位开大还是开小?偏多少?</strong> 先算,再验证。<br>
+    ①②③④ 都说给我 —— 特别是 ④,那是同一个常数在<strong>另一个部件</strong>里造成的第二处伤害,而且方向和夏普那处不一样。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.quantstart.com/articles/Successful-Backtesting-of-Algorithmic-Trading-Strategies-Part-I/">QuantStart · Successful Backtesting(Part I)</a></strong> —— 把<span class="term">幸存者偏差</span>、前视偏差、市场机制变化并列讲清的经典入门篇。你在 crypto 上已经吃过前视和过拟合的亏,这篇补的是股票特有的那几个坑。</p>
+    <p style="margin:0"><strong><a href="https://ranaroussi.github.io/yfinance/">yfinance 官方文档</a></strong> —— <code>auto_adjust</code>、<code>actions</code>(拆股/分红明细)、<code>repair</code> 各自到底做了什么。数据源的行为必须<strong>读文档确认</strong>,不能靠猜——本课那个"拆股假暴跌"的雷之所以不存在,正是因为默认参数已经处理了它。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清怎么把 <code>shift(1)</code> 改成"次日开盘成交"、股票做空的融券成本和可借性怎么建模、复权价在长周期回测里的陷阱、或者"选股票池"这件事怎么不掉进多重检验——直接说。往下的岔路:<strong>①</strong> <strong>L24 预注册的独立检验</strong>:把冻结的机器(高原选参 + 正确日历)在股票上跑一次,判据先定;这是你手上唯一一次真正干净的独立样本;<strong>②</strong> <strong>先修执行假设</strong>:把回测从"收盘成交"改成"次日开盘成交",量出这个更诚实的假设吃掉多少收益;<strong>③</strong> <strong>股票才有的新武器</strong>:横截面(cross-sectional)——同时排序几百只股票做多空,这是 crypto 单标的时序策略给不了的东西,也是股票量化真正的主场。
+    </div>
+    <div class="nav">
+      <a href="0022-parameter-stability.html">← L22:你一直在优化错的参数</a>
+      <a href="../reference/glossary.html">词表 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

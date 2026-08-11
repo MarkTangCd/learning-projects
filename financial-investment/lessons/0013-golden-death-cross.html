@@ -1,0 +1,123 @@
+<meta charset="utf-8">
+<title>第 13 课 · 技术分析入门：金叉与死叉</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+<div class="wrap">
+
+  <p class="eyebrow">股票投资 · 第 13 课 · 技术分析篇 · 第 3 课</p>
+  <h1>金叉与死叉</h1>
+  <p class="subtitle">上一课学会读一条均线。今天放两条上去，看它们交叉时说了什么。</p>
+  <p class="progress">● ● ○ ○ ○ &nbsp; 技术分析篇 · 第 3 课</p>
+
+  <div class="keyidea">
+    <strong>今天的小胜利：</strong>看懂两条均线的<strong>交叉信号</strong>——<strong>短均线上穿长均线 = 金叉</strong>（偏多），<strong>短均线下穿长均线 = 死叉</strong>（偏空）。这是技术分析里最常被提到的信号，今天把它的<strong>意思</strong>和<strong>陷阱</strong>一次讲清。
+  </div>
+
+  <div class="callout warn">
+    <span class="label">先接上一课</span>
+    上一课说过：短均线灵敏、长均线稳，实战常<strong>配着看</strong>。当这两条线<strong>交叉</strong>，就是"近期强弱"追上或跌破"大方向"的一刻——今天讲的就是这一刻。本课示范，不构成任何交易建议。
+  </div>
+
+  <h2>两条线，一快一慢</h2>
+  <p>金叉死叉一定是<strong>两条</strong>均线的事：一条<strong>短</strong>（快，如 MA5 / MA20）、一条<strong>长</strong>（慢，如 MA20 / MA60）。短线贴着近期价格跑，长线代表大方向。它们平时各走各的，偶尔会<strong>交叉</strong>——交叉的方向，就是信号。</p>
+
+  <div class="callout">
+    <span class="label">为什么交叉会发生</span>
+    短线灵敏、先反应。行情由弱转强时，短线<strong>先翘头</strong>、追上并<strong>穿过</strong>还在犹豫的长线 → 金叉。由强转弱时，短线<strong>先掉头</strong>、跌破长线 → 死叉。<strong>交叉本质是"快的先动、追过了慢的"。</strong>
+  </div>
+
+  <h2>金叉 vs 死叉：一张图看懂</h2>
+  <div style="background:var(--card);border-radius:10px;padding:1rem;margin:1.4rem 0;text-align:center">
+    <svg viewBox="0 0 420 220" width="100%" style="max-width:420px" role="img" aria-label="金叉与死叉示意图">
+      <line x1="30" y1="195" x2="405" y2="195" stroke="#8a8a8a" stroke-width="1" stroke-dasharray="2 3"/>
+      <!-- long MA (slow, stable) -->
+      <polyline points="35,150 120,140 210,120 300,112 400,120"
+                fill="none" stroke="#8a7a3a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- short MA (fast, swingy) -->
+      <polyline points="35,175 120,150 210,105 300,140 400,95"
+                fill="none" stroke="#1f6f86" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- golden cross marker (short crosses up through long) ~ around x=150 -->
+      <circle cx="150" cy="133" r="7" fill="none" stroke="#c0392b" stroke-width="2.5"/>
+      <text x="150" y="120" text-anchor="middle" font-family="var(--font-sans)" font-size="12" fill="#c0392b" font-weight="600">金叉 ↑</text>
+      <!-- death cross marker (short crosses down through long) ~ around x=250 -->
+      <circle cx="250" cy="123" r="7" fill="none" stroke="#16a34a" stroke-width="2.5"/>
+      <text x="250" y="155" text-anchor="middle" font-family="var(--font-sans)" font-size="12" fill="#16a34a" font-weight="600">死叉 ↓</text>
+      <!-- legend -->
+      <line x1="300" y1="180" x2="320" y2="180" stroke="#1f6f86" stroke-width="3"/>
+      <text x="325" y="184" font-family="var(--font-sans)" font-size="11" fill="#1f6f86">短均线（快）</text>
+      <line x1="300" y1="198" x2="320" y2="198" stroke="#8a7a3a" stroke-width="3"/>
+      <text x="325" y="202" font-family="var(--font-sans)" font-size="11" fill="#8a7a3a">长均线（慢）</text>
+    </svg>
+  </div>
+
+  <table>
+    <tr><th>信号</th><th>发生的事</th><th>含义</th></tr>
+    <tr><td><em class="term">金叉</em> Golden Cross</td><td>短均线由下<strong>上穿</strong>长均线</td><td>近期转强、可能进入上升趋势（偏多）</td></tr>
+    <tr><td><em class="term">死叉</em> Death Cross</td><td>短均线由上<strong>下穿</strong>长均线</td><td>近期转弱、可能进入下降趋势（偏空）</td></tr>
+  </table>
+  <div class="keyidea">
+    <strong>一句记死：短线穿到长线上面是"金"，掉到下面是"死"。</strong>金叉 = 快的翻身压过慢的；死叉 = 快的落到慢的下面。<strong>注意信号无关颜色，只关方向</strong>——A 股美股都一样。
+  </div>
+
+  <h2>关键：它是"迟到的"信号，不是水晶球</h2>
+  <p>这是本课最重要的一段，别跳过。金叉死叉<strong>由均线算出</strong>，而均线是<strong>滞后</strong>的（上一课讲过）——所以交叉出现时，行情往往<strong>已经走了一段</strong>。它擅长<strong>确认</strong>趋势，不擅长<strong>抢</strong>拐点。</p>
+  <div class="callout warn">
+    <span class="label">最大的陷阱：横盘里的"假叉"</span>
+    在<strong>没有方向的横盘/震荡</strong>里，两条线会<strong>反复缠绕、来回交叉</strong>，冒出一堆金叉死叉——几乎全是<strong>假信号</strong>，追进去两边挨打（这叫被"反复打脸 / 磨损"）。<strong>金叉死叉只在有明显趋势时才相对可信。</strong>
+  </div>
+  <p>所以老手从不"见金叉就买、见死叉就卖"，而是把它当<strong>一个参考</strong>，再叠加别的证据一起看——比如<strong>成交量</strong>是否配合、大方向（长均线）是否一致。这些是后面几课的内容。</p>
+
+  <div class="callout">
+    <span class="label">别忘了两条腿</span>
+    金叉死叉只回答"<strong>何时</strong>"这半个问题。<strong>买什么</strong>仍靠前 10 课的估值。理想动作：先用估值选出一家好公司，再用趋势/信号找相对顺风的时点——而不是让一根交叉替你决定买一家你根本没看懂的公司。
+  </div>
+
+  <h2>练一练</h2>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">1. MA5（短）原本在 MA20（长）下方，现在<strong>由下往上穿过</strong>了 MA20。这叫什么、偏什么？</div>
+    <button class="opt">死叉，偏空，因为短均线动得比长均线快</button>
+    <button class="opt">无意义，两条均线交叉从来不代表任何事</button>
+    <button class="opt">金叉，偏多，短均线上穿长均线转强信号</button>
+    <div class="fb ok" data-for="correct">对。短线由下上穿长线 = 金叉，代表近期转强、可能进入上升趋势，偏多。记死："穿到上面是金。"</div>
+    <div class="fb no" data-for="wrong">短均线由下<strong>上穿</strong>长均线是<strong>金叉</strong>（偏多），不是死叉。死叉是短线<strong>下穿</strong>长线。方向决定名字。</div>
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">2. 一只股票在窄幅横盘，两条均线一天一个金叉、一天一个死叉。最该怎么理解？</div>
+    <button class="opt">横盘里多是假信号，交叉此时几乎不可信</button>
+    <button class="opt">机会翻倍，每个金叉都该果断买入加仓</button>
+    <button class="opt">说明趋势极强，交叉越多方向越明确无疑</button>
+    <div class="fb ok" data-for="correct">对。没有方向的横盘里两线反复缠绕，交叉大多是假信号，追进去两边挨打。金叉死叉只在明显趋势里才相对可信。</div>
+    <div class="fb no" data-for="wrong">横盘里的密集交叉恰恰是<strong>最不可信</strong>的——两线来回缠绕，全是噪音。交叉多≠趋势强，反而常是"没方向"。</div>
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">3. 关于金叉死叉的性质，哪句最准确？</div>
+    <button class="opt">它能提前预测顶和底，属于领先的抢拐点工具</button>
+    <button class="opt">它由滞后均线算出，擅长确认趋势而非抢拐点</button>
+    <button class="opt">它和成交量、估值无关，单独一个就足够做决策</button>
+    <div class="fb ok" data-for="correct">对。均线滞后，交叉更晚——它确认已成形的趋势，不预测拐点。实战要叠加成交量、大方向甚至估值一起看，不能单用。</div>
+    <div class="fb no" data-for="wrong">交叉由滞后均线算出，出现时行情常已走了一段，它<strong>确认</strong>趋势而非<strong>预测</strong>拐点，也不该单独使用——要配成交量、大方向、估值。</div>
+  </div>
+
+  <h2>一句话总结</h2>
+  <div class="keyidea">
+    金叉死叉是<strong>两条均线</strong>的交叉信号：<strong>短线上穿长线 = 金叉（偏多），短线下穿长线 = 死叉（偏空）</strong>。本质是"快的先动、追过了慢的"。但它<strong>滞后、且在横盘里满是假信号</strong>——当参考、叠证据用，别当水晶球，更别替代估值。
+  </div>
+
+  <div class="source">
+    <span class="label">最佳一手资源（推荐精读）</span>
+    <a href="https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/moving-averages#Crossovers">StockCharts ChartSchool — Moving Average Crossovers</a>（英文，讲金叉死叉与假信号）。系统学纪律：<a href="https://book.douban.com/subject/1216551/">John J. Murphy《金融市场技术分析》</a>。见 <a href="../RESOURCES.md">RESOURCES</a>。
+  </div>
+
+  <div class="ask">
+    💬 <strong>随时问我。</strong> 想动手就发我<strong>一张带两条均线的自选股日 K 截图</strong>，我们一起找找最近有没有金叉/死叉、可不可信；或深问："<strong>金叉后要不要等回踩再进？</strong>""<strong>用哪两条均线搭配比较常见？</strong>" 下一课：<strong>成交量——价格的"油量表"</strong>。
+  </div>
+
+  <div class="lesson-nav">
+    <span>← <a href="0012-moving-average-trend.html">第 12 课：均线与趋势</a></span>
+    <span>下一课预告：成交量——量在说什么 →</span>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>

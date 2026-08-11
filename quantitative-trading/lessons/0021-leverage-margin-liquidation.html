@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L21 · 杠杆不是加速器</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .flow { font-family: var(--mono, monospace); font-size: 0.82rem; line-height: 1.7;
+            background: #fff; border: 1px solid var(--rule); border-radius: 6px;
+            padding: 0.9rem 1.1rem; margin: 1.2rem 0 1.6rem; overflow-x: auto; }
+    .flow .hl { color: var(--accent); font-weight: 700; }
+    .flow .dim { color: var(--ink-soft); }
+    table.lev { width: 100%; border-collapse: collapse; font-size: 0.84rem;
+                margin: 1.1rem 0 0.6rem; font-variant-numeric: tabular-nums; }
+    table.lev th, table.lev td { padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--rule);
+                                 text-align: right; }
+    table.lev th:first-child, table.lev td:first-child { text-align: left; }
+    table.lev th { font-size: 0.72rem; letter-spacing: 0.03em; color: var(--ink-soft);
+                   text-transform: uppercase; border-bottom: 2px solid var(--rule); }
+    table.lev td.same { color: var(--good); font-weight: 700; }
+    table.lev tr.mark td { background: var(--accent-soft); }
+    .caption { font-size: 0.78rem; color: var(--ink-soft); line-height: 1.5; margin: 0 0 1.4rem; }
+    @media (prefers-color-scheme: dark) { .flow { background: #1b1a15; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 21 课 · 工位 4 · perp 深水区</p>
+  <h1>杠杆不是加速器</h1>
+  <p class="subtitle">L20 结束时你留了两个悬案:回读打印 <code>杠杆=None</code>,以及 L19 那笔 <strong>$40 配给资本在 perp 上根本下不出单</strong>(最小名义 $50)。你自己用 <code>raw</code> 把第一个解了——杠杆藏在 <code>|名义| / 起始保证金</code> 里,实测 <strong>20.0x</strong>。这一课解第二个。但真正的收获是一句反直觉的话:<strong>拧杠杆不改变你的风险</strong>。</p>
+
+  <h2>杠杆是个分母</h2>
+
+  <p>你在 L20 亲手推出来的恒等式,把它反过来读:</p>
+
+  <div class="flow">
+  <span class="dim">你推出的:</span>  杠杆 = |名义| / 起始保证金        <span class="dim">57.69 / 2.88 = 20.0x</span>
+  <span class="dim">反过来:</span>    起始保证金 = |名义| / <span class="hl">杠杆</span>
+  ────────────────────────────────────────────────
+  <span class="hl">杠杆只出现在保证金那一侧。</span>它<strong>不在</strong>盈亏公式里。
+  盈亏 = 持仓量 × 价格变动 = (名义 / 价格) × 价格变动   <span class="dim">← 没有杠杆</span></div>
+
+  <p>这就是全课的支点。<strong>你的盈亏由「名义」决定,和杠杆一点关系都没有。</strong> 固定名义 $60 不动、把杠杆从 5x 拧到 20x,BTC 每涨 $1 你亏的钱<em>一分不差是同一个数</em>。变的只有一件事:被锁在这张仓位里的保证金从 $12 变成 $3。</p>
+
+  <table class="lev">
+    <thead><tr><th>杠杆</th><th>占用保证金</th><th>逐仓爆仓价(空)</th><th>需涨幅</th><th>每 $1 波动的盈亏</th></tr></thead>
+    <tbody>
+      <tr><td>1x</td><td>$60.00</td><td>$127,702</td><td>+99.2%</td><td class="same">0.000936</td></tr>
+      <tr><td>2x</td><td>$30.00</td><td>$95,776</td><td>+49.4%</td><td class="same">0.000936</td></tr>
+      <tr class="mark"><td>5x</td><td>$12.00</td><td>$76,621</td><td>+19.5%</td><td class="same">0.000936</td></tr>
+      <tr><td>10x</td><td>$6.00</td><td>$70,236</td><td>+9.6%</td><td class="same">0.000936</td></tr>
+      <tr><td>20x</td><td>$3.00</td><td>$67,044</td><td>+4.6%</td><td class="same">0.000936</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">名义固定 $60、开仓价 $64,106、维持保证金率 0.400%(全是你 <code>raw</code> 跑出来的真实参数)。<strong>最后一列全程不动</strong>——那才是风险。动的是保证金和爆仓距离。</p>
+
+  <p>所以杠杆买到的是两样别的东西:<strong>①容量</strong>——同样的本金能扛多大名义;<strong>②爆仓距离</strong>——逐仓下价格能跑多远才弄死你。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">固定名义 $60 不变,把杠杆从 5x 拧到 20x。你的风险发生了什么变化?</div>
+    <button class="opt">风险不变:名义没动,盈亏由名义决定,与杠杆无关</button>
+    <button class="opt">风险四倍:杠杆是乘数,盈亏随杠杆等比放大变化</button>
+    <div class="fb right" data-for="right">对。杠杆只出现在<strong>保证金</strong>那一侧的恒等式里,不在盈亏公式里。名义没动 → 持仓量没动 → 每 $1 价格变动的盈亏一模一样。你只是把被锁的保证金从 $12 释放到 $3,同时把逐仓爆仓距离从 19.5% 压到 4.6%。</div>
+    <div class="fb nope" data-for="nope">这是"杠杆=加速器"的通俗误解。看恒等式:<code>保证金 = 名义/杠杆</code>——杠杆只在<strong>保证金</strong>那边。盈亏 = 持仓量 × 价格变动,而持仓量由<strong>名义</strong>定。名义没动,盈亏就没动。变的是被锁的钱($12→$3)和爆仓距离(19.5%→4.6%)。</div>
+  </div>
+
+  <h2>爆仓价:算给你看</h2>
+
+  <p>逐仓的爆仓点就是解一个等式——<strong>保证金被亏光到只剩维持要求的那一刻</strong>:</p>
+
+  <div class="flow">
+  保证金 − 亏损(P) = 维持要求(P)
+  P₀·q/L − (P−P₀)·q = mmr·P·q            <span class="dim">(空头)</span>
+  ────────────────────────────────────────────────
+  <span class="hl">P = P₀ · (1 + 1/L) / (1 + mmr)</span>       <span class="dim">多头: P₀ · (1 − 1/L) / (1 − mmr)</span>
+
+  <span class="hl">q 被约掉了。</span>爆仓【价】与仓位大小<strong>无关</strong> —— 只由杠杆和 mmr 决定。
+  仓位大小决定你<strong>亏多少钱</strong>,不决定你<strong>什么时候</strong>死。</div>
+
+  <p>20x 逐仓做空,BTC 涨 <strong>4.58%</strong> 你就归零。crypto 日内 4.6% 是家常便饭——这就是 20x 的真实含义,不是"赚四倍",是"<strong>行情一个正常波动就够把你抹掉</strong>"。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">你把逐仓 20x 的空单从 0.0009 BTC 加到 0.009 BTC(十倍)。爆仓价怎么变?</div>
+    <button class="opt">爆仓价不动:它只由杠杆和维持保证金率决定</button>
+    <button class="opt">爆仓价更近:仓位更大,更容易被行情打爆掉</button>
+    <div class="fb right" data-for="right">对。推导里 <code>q</code> 被约掉了——名义和保证金<strong>同比例</strong>放大,比值(杠杆)没变,所以爆仓价一步不挪。加十倍仓改变的是你<strong>亏多少钱</strong>:同样涨到 $67,044,你的损失从 $2.9 变成 $29。<strong>大小决定伤害,杠杆决定死线。</strong></div>
+    <div class="fb nope" data-for="nope">直觉合理但算式不同意。仓位放大十倍,名义和所需保证金<strong>同时</strong>放大十倍——比值(杠杆)不变,所以 <code>q</code> 在方程两边约掉,爆仓价<strong>纹丝不动</strong>。变的是伤害:同样打到爆仓价,你从亏 $2.9 变成亏 $29。大小决定伤害,杠杆决定死线。</div>
+  </div>
+
+  <h2>全仓 vs 逐仓:你那个 $5,597,190 是怎么来的</h2>
+
+  <p>L20 的 <code>raw</code> 里你看到一个荒唐的爆仓价 559 万。上面的公式给 20x 算出的是 +4.58%,差了几个数量级。原因在同一份原始响应里:</p>
+
+  <div class="flow">
+  <span class="dim">"isolatedMargin":</span>     "0"          <span class="hl">← 不是逐仓</span>
+  <span class="dim">"crossWalletBalance":</span> "4999.925"   <span class="hl">← 全仓:整个钱包在垫背</span>
+  ────────────────────────────────────────────────
+  $4999.93 / 0.0009 BTC ≈ $5.56M 可承受涨幅 + 开仓价 64,106 ≈ <span class="hl">$5.60M</span> ✓</div>
+
+  <p><strong>逐仓</strong>:你为这张仓位划出一笔<em>孤立</em>的保证金,亏光即止,亏损被关在笼子里。<strong>全仓</strong>:整个钱包都是这张仓位的后备,所以一张小单几乎打不爆——代价是<strong>一旦真爆,爆的是全部</strong>。测试网默认给你的是全仓,所以你才看到 559 万。</p>
+
+  <p>爆仓价从来不是仓位的属性,是<strong>「仓位 + 抵押品」</strong>的属性。同一张 0.0009 BTC 空单,全仓 5000U 垫着近乎不死,逐仓只放 $3 保证金则涨 4.6% 归零——<em>仓位一模一样</em>。</p>
+
+  <h2>那 $40 到底能不能下单</h2>
+
+  <p>L19 你把 vol 目标拧到 0.30,权重算出 1.2,被现货天花板<strong>截到 1.0</strong>,敞口顶格 $40。perp 上这层天花板没了:</p>
+
+  <div class="flow">
+  1x   最大名义 = $  40.00   <span class="hl">✗ 下不出</span> —— 不够最小名义 $50
+  2x   最大名义 = $  80.00   ✓ 可以下单
+  5x   最大名义 = $ 200.00   ✓ 可以下单
+  20x  最大名义 = $ 800.00   ✓ ……但你真的想要 $800 的敞口吗?</div>
+
+  <p>看清这里发生了什么:<strong>杠杆解除的是「名义 ≤ 本金」这条约束,不是给你发钱。</strong> 它是一张准入许可,不是加速器。<mark>该开多大的仓,答案仍然由 L18 的波动率目标给出</mark>——杠杆只负责让那个答案在这个场子里<em>合法</em>。</p>
+
+  <div class="callout warn">
+    <span class="label">杠杆真正的危险,和一个你已经量过的数</span>
+    <strong>① 危险不在杠杆本身,在它让「开大仓」变得无痛。</strong> 20x 下开 $800 的名义只锁 $40 保证金,账户看起来毫发无伤——但你扛的是 $800 的波动。风险的正确变量始终是<strong>名义</strong>,不是杠杆。这也是为什么 <code>perp.py</code> 的闸门 <code>MAX_NOTIONAL_USDT</code> 卡的是<strong>名义</strong>——L9 那个闸门当初就选对了变量。<br>
+    <strong>② 摩擦按名义收,不按本金收。</strong> 你 L20 实测的来回成本是 <strong>8 bp</strong>(单边 taker 4 bp)。8 bp 是收在<em>名义</em>上的。$40 本金开 $800 名义,一次来回 = $0.64 = <strong>你本金的 160 bp</strong>。杠杆不放大摩擦率,但它放大了你能承载的名义,于是摩擦相对<strong>本金</strong>被同比例放大。L16 里 funding 3bp/天就能把 BTC 双边 edge 吃归零——那还是 1 倍名义下的算法。<br>
+    <strong>③ 测试网默认全仓,所以你看不到那个吓人的爆仓价。</strong> 上面表里的爆仓价是<strong>逐仓</strong>的假设值。你实跑 <code>position</code> 看到的仍会是个天文数字,因为 5000U 的钱包在垫背。这不是代码错了——是保证金模式不同。<em>别把"我的爆仓价好远"当成安全感:那是全仓在替你顶,顶不住的那天赔的是整个钱包。</em>
+  </div>
+
+  <div class="callout tip">
+    <span class="label">动手挑战:拧一次旋钮,看什么变了、什么没变</span>
+    <strong>①</strong> <code>python perp.py lever</code> —— 读两张表。表 A 是"固定名义拧杠杆",<strong>盯住最后一列有没有动</strong>;表 B 是 $40 配给资本的准入判决。<br>
+    <strong>②</strong> <strong>先预测再运行</strong>:5x 下开 $60 名义,占用保证金是多少?逐仓爆仓价大概在哪?写下来。<br>
+    <strong>③</strong> <code>python perp.py lever 5</code> —— 设成 5x,脚本会<strong>回读确认</strong>(L9 纪律:设了不算,读回来才算)。<br>
+    <strong>④</strong> <code>python perp.py short</code> 然后 <code>python perp.py position</code> —— 现在杠杆那行应该打印 <strong>5.0x</strong>(由恒等式推出,不是交易所告诉你的),占用保证金从 ~$2.88 变成 ~$11.5。<strong>但未实现盈亏的跳动幅度和 20x 时一模一样</strong>——这就是本课的整个论点。<br>
+    <strong>⑤</strong> <code>python perp.py close</code> —— 看那张双边账单,确认 bp 数<strong>没有因为换了杠杆而改变</strong>(摩擦按名义收)。<br>
+    把 ①④⑤ 贴给我,重点说一句:<strong>②的预测你猜中了吗?</strong>
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.binance.com/en/support/faq/detail/360033525271">Binance · Leverage and Margin of USDⓈ-M Futures</a></strong> —— 一手的分层保证金规则:<span class="term">维持保证金率</span>随名义分档跳升(名义越大,mmr 越高、爆仓越早)。本课用的 0.400% 是你这档小仓的值,开大仓它会变——这是"大仓更危险"的<em>真正</em>机制。</p>
+    <p style="margin:0"><strong><a href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Initial-Leverage">Binance API · Change Initial Leverage / Margin Type</a></strong> —— <code>set_leverage</code> 与 <code>set_margin_mode</code> 背后的接口:杠杆是<strong>按 symbol</strong> 设的、持仓中改动的限制、全仓与逐仓的切换条件。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清分层保证金(mmr 怎么随名义跳档)、ADL 自动减仓是什么、逐仓怎么加保证金续命、全仓爆仓时先杀哪张单、或者"vol 目标该怎么和杠杆上限一起定"——直接说。往下的岔路:<strong>①</strong> <strong>L22 焊进 runner</strong>:把 perp 接进 <code>strategy_runner</code>,信号真吐 −1,<strong>真实 funding</strong> 随持仓 8h 真扣,攒一条双边 track record;<strong>②</strong> <strong>把杠杆接进 L18 的 vol 目标</strong>:让 <code>weight>1.0</code> 真正落地成下单量,并加一条杠杆上限红线;<strong>③</strong> 掉头股票赛道。
+    </div>
+    <div class="nav">
+      <a href="0020-perp-testnet-native-short.html">← L20:你的第一张原生空单</a>
+      <a href="../reference/glossary.html">词表 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

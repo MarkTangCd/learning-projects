@@ -55,9 +55,11 @@
   </div>
 
   <div class="callout warn">
-    <span class="label">两个最容易栽的坑</span>
+    <span class="label">三个最容易栽的坑</span>
     <strong>① 密钥用错场子。</strong> perp 测试网密钥必须在 <code>testnet.binancefuture.com</code> 生成;把 L9 的现货测试网密钥填进来会报 <code>Invalid API-key</code>(它俩是两套账户)。<br>
-    <strong>② $40 配给在 perp 上 1 倍杠杆下不出单。</strong> perp 最小名义 ≈ $50 > 你 L19 的配给资本 $40。含义:<strong>perp 上杠杆不是"可选加速",而是小账户能下单的前提</strong>——这正是下一课 L21 的入口。本课先用 $60 的演示单(略高于最小额)把空开出来,杠杆按测试网默认值(通常 20x),不去碰它。
+    <strong>② $40 配给在 perp 上 1 倍杠杆下不出单。</strong> perp 最小名义 ≈ $50 > 你 L19 的配给资本 $40。含义:<strong>perp 上杠杆不是"可选加速",而是小账户能下单的前提</strong>——这正是下一课 L21 的入口。本课先用 $60 的演示单(略高于最小额)把空开出来,杠杆按测试网默认值(通常 20x),不去碰它。<br>
+    <strong>③ ccxt ≥ 4.4.9 自己把期货测试网关掉了。</strong> 你会看到 <code>NotSupported: testnet/sandbox mode is not supported for futures anymore</code>。注意这条报错<strong>来自库,不是来自交易所</strong>——它在 <code>sign()</code> 里抛出,请求<strong>根本没发出去</strong>(traceback 里没有任何网络调用)。币安的 <code>testnet.binancefuture.com</code> 仍然活着,只是官方主推 Demo Trading 了,ccxt 就顺手把旧通道封成了硬报错。解法是显式声明"我知道,继续用":<code>options={"disableFuturesSandboxWarning": True}</code>(已写进 <code>perp.py</code> 的 <code>connect()</code>)。<br>
+    <em>这个坑的真正价值:学会读 traceback 的<strong>最后一帧在哪一层</strong>。停在 <code>sign()</code> = 库的策略问题;走到 <code>handle_errors()</code> 带 <code>{"code":-2014,...}</code> = 交易所真的回话了,是你的账号/参数问题。两者的排查方向完全相反。</em>
   </div>
 
   <div class="callout tip">

@@ -240,6 +240,39 @@
 
     <dt>资金费率 <span class="en">Funding Rate</span></dt>
     <dd>perp 持仓的"碳税":每 8h(3 次/日)按标记价 vs 现货指数的偏离,在多空之间收付一次。费率>0 → 多头付空头;<0 → 空头付多头。L16 里它是模拟的一笔成本,perp 上是真的、会随持仓真扣。edge 薄时它能把双边收益吃归零(L16 实测 3bp/天即归零)。见 <a href="../lessons/0020-perp-testnet-native-short.html">L20</a>。</dd>
+
+    <dt>杠杆 <span class="en">Leverage</span></dt>
+    <dd>恒等式 <code>杠杆 = |名义| / 起始保证金</code>。关键:杠杆<strong>只出现在保证金那一侧</strong>,不在盈亏公式里。固定名义拧杠杆,每 $1 价格变动的盈亏<strong>分毫不变</strong>——变的只有被锁的保证金和爆仓距离。所以杠杆<strong>不是加速器</strong>,是解除"名义 ≤ 本金"约束的<strong>准入许可</strong>。风险的正确变量始终是<strong>名义</strong>。币安 v3 接口已<strong>不返回</strong> leverage 字段,须用恒等式自己推。见 <a href="../lessons/0021-leverage-margin-liquidation.html">L21</a>。</dd>
+
+    <dt>起始 / 维持保证金率 <span class="en">Initial / Maintenance Margin Rate</span></dt>
+    <dd><code>起始保证金率 = 起始保证金/|名义| = 1/杠杆</code>(开仓要锁多少)。<code>维持保证金率 mmr = 维持保证金/|名义|</code>(不被强平的最低线,实测小仓 0.400%)。mmr 按名义<strong>分档跳升</strong>——仓越大 mmr 越高、爆仓越早,这才是"大仓更危险"的真正机制。见 <a href="../lessons/0021-leverage-margin-liquidation.html">L21</a>。</dd>
+
+    <dt>强平价 / 爆仓价 <span class="en">Liquidation Price</span></dt>
+    <dd>保证金被亏到只剩维持要求的那个价。逐仓空头 <code>P = P₀·(1+1/L)/(1+mmr)</code>,多头 <code>P₀·(1−1/L)/(1−mmr)</code>。推导中<strong>仓位大小 q 被约掉</strong>:爆仓<strong>价</strong>与仓位大小无关,只由杠杆和 mmr 决定——<strong>大小决定伤害,杠杆决定死线</strong>。20x 逐仓 ≈ 4.6% 反向波动即归零。见 <a href="../lessons/0021-leverage-margin-liquidation.html">L21</a>。</dd>
+
+    <dt>交易日历 / 年化常数 <span class="en">Trading Calendar / Annualization</span></dt>
+    <dd>crypto ~365 bar/年(7×24),股票<strong>实测 251.4</strong> bar/年。<code>sharpe = 均值/标准差 × sqrt(bars_per_year)</code>,填 365 跑股票 → 夏普恒定虚高 <code>sqrt(365/252)=1.204</code>(<strong>+20.4%</strong>,与策略与标的均无关);CAGR 同向虚高但机制不同(<code>years=bar数/365</code> 把 10 年当 6.9 年)。<strong>关键:它不抛异常。</strong>不会崩的错误常数比会崩的危险得多。纪律:<strong>实测日历,别写死</strong>。见 <a href="../lessons/0023-stocks-recalibrating-the-clock.html">L23</a>。</dd>
+
+    <dt>隔夜跳空 <span class="en">Overnight Gap</span></dt>
+    <dd>前一日收盘 → 当日开盘的价格变动,市场关闭、<strong>物理上无法交易</strong>。实测十年:SPY 隔夜占收益 62%,KO 占 <strong>92.5%</strong>(其盘中累计为 −3.2%)。含义:<code>signal.shift(1)</code> 在 crypto 上=「收盘算信号、按收盘成交」(成立,永不收市);在股票上信号收盘后才算得出,最早次日开盘成交——<strong>换仓那天的进出场价被推到跳空另一侧</strong>。同一行代码在两个市场表达的不是同一个假设。见 <a href="../lessons/0023-stocks-recalibrating-the-clock.html">L23</a>。</dd>
+
+    <dt>幸存者偏差 <span class="en">Survivorship Bias</span></dt>
+    <dd>你今天能列举出的标的,已经全部通过了"没倒闭"这道筛子。实证:向数据源索要 SIVBQ(硅谷银行)/ LEHMQ(雷曼)/ ENRNQ(安然)全部返回<strong>空</strong>。用幸存者做的回测天然继承一条未来信息,对"专买跌惨了的便宜货"这类策略伤害最大。解法:带退市记录的数据库(CRSP/Norgate),或接受并<strong>写下</strong>该偏差。crypto 更严重(死掉的币远多于退市公司)。见 <a href="../lessons/0023-stocks-recalibrating-the-clock.html">L23</a>。</dd>
+
+    <dt>选择方差 <span class="en">Selection Variance</span></dt>
+    <dd>从 N 个<strong>带噪声</strong>的估计里挑最大的那个,这个动作本身制造方差——你挑中的往往不是"最好的参数",而是"<strong>噪声最眷顾的参数</strong>"。walk-forward 消灭了<strong>前视偏差</strong>(每 fold 只用训练窗口选参),但<strong>没有</strong>消灭选择方差。实测:7 个 fold 里 2 个,样本内冠军是样本外最差的参数族。见 <a href="../lessons/0022-parameter-stability.html">L22</a>。</dd>
+
+    <dt>参数高原 / 尖峰 <span class="en">Parameter Plateau / Peak</span></dt>
+    <dd>训练期高分只有两种来源:踩在<strong>真实结构</strong>上,或者<strong>运气好</strong>。区分方法=<strong>看邻居</strong>。邻居也好 = 高原(结构);邻居全差 = 尖峰(噪声对齐)。因为参数一定会漂,<strong>高原上漂一格还在高原,尖峰上漂一格摔下悬崖</strong>。稳健选法:挑训练期<strong>邻域均值</strong>最大的格子,而非点最大值——同样只用样本内信息,只是换了个抗噪统计量。见 <a href="../lessons/0022-parameter-stability.html">L22</a>。</dd>
+
+    <dt>参数集成 <span class="en">Parameter Ensembling</span></dt>
+    <dd>不挑单一冠军,而是把网格里多组参数<strong>等权平均</strong>(或 top-k 平均)。<strong>关键限定:集成只降低"你拿到哪个参数"的方差,它不改变均值。</strong>均值为正 → 更可靠地赚;<strong>均值为负 → 更可靠地亏</strong>(实测 SOL:k 越大越差,−0.98 → −1.54)。所以"永远做集成"是错口号。实测三资产唯一全部改善的是<strong>高原选法</strong>,不是盲目平均。见 <a href="../lessons/0022-parameter-stability.html">L22</a>。</dd>
+
+    <dt>波动率拖累(再访) <span class="en">Volatility Drag, revisited</span></dt>
+    <dd>几何收益 ≈ 算术收益 − σ²/2。实测 BTC 双边组合:算术 <strong>+13.39%/年</strong>,年化波动 52.1% → 拖累 <strong>13.57%</strong> → 几何 <strong>−0.06%</strong>。<strong>夏普量算术、CAGR 量几何</strong>,所以"夏普 +0.26 而一分不赚"完全可能——这是"读全三列"的硬理由。拖累是 σ 的<strong>二次</strong>函数,所以 L18 的 vol 定量削它是超线性的:压到 20% 波动后 CAGR −0.1% → +7.0%,<em>信号一个字没改</em>。见 <a href="../lessons/0022-parameter-stability.html">L22</a>。</dd>
+
+    <dt>全仓 / 逐仓 <span class="en">Cross / Isolated Margin</span></dt>
+    <dd><strong>逐仓</strong>:为单张仓位划出孤立保证金,亏光即止,损失被关在笼子里。<strong>全仓</strong>:整个钱包给所有仓位垫背,小单几乎打不爆(实测 $57 空单爆仓价 559 万),代价是<strong>真爆时赔的是全部</strong>。结论:<strong>爆仓价不是仓位的属性,是「仓位+抵押品」的属性</strong>。测试网默认全仓——"我的爆仓价好远"是全仓在顶,不是安全。见 <a href="../lessons/0021-leverage-margin-liquidation.html">L21</a>。</dd>
   </dl>
 
   <div class="lesson-foot">

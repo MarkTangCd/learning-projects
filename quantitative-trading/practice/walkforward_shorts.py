@@ -31,11 +31,14 @@ GGRID = [(w, t) for w in (10, 20, 30) for t in (0.25, 0.35, 0.45)]  # FROZEN
 SYMBOLS = ("BTC/USDT", "ETH/USDT", "SOL/USDT")
 
 
-def stitch(price, long_short, funding, folds):
-    """Walk-forward stitch of the regime combo (two-sided if long_short)."""
+def stitch(price, long_short, funding, folds, fee=None):
+    """Walk-forward stitch of the regime combo (two-sided if long_short).
+    fee=None keeps backtest's default (0.001) so every earlier lesson reproduces
+    byte-identically; pass a number to re-price the same frozen machine."""
+    kw = {} if fee is None else {"fee": fee}
     nets = {p: backtest(regime_switch_signal(price, er_window=p[0], er_thresh=p[1],
                                              long_short=long_short),
-                        funding=funding)["strat_ret_net"]
+                        funding=funding, **kw)["strat_ret_net"]
             for p in GGRID}
     segs, picks = [], []
     for tr_lo, tr_hi, te_lo, te_hi in folds:
