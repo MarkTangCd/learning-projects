@@ -1,0 +1,158 @@
+<meta charset="utf-8">
+<title>第 14 课 · 技术分析入门：成交量</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+<div class="wrap">
+
+  <p class="eyebrow">股票投资 · 第 14 课 · 技术分析篇 · 第 4 课</p>
+  <h1>成交量：价格的"油量表"</h1>
+  <p class="subtitle">前三课都在看价格。今天看藏在 K 线底下那排柱子——它决定一个信号该不该信。</p>
+  <p class="progress">● ● ● ○ ○ &nbsp; 技术分析篇 · 第 4 课</p>
+
+  <div class="keyidea">
+    <strong>今天的小胜利：</strong>学会用<strong>量价配合</strong>给信号<strong>验真</strong>——<strong>放量 = 这一步走得有力，缩量 = 走得虚</strong>。并能用一个公式算出"今天到底算不算放量"。
+  </div>
+
+  <div class="callout warn">
+    <span class="label">先接上一课</span>
+    上一课说：金叉死叉<strong>不能单用</strong>，要"叠证据"。成交量就是最常用、最直接的那个证据。本课示范，不构成任何交易建议。
+  </div>
+
+  <h2>成交量是什么</h2>
+  <p><em class="term">成交量</em>（Volume）= 一段时间内<strong>真正成交的数量</strong>。日 K 图上，每根蜡烛正下方那根柱子，就是这一天的成交量。</p>
+  <p>单位上有个小差异：<strong>A 股 / 港股常以"手"计</strong>（1 手 = 100 股），<strong>美股直接以"股"（shares）计</strong>。数字大小不重要，重要的是<strong>它和自己近期的水平比是大还是小</strong>。</p>
+
+  <div class="callout">
+    <span class="label">一个反直觉的点（很多人搞错）</span>
+    每一笔成交都是<strong>一买一卖配对</strong>成交的——所以"放量上涨"<strong>不是</strong>"买的人比卖的人多"。它真正说明的是：<strong>换手很活跃、很多资金愿意在这个价位交手，而结果是价格被推上去了</strong>。成交量衡量的是<strong>参与度 / 力度</strong>，不是方向。
+  </div>
+
+  <div class="keyidea">
+    <strong>核心心法：价格告诉你往哪走，成交量告诉你这一步有多用力。</strong>量本身<strong>没有方向</strong>——必须和价格配着看才有意义。
+  </div>
+
+  <h2>量价四格：把信号分成"真"和"虚"</h2>
+  <p>StockCharts 的说法很直白：<em>"In an uptrend, volume should expand as the prices move higher and contract as the prices pull back."</em>（上升趋势中，价格上涨时量应放大，回调时量应缩小。）把它展开成四种组合：</p>
+
+  <table>
+    <tr><th>价格</th><th>成交量</th><th>读法</th></tr>
+    <tr><td>涨 ↑</td><td><strong>放量</strong></td><td>✅ <strong>健康</strong>——有真金白银在推，趋势被<strong>确认</strong></td></tr>
+    <tr><td>涨 ↑</td><td><strong>缩量</strong></td><td>⚠️ <strong>背离</strong>——买盘在减弱，涨得心虚，警惕</td></tr>
+    <tr><td>跌 ↓</td><td><strong>放量</strong></td><td>⚠️ 抛压沉重（若是极端恐慌，后期反而可能见底）</td></tr>
+    <tr><td>跌 ↓</td><td><strong>缩量</strong></td><td>😐 卖压在衰竭——"跌不动了"，常见于回调尾声</td></tr>
+  </table>
+
+  <h2>一张图：配合 vs 背离</h2>
+  <div style="background:var(--card);border-radius:10px;padding:1rem;margin:1.4rem 0;text-align:center">
+    <svg viewBox="0 0 420 265" width="100%" style="max-width:420px" role="img" aria-label="量价配合与量价背离示意图">
+      <!-- price line -->
+      <polyline points="45,128 75,122 105,118 135,110 165,104 195,96 225,92 255,86 285,80 315,74 345,68 375,62"
+                fill="none" stroke="#1f6f86" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="45" y="50" font-family="var(--font-sans)" font-size="12" fill="#1f6f86" font-weight="600">价格（一路创新高）</text>
+
+      <!-- volume bars: rising then shrinking -->
+      <g fill="#8a7a3a" opacity="0.85">
+        <rect x="35" y="205" width="20" height="20"/>
+        <rect x="65" y="197" width="20" height="28"/>
+        <rect x="95" y="189" width="20" height="36"/>
+        <rect x="125" y="180" width="20" height="45"/>
+        <rect x="155" y="173" width="20" height="52"/>
+        <rect x="185" y="165" width="20" height="60"/>
+      </g>
+      <g fill="#8a7a3a" opacity="0.45">
+        <rect x="215" y="170" width="20" height="55"/>
+        <rect x="245" y="181" width="20" height="44"/>
+        <rect x="275" y="189" width="20" height="36"/>
+        <rect x="305" y="197" width="20" height="28"/>
+        <rect x="335" y="203" width="20" height="22"/>
+        <rect x="365" y="209" width="20" height="16"/>
+      </g>
+      <line x1="30" y1="225" x2="400" y2="225" stroke="#8a8a8a" stroke-width="1"/>
+      <text x="35" y="155" font-family="var(--font-sans)" font-size="12" fill="#8a7a3a" font-weight="600">成交量</text>
+
+      <!-- divider -->
+      <line x1="210" y1="40" x2="210" y2="232" stroke="#8a8a8a" stroke-width="1" stroke-dasharray="3 4"/>
+      <text x="120" y="250" text-anchor="middle" font-family="var(--font-sans)" font-size="12" fill="#16a34a" font-weight="600">涨+放量 ✓ 配合</text>
+      <text x="305" y="250" text-anchor="middle" font-family="var(--font-sans)" font-size="12" fill="#c0392b" font-weight="600">涨+缩量 ⚠ 背离</text>
+    </svg>
+  </div>
+  <p>左半段价格上涨、量柱一根比一根高 → <strong>有资金支持，趋势健康</strong>。右半段价格<strong>还在创新高，量却一路萎缩</strong> → 这叫<strong>背离</strong>：还在涨，但推的人越来越少。ChartSchool 明确点名这是危险信号：<em>"new price highs in an uptrend take place on declining volume"</em>（上升趋势中的新高伴随成交量萎缩），往往是趋势走弱的<strong>早期预警</strong>。</p>
+
+  <h2>动手：怎么算"放量"？</h2>
+  <p>"放量/缩量"不能靠感觉，要和<strong>自己的近期平均</strong>比。这就是 <em class="term">相对成交量</em>（RVOL, Relative Volume）：</p>
+  <div class="keyidea" style="font-family:var(--font-mono);font-size:1rem">
+    RVOL ＝ 今天的成交量 ÷ 最近 N 天的平均成交量
+  </div>
+  <p>N 常取 50（StockCharts 默认值）。读数很直观：</p>
+  <table>
+    <tr><th>RVOL</th><th>含义</th></tr>
+    <tr><td>≈ 1.0</td><td>和平时一样，没什么故事</td></tr>
+    <tr><td>&gt; 1.0</td><td>放量——参与度高于平常</td></tr>
+    <tr><td>&gt; 2.0</td><td><strong>显著放量</strong>：量翻倍以上，通常有事发生</td></tr>
+    <tr><td>&lt; 1.0</td><td>缩量——参与度不足，<em>"lack of commitment"</em></td></tr>
+  </table>
+  <p><strong>算一次：</strong>某股近 50 日平均成交量 4000 万股，今天成交 1 亿股 → 10000 ÷ 4000 = <strong>2.5 倍</strong>，属显著放量。这一天发生的事（比如一个金叉、一次突破），分量就重得多。</p>
+
+  <div class="callout">
+    <span class="label">立刻用起来：给上一课的金叉验真</span>
+    <strong>放量的金叉</strong>：短均线上穿长均线的那几天量能明显放大 → 有资金在配合，可信度较高。<br>
+    <strong>缩量的金叉</strong>：横盘里量能死气沉沉的交叉 → 大概率就是上一课说的<strong>假叉</strong>。<br>
+    这就是"叠证据"的第一层。Murphy 的第 10 条法则说得更狠：<em>"Volume precedes price."</em>（量先于价。）
+  </div>
+
+  <div class="callout warn">
+    <span class="label">别过度使用</span>
+    ① 量只是<strong>参与度</strong>，永远要配价格看，单独一个量柱说明不了任何事。<br>
+    ② "天量天价、地量地价"是经验规律<strong>不是铁律</strong>——缩量上涨有时只是筹码锁定、没人愿卖。<br>
+    ③ 指数基金调仓、财报日、期权到期日会造成<strong>技术性巨量</strong>，与基本面无关。看到异常放量，先问一句"今天发生了什么"。
+  </div>
+
+  <h2>练一练</h2>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">1. 一只股票连创新高，但成交量一路萎缩。最该怎么理解？</div>
+    <button class="opt">买盘在增强，属健康信号，涨势多半还会延续</button>
+    <button class="opt">买盘在减弱，属背离信号，涨势可能难以为继</button>
+    <button class="opt">量价无关联，属正常现象，成交量不必去理会</button>
+    <div class="fb ok" data-for="correct">对。价新高、量却萎缩＝<strong>背离</strong>：还在涨，但愿意推的人越来越少。这是趋势走弱的早期预警，不是加仓的理由。</div>
+    <div class="fb no" data-for="wrong">健康的上涨应该<strong>价涨量增</strong>。价格创新高而成交量持续萎缩，说明<strong>买盘在减弱</strong>，属于典型的量价<strong>背离</strong>，要提高警惕。</div>
+  </div>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">2. 某股近 50 日平均成交量 4000 万股，今天成交 1 亿股。RVOL 约为多少、算什么？</div>
+    <button class="opt">约0.4倍，属明显缩量，说明参与度明显萎缩</button>
+    <button class="opt">约1.0倍，属正常水平，说明参与度几乎没变</button>
+    <button class="opt">约2.5倍，属显著放量，说明参与度明显抬升</button>
+    <div class="fb ok" data-for="correct">对。10000 ÷ 4000 = 2.5。RVOL &gt; 2 通常视为显著放量——今天这根柱子背后是明显高于平常的参与度。</div>
+    <div class="fb no" data-for="wrong">RVOL ＝ 今天量 ÷ 近期平均量 ＝ 10000 万 ÷ 4000 万 ＝ <strong>2.5 倍</strong>。大于 2 属<strong>显著放量</strong>，注意别把除号方向弄反。</div>
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">3. 同样出现一个金叉，用成交量给它验真，下面哪句对？</div>
+    <button class="opt">放量的金叉更可信，缩量金叉常是横盘假信号</button>
+    <button class="opt">缩量的金叉更可信，放量金叉常是主力在出货</button>
+    <button class="opt">有无成交量都一样，金叉只看两条均线就够了</button>
+    <div class="fb ok" data-for="correct">对。交叉伴随量能放大＝有资金真在配合；横盘里量能低迷的交叉，多半就是上一课说的<strong>假叉</strong>。这就是"叠证据"。</div>
+    <div class="fb no" data-for="wrong">量能是给信号<strong>验真</strong>的：<strong>放量</strong>的交叉说明有资金配合、更可信；<strong>缩量</strong>的交叉（尤其横盘中）多为假信号。金叉从来不该单看两条均线。</div>
+  </div>
+
+  <h2>一句话总结</h2>
+  <div class="keyidea">
+    成交量是<strong>参与度</strong>，没有方向，必须配价格看：<strong>涨+放量＝确认，涨+缩量＝背离</strong>。用 <strong>RVOL ＝ 今日量 ÷ 近期均量</strong> 量化"放没放量"（&gt;2 为显著）。它的最大用处：<strong>给金叉、突破这类信号验真</strong>——没有量的信号，先打个问号。
+  </div>
+
+  <div class="source">
+    <span class="label">最佳一手资源（推荐精读）</span>
+    <a href="https://chartschool.stockcharts.com/table-of-contents/overview/technical-analysis-101/ta-101-part-10">StockCharts ChartSchool — TA 101 Part 10：用成交量确认趋势信号</a>（英文，短小精炼）。想量化"放量"看 <a href="https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/relative-volume-rvol">Relative Volume (RVOL)</a>；纪律层面读 <a href="https://chartschool.stockcharts.com/table-of-contents/overview/john-murphys-10-laws-of-technical-trading">John Murphy 技术交易十律</a>（第 10 条讲量）。见 <a href="../RESOURCES.md">RESOURCES</a> 与 <a href="../reference/glossary.html">术语表</a>。
+  </div>
+
+  <div class="ask">
+    💬 <strong>随时问我。</strong> 想动手就发我<strong>一张带成交量柱的自选股日 K 截图</strong>，我们一起判断最近是"配合"还是"背离"、有没有异常放量；或深问："<strong>怎么区分放量见顶和放量突破？</strong>""<strong>A 股的换手率和成交量有什么区别？</strong>" 下一课：<strong>支撑与压力——价格为什么总在某些位置停下</strong>。
+  </div>
+
+  <div class="lesson-nav">
+    <span>← <a href="0013-golden-death-cross.html">第 13 课：金叉与死叉</a></span>
+    <span>下一课预告：支撑与压力 →</span>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>

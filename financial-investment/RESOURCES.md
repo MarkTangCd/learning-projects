@@ -24,6 +24,12 @@
 ### 技术分析（可信、无炒作）
 - [StockCharts ChartSchool](https://chartschool.stockcharts.com/)
   图表形态与指标（RSI、MACD、均线）的清晰参考。查某个具体指标时用。技术分析当"辅助"，不当"系统"。
+- [ChartSchool — TA 101 系列](https://chartschool.stockcharts.com/table-of-contents/overview/technical-analysis-101)
+  短篇入门连载。Part 10 讲用成交量确认趋势信号、Part 12 讲用量确认形态。每篇几分钟，适合碎片时间。
+- [ChartSchool — Relative Volume (RVOL)](https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/relative-volume-rvol)
+  把"放量/缩量"量化的公式与阈值（>2 为显著放量）。第 14 课的算法出处。
+- [John Murphy 技术交易十律](https://chartschool.stockcharts.com/table-of-contents/overview/john-murphys-10-laws-of-technical-trading)
+  一页纸的纪律清单。第 10 条 "Volume precedes price"（量先于价）是量价分析的总纲。
 - Book:《Technical Analysis of the Financial Markets》— John J. Murphy
   技术分析的经典教科书，无营销味。想系统学纪律而非社媒"信号"时读。
 
