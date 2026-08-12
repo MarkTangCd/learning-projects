@@ -18,7 +18,8 @@ from backtest import backtest
 from metrics import sharpe
 from oos import score
 from strategy import fetch_ohlcv, regime_switch_signal
-from sizing import vol_target_position, realized_vol, PERIODS_PER_YEAR
+from sizing import vol_target_position, realized_vol
+from trading_calendar import bars_per_year_of
 
 
 def line(tag, net_ret, extra=""):
@@ -42,7 +43,7 @@ if __name__ == "__main__":
     raw_bt = backtest(raw, funding=0.0001)
     sized_bt = backtest(sized, funding=0.0001)
 
-    ann = PERIODS_PER_YEAR ** 0.5
+    ann = bars_per_year_of(raw_bt) ** 0.5   # L23: measured, not assumed
     raw_vol = raw_bt["strat_ret_net"].std() * ann
     sized_vol = sized_bt["strat_ret_net"].std() * ann
     raw_turn = raw_bt["trade"].sum()

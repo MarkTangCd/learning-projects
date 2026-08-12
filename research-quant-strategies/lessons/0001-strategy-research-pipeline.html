@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L1 · 策略研究流水线：想法从哪里来</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">Research Quant Strategies · Lesson 1</p>
+  <h1>策略研究流水线：想法从哪里来</h1>
+  <p class="subtitle">你已经有一台诚实的评估机器。这门课解决它的饥饿问题。</p>
+
+  <p>上一门课的终点是一次成功的失败：22 课搭出的系统在留出集上正确输出了"不上钱"。
+  但回头看，那台机器一共只吃过<strong>三个想法</strong>——SMA 交叉、均值回归、regime 过滤——全部来自课程投喂。
+  一台只处理过三个案子的法庭，再公正也建立不了判例库。</p>
+
+  <p>这门课建的是上游：一条把外部世界的策略想法源源不断送上法庭的流水线。</p>
+
+  <div class="pipeline">
+    <div class="stage"><span class="n">STAGE 1</span><div class="t">发现 Discover</div><div class="d">从四层信源持续收集策略想法（本课）</div></div>
+    <div class="stage"><span class="n">STAGE 2</span><div class="t">快筛 Triage</div><div class="d">10–15 分钟判断：值不值得花一周复现（下一课）</div></div>
+    <div class="stage"><span class="n">STAGE 3</span><div class="t">复现 Replicate</div><div class="d">用自己的代码、数据、成本假设重跑一遍</div></div>
+    <div class="stage"><span class="n">STAGE 4</span><div class="t">改造 Modify</div><div class="d">换资产/周期/过滤/出场，预注册后实验</div></div>
+    <div class="stage"><span class="n">STAGE 5</span><div class="t">评估 Evaluate</div><div class="d">送进已有评估机器：walk-forward + 留出集判决</div></div>
+  </div>
+
+  <p>Stage 5 你已经建完了（<code>../quantitative-trading/practice/</code>），不重建。
+  本课覆盖 Stage 1：<strong>信源地图</strong>——想法住在哪里，以及每一层能信几分。</p>
+
+  <h2>四层信源，一个权衡</h2>
+
+  <p>所有公开策略信息可以按<span class="term">信任度</span>分四层，
+  但信任度和<span class="term">可执行度</span>成反比：</p>
+
+  <table>
+    <tr><th>层级</th><th>代表</th><th>信任度</th><th>可执行度</th><th>典型陷阱</th></tr>
+    <tr><td>1 学术一手</td><td>SSRN · arXiv q-fin</td><td>最高</td><td>最低（没代码）</td><td>发表后衰减；arXiv 无同行评审</td></tr>
+    <tr><td>2 从业者精选</td><td>Quantpedia · Quantocracy · Alpha Architect · 石川</td><td>高</td><td>中（有规则）</td><td>转述失真，需回原文核对</td></tr>
+    <tr><td>3 开源代码</td><td>freqtrade-strategies · qlib · QuantConnect</td><td>中</td><td>最高（能跑）</td><td>能跑 ≠ 能赚；回测普遍简化</td></tr>
+    <tr><td>4 论坛社媒</td><td>r/algotrading · 聚宽社区 · vn.py 论坛</td><td>最低</td><td>看运气</td><td>幸存者叙事、卖课卖信号</td></tr>
+  </table>
+
+  <p>流水线的意义就是做转换：把 Tier 1–2 的高信任<em>想法</em>写成代码，
+  或把 Tier 3–4 的可执行<em>代码</em>送去审判。完整地图（含全部核实过的链接和访问限制）见
+  <a href="../reference/source-map.html">参考：信源地图</a>。</p>
+
+  <h2>公开的策略还有用吗？——有数字的答案</h2>
+
+  <p>你会本能地问：策略都公开发表了，还能剩下什么？2016 年 McLean 和 Pontiff
+  追踪了 97 个学术论文发表过的选股预测变量，逐一测量发表前后的收益变化
+  （<a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2156623">论文</a>，导读见下方）：</p>
+
+  <ul>
+    <li>样本外（论文数据截止后、发表前）：平均<strong>衰减 26%</strong> —— 这部分是<span class="term">数据挖掘</span>的代价，和有没有人看到论文无关</li>
+    <li>发表后：平均<strong>衰减 58%</strong> —— 多出来的部分是<span class="term">套利者进场</span>交易掉的</li>
+    <li>但注意：<strong>是衰减，不是归零</strong>。平均仍剩四成左右，且流动性差、特质波动高的策略衰减更慢</li>
+  </ul>
+
+  <div class="callout tip">
+    <span class="label">连回你的亲身经历</span>
+    你的 BTC 策略样本内 Sharpe 0.67 → 留出集 0.17，掉了 0.50。用 McLean-Pontiff 的框架说，
+    这属于第一种：<strong>样本外衰减（多重检验的产物）</strong>——没有任何套利者看过你的策略，
+    衰减完全来自你自己在 2021–23 那段数据上的反复尝试。区分"我挖出来的假象"和
+    "别人交易掉的真信号"，是读懂一切公开策略绩效的第一课。
+  </div>
+
+  <p>这组数字给了信源地图一个操作性推论：<strong>公开 ≠ 死亡，但公开的绩效数字必须打折读</strong>。
+  论文里 Sharpe 1.3 的策略，到你手里预期只剩一半——这不是悲观，是校准。
+  校准之后，"复现一个公开策略"依然是散户研究性价比最高的起点：
+  想法免费、规则明确、有原始报告可对照。</p>
+
+  <h2>检验一下</h2>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">Q1 · McLean-Pontiff 测量 97 个学术预测变量，发表后收益平均如何变化？</div>
+    <button class="opt">平均降近六成</button>
+    <button class="opt">平均降约一成</button>
+    <button class="opt">平均基本不变</button>
+    <button class="opt">平均直接归零</button>
+    <div class="fb right">对。−58%，但不归零——剩下的部分（尤其流动性差的品种）就是复现的猎物。</div>
+    <div class="fb nope">是 −58%：降近六成，但不归零。剩下的四成就是复现的猎物。</div>
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">Q2 · 你的 BTC 策略样本内 0.67 → 留出集 0.17。在 McLean-Pontiff 的框架里最接近哪种衰减？</div>
+    <button class="opt">发表后衰减：真信号被套利者交易掉了</button>
+    <button class="opt">样本外衰减：多重检验挖出的假象破灭</button>
+    <button class="opt">成本衰减：手续费滑点吃掉了全部收益</button>
+    <button class="opt">容量衰减：资金规模太大推高冲击成本</button>
+    <div class="fb right">对。没人见过你的策略，不存在套利者；衰减来自你在同一段数据上的反复尝试——这正是论文里 26% 那部分的放大版。</div>
+    <div class="fb nope">不对——你的策略从未公开，不存在套利者进场。衰减来自你在 2021–23 同一段数据上的反复尝试，即多重检验（数据挖掘）。</div>
+  </div>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">Q3 · 你在 r/algotrading 刷到一个高票帖：晒了亮眼的 crypto 策略回测图。最正确的下一步是？</div>
+    <button class="opt">马上照着实现并小仓位实盘验证</button>
+    <button class="opt">收藏起来等积累多了再统一处理</button>
+    <button class="opt">送进快筛：按清单判断值不值得复现</button>
+    <button class="opt">转发到社群里征求老手们的意见</button>
+    <div class="fb right">对。Tier 4 信源不是不能用，而是必须先过 triage——下一课就教这份清单。</div>
+    <div class="fb nope">高票 ≠ 可信（Tier 4 是最低信任层）。正确动作是送进流水线 Stage 2：用 triage 清单快筛，值得才复现。下一课教这份清单。</div>
+  </div>
+
+  <h2>动手：给流水线通上第一股电</h2>
+
+  <p>两个真实动作，10 分钟内完成：</p>
+
+  <ol>
+    <li><strong>订阅发现层。</strong>浏览器打开 <a href="https://quantocracy.com/">Quantocracy</a>，
+    看今天聚合了什么；把它加入书签/RSS。这就是你的每日信息流第一站。</li>
+    <li><strong>侦察下一课的靶子。</strong>打开
+    <a href="https://quantpedia.com/strategies/time-series-momentum-effect">Quantpedia 的 TSMOM 策略页</a>，
+    只回答三个问题并记下来：① 交易规则是什么（用一句话复述）；② 回测样本是哪段时间、哪些资产；
+    ③ 报告的绩效数字是多少（记得按本课的折扣率打折）。
+    下一课我们就用这份笔记跑一遍 triage 清单——TSMOM 也是你旧课趋势系统的学术远亲，复现它时你有主场优势。</li>
+  </ol>
+
+  <div class="source-box">
+    <span class="label">本课一手资料 · 中文导读</span>
+    <p style="margin:0.3rem 0 0.5rem"><strong>McLean &amp; Pontiff — <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2156623">Does Academic Research Destroy Stock Return Predictability?</a></strong>（Journal of Finance 2016）</p>
+    <p style="margin:0 0 0.4rem"><strong>结论</strong>：97 个已发表预测变量，样本外收益 −26%，发表后 −58%；流动性差、特质波动高的衰减更慢；发表后各策略间相关性上升（说明是套利者在集体行动）。</p>
+    <p style="margin:0 0 0.4rem"><strong>方法</strong>：对每个变量构造多空组合，切三段对比：样本内 / 样本外未发表 / 发表后。三段对比使"数据挖掘"和"套利"两种衰减第一次被分开计量。</p>
+    <p style="margin:0"><strong>读原文时的陷阱</strong>：结论来自美股横截面（做空常不可行的散户要再打折）；"平均值"背后个体差异极大，别把 −58% 当成任何单个策略的预言。
+    建议只读 Introduction + Table 1 + Figure 1（约 20 分钟），带着上面三条结论去核对。</p>
+  </div>
+
+  <div class="lesson-foot">
+    <div class="ask">
+      <strong>有不清楚的？</strong>直接在终端问你的教师（我）。比如："样本外衰减和发表后衰减为什么能分开测量？"
+      或者"Quantpedia 免费页信息不够怎么办？"——任何卡点都值得问。
+    </div>
+    <div class="nav">
+      <span><a href="../reference/source-map.html">参考：信源地图</a> · <a href="../../quantitative-trading/reference/glossary.html">旧课术语表</a></span>
+      <span>下一课：Triage 快筛清单 →</span>
+    </div>
+  </div>
+</div>
+<script src="../assets/quiz.js"></script>
+</body>
+</html>

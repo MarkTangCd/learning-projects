@@ -1,0 +1,206 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>backtrader API 地图 · 参考卡</title>
+<link rel="stylesheet" href="../assets/styles.css">
+
+<div class="wrap">
+
+<p class="kicker">参考卡 · Reference</p>
+<h1>backtrader API 地图</h1>
+<p class="subtitle">八个组件、它们的接缝、以及框架替你做的每一个默认决定。
+这张卡随课程增补——灰色的部分是还没上的课。</p>
+
+<div class="callout warn">
+  <span class="label">版本事实</span>
+  本卡对应 <code>backtrader 1.9.78.123</code>(官方最后一版,发布于 <strong>2023-04-19</strong>)。
+  官方已停更,社区分支见 <a href="https://github.com/backtrader2/backtrader">backtrader2</a>。
+  实测环境:Python 3.14.2 / pandas 3.0.5 / numpy 2.5.2 / matplotlib 3.11.1 —— 全部跑通,无需打补丁。
+</div>
+
+<h2>一、组装顺序</h2>
+
+<p>八个组件挂在一个 <code>Cerebro</code> 上。除了 <code>run()</code> 必须最后调,
+其余的 <code>add*</code> 顺序无关紧要。</p>
+
+<pre><code>import backtrader as bt
+
+cerebro = bt.Cerebro()                                  # ① 引擎
+cerebro.adddata(bt.feeds.PandasData(dataname=df))       # ② 数据源
+cerebro.addstrategy(MyStrategy, fast=10, slow=30)       # ③ 策略(+ 参数覆盖)
+                                                        # ④ 指标 → 在策略的 __init__ 里
+cerebro.addsizer(bt.sizers.PercentSizer, percents=95)   # ⑤ 下单量
+cerebro.broker.setcash(10_000.0)                        # ⑥ 经纪商:资金
+cerebro.broker.setcommission(commission=0.0004)         #    经纪商:费率
+cerebro.addanalyzer(bt.analyzers.DrawDown, _name='dd')  # ⑦ 成绩单
+cerebro.addobserver(bt.observers.Broker)                # ⑧ 绘图轨迹(默认已加)
+
+strat = cerebro.run()[0]                                # 事件循环转起来
+print(strat.analyzers.dd.get_analysis())
+cerebro.plot()</code></pre>
+
+<div class="partgrid">
+  <div class="part"><div class="n">① Cerebro</div><div class="d">大脑/引擎。持有一切,跑事件循环,返回策略实例。</div></div>
+  <div class="part"><div class="n">② Data Feed</div><div class="d">把 OHLCV 变成可按 bar 索引的 line 对象。可加多个。</div></div>
+  <div class="part"><div class="n">③ Strategy</div><div class="d">你的逻辑。<code>__init__</code> 声明,<code>next()</code> 决策。</div></div>
+  <div class="part"><div class="n">④ Indicator</div><div class="d">惰性 line 运算。在 <code>__init__</code> 里声明,逐 bar 求值。</div></div>
+  <div class="part"><div class="n">⑤ Sizer</div><div class="d">回答"这单下多少量"。策略只说买/卖,不说数量。</div></div>
+  <div class="part"><div class="n">⑥ Broker</div><div class="d">现金、持仓、手续费、滑点、保证金。撮合发生在这里。</div></div>
+  <div class="part"><div class="n">⑦ Analyzer</div><div class="d">成绩单。Sharpe/DrawDown/TradeAnalyzer/TimeReturn…</div></div>
+  <div class="part"><div class="n">⑧ Observer</div><div class="d">逐 bar 记录用于绘图的轨迹。默认已挂三个。</div></div>
+</div>
+
+<h2>二、Strategy:两个钩子,别搞混</h2>
+
+<table>
+  <tr><th>钩子</th><th>调用时机</th><th>该放什么</th><th>不该放什么</th></tr>
+  <tr><td><code>__init__</code></td><td>回测开始前<strong>一次</strong></td>
+      <td>声明指标、算派生 line、存参数</td><td>下单、读 <code>[0]</code> 的值做判断</td></tr>
+  <tr><td><code>next()</code></td><td><strong>每根 bar</strong>(指标就绪后)</td>
+      <td>读值、做判断、下单</td><td>创建指标(每 bar 新建一次 = 慢且错)</td></tr>
+</table>
+
+<p>其他常用钩子:</p>
+
+<table>
+  <tr><th>钩子</th><th>何时被调</th></tr>
+  <tr><td><code>notify_order(order)</code></td><td>订单状态变化:Submitted / Accepted / Completed / Canceled / Margin / Rejected</td></tr>
+  <tr><td><code>notify_trade(trade)</code></td><td>一笔交易开仓/平仓时。<code>trade.isclosed</code> 时 <code>pnl</code>/<code>pnlcomm</code> 才有意义</td></tr>
+  <tr><td><code>start()</code> / <code>stop()</code></td><td>回测开始 / 结束。<code>stop()</code> 里打印最终统计很顺手</td></tr>
+  <tr><td><code>prenext()</code></td><td>指标还没攒够数据的那些 bar(<code>next()</code> 此时不会被调)</td></tr>
+</table>
+
+<h2>三、索引约定 —— 最容易翻车的一条</h2>
+
+<div class="callout">
+  <span class="label">跟 pandas 反着</span>
+  backtrader 的 line 里,<code>[0]</code> 是<strong>当前 bar</strong>,<code>[-1]</code> 是<strong>上一根</strong>,
+  <code>[-2]</code> 是上上根。<strong>没有正数索引</strong>——正数就是未来,框架从结构上不给你。
+  pandas 里 <code>s[0]</code> 是第一行、<code>s[-1]</code> 是最后一行,含义完全不同。
+</div>
+
+<pre><code>self.data.close[0]      # 当前 bar 的收盘价
+self.data.close[-1]     # 上一根的收盘价
+self.data.open[0]       # 当前 bar 的开盘价
+self.datas[0]           # 第一个数据源(= self.data,也 = self.data0)
+self.datas[1].close[0]  # 第二个数据源的当前收盘价
+len(self)               # 已经走过的 bar 数(从 1 开始)
+self.data.datetime.date(0)   # 当前 bar 的日期</code></pre>
+
+<h2>四、订单</h2>
+
+<pre><code>self.buy()                      # 市价买,数量由 Sizer 决定
+self.buy(size=10)               # 覆盖 Sizer
+self.sell()                     # 市价卖(空仓时下 = 开空)
+self.close()                    # 平掉当前持仓,不管方向
+self.order_target_percent(target=0.5)   # 调仓到净值的 50% —— 向目标再平衡
+
+if self.position:               # 有持仓吗(Position 对象,布尔看 size != 0)
+    self.position.size          # 正=多,负=空
+</code></pre>
+
+<div class="callout tip">
+  <span class="label">成交时点 · 已实测</span>
+  <code>next()</code> 里下的单,<strong>在下一根 bar 的 <code>open</code> 价成交</strong>
+  (默认 <code>cheat_on_open=False</code>)。你决策时看到的收盘价,永远买不到。
+  <strong>前视偏差被结构性消灭了</strong>——不需要手动 <code>shift(1)</code>。
+  <br>验证:<code>python practice/l01_first_run.py fill</code>
+</div>
+
+<h2>五、框架替你做的默认决定(必查清单)</h2>
+
+<p>每一行都是"框架有个默认值,而它未必是你要的"。<strong>不报错,不警告。</strong></p>
+
+<table>
+  <tr><th>位置</th><th>默认值</th><th>后果</th><th>课</th></tr>
+  <tr>
+    <td><code>SharpeRatio(timeframe=)</code></td>
+    <td><code>TimeFrame.Years</code> (=8)</td>
+    <td>按<strong>年度</strong>收益算夏普。日线数据折不出几个年度观测 → 统计量无意义;
+        数据不足两年时<strong>静默返回 <code>None</code></strong></td>
+    <td>L1</td>
+  </tr>
+  <tr>
+    <td><code>SharpeRatio(factor=)</code></td>
+    <td><code>None</code> → 查表得 <strong>252</strong><br><code>analyzers/sharpe.py:128</code></td>
+    <td>crypto 7×24 数据上年化因子错 → 夏普系统性虚低
+        <code>sqrt(365/252)=1.2035</code>。实测 0.3788 vs 0.4559</td>
+    <td>L1</td>
+  </tr>
+  <tr>
+    <td><code>SharpeRatio(riskfreerate=)</code></td>
+    <td><code>0.01</code></td>
+    <td>默认扣 1% 无风险利率。跟你手搓栈(通常设 0)不一致 → 对拍时数字对不上</td>
+    <td>L1</td>
+  </tr>
+  <tr>
+    <td><code>SharpeRatio(stddev_sample=)</code></td>
+    <td><code>False</code></td>
+    <td>用总体标准差(<code>ddof=0</code>)。pandas <code>.std()</code> 默认 <code>ddof=1</code></td>
+    <td>L1</td>
+  </tr>
+  <tr>
+    <td><code>broker</code> 滑点</td>
+    <td><strong>无</strong></td>
+    <td>默认零滑点。要用 <code>broker.set_slippage_perc()</code> 显式加</td>
+    <td>L4</td>
+  </tr>
+  <tr>
+    <td><code>Cerebro(cheat_on_open=)</code></td>
+    <td><code>False</code></td>
+    <td>次日 open 成交(好事)。改 True 可以拿当日 open 下单——那是给日内调仓用的,别乱开</td>
+    <td>L4</td>
+  </tr>
+  <tr class="later"><td colspan="4">更多默认值随课程补入(滑点模型、成交量限制、保证金、持仓合并规则……)</td></tr>
+</table>
+
+<h2>六、Analyzer 全清单(v1.9.78.123 实测)</h2>
+
+<p><code>bt.analyzers.</code> 下可用的全部:</p>
+
+<table>
+  <tr><th>名字</th><th>给什么</th></tr>
+  <tr><td><code>SharpeRatio</code> / <code>SharpeRatio_A</code></td><td>夏普。<code>_A</code> 版默认年化。<strong>参数是雷区,见上表</strong></td></tr>
+  <tr><td><code>DrawDown</code> / <code>TimeDrawDown</code></td><td>最大回撤(%/金额/持续期)</td></tr>
+  <tr><td><code>TradeAnalyzer</code></td><td>交易统计:笔数、胜负、连胜连败、平均盈亏</td></tr>
+  <tr><td><code>TimeReturn</code></td><td><strong>逐期收益序列</strong> —— 导出到 pandas 自己算指标的入口,对拍必用</td></tr>
+  <tr><td><code>Returns</code> / <code>AnnualReturn</code></td><td>总/年化收益(对数与普通)</td></tr>
+  <tr><td><code>SQN</code></td><td>System Quality Number(Van Tharp)</td></tr>
+  <tr><td><code>VWR</code> / <code>Calmar</code></td><td>波动率加权收益 / Calmar 比率</td></tr>
+  <tr><td><code>PeriodStats</code></td><td>按周期的均值/方差/正负期数</td></tr>
+  <tr><td><code>Transactions</code> / <code>PositionsValue</code></td><td>逐笔成交明细 / 逐 bar 持仓市值</td></tr>
+  <tr><td><code>GrossLeverage</code></td><td>逐 bar 毛杠杆</td></tr>
+  <tr><td><code>LogReturnsRolling</code></td><td>滚动对数收益</td></tr>
+  <tr><td><code>PyFolio</code></td><td>导出成 pyfolio 能吃的格式</td></tr>
+</table>
+
+<pre><code># 挂上去,跑完取出来
+cerebro.addanalyzer(bt.analyzers.TimeReturn, _name='ret', timeframe=bt.TimeFrame.Days)
+strat = cerebro.run()[0]
+r = pd.Series(strat.analyzers.ret.get_analysis())   # -> 日收益序列,交给你自己的 metrics.py</code></pre>
+
+<h2>七、查源码的姿势</h2>
+
+<p>文档说不清的时候直接读源码。这是本课程的核心手法,也是评估一个停更框架的唯一可靠方式。</p>
+
+<pre><code># 找到本地安装位置
+python -c "import backtrader, os; print(os.path.dirname(backtrader.__file__))"
+
+# 看某个类的全部默认参数(不用翻源码)
+python -c "
+from backtrader.analyzers import SharpeRatio
+for k, v in SharpeRatio.params._getitems(): print(f'{k} = {v}')"</code></pre>
+
+<div class="callout tip">
+  <span class="label">通用招式</span>
+  <code>SomeClass.params._getitems()</code> 对 backtrader 里<strong>任何</strong>带参数的组件都管用
+  ——Strategy、Indicator、Analyzer、Sizer、Broker。这是把"框架替你做的决定"一次性倒出来的最快办法。
+</div>
+
+<div class="lesson-foot">
+  <div class="nav">
+    <a href="../lessons/0001-cerebro-assembly-line.html">← L1 Cerebro 装配线</a>
+    <a href="../MISSION.md">使命</a>
+  </div>
+</div>
+
+</div>

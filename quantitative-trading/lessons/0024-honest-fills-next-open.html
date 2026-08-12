@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L24 · 换掉你执行不了的成交假设</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .flow { font-family: var(--mono, monospace); font-size: 0.82rem; line-height: 1.7;
+            background: #fff; border: 1px solid var(--rule); border-radius: 6px;
+            padding: 0.9rem 1.1rem; margin: 1.2rem 0 1.6rem; overflow-x: auto; }
+    .flow .hl { color: var(--accent); font-weight: 700; }
+    .flow .good { color: var(--good); font-weight: 700; }
+    .flow .dim { color: var(--ink-soft); }
+    table.g { width: 100%; border-collapse: collapse; font-size: 0.83rem;
+              margin: 1.1rem 0 0.5rem; font-variant-numeric: tabular-nums; }
+    table.g th, table.g td { padding: 0.36rem 0.5rem; border-bottom: 1px solid var(--rule);
+                             text-align: right; }
+    table.g th:first-child, table.g td:first-child { text-align: left; }
+    table.g th { font-size: 0.7rem; letter-spacing: 0.03em; color: var(--ink-soft);
+                 text-transform: uppercase; border-bottom: 2px solid var(--rule); }
+    table.g td.bad { color: var(--accent); font-weight: 700; }
+    table.g td.ok { color: var(--good); font-weight: 700; }
+    .caption { font-size: 0.78rem; color: var(--ink-soft); line-height: 1.5; margin: 0 0 1.4rem; }
+    .formula { text-align: center; font-size: 1.02rem; margin: 1.3rem 0 0.4rem;
+               padding: 0.8rem; border-top: 1px solid var(--rule);
+               border-bottom: 1px solid var(--rule); }
+    @media (prefers-color-scheme: dark) { .flow { background: #1b1a15; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 24 课 · 工位 4 · 修执行假设</p>
+  <h1>换掉你执行不了的成交假设</h1>
+  <p class="subtitle">上一课末尾我预测:改成诚实的成交假设"大概率会吃掉相当一部分收益"。跑完的结果是 <strong>−0.08 到 +0.05 夏普</strong>——几乎什么都没发生。<strong>我那个预测是错的</strong>,而它错在哪里,比它本身值钱得多:它把两个完全不同的量当成了同一个。</p>
+
+  <h2>改动本身:两行,外加一个藏在里面的新前视 bug</h2>
+
+  <p>你从 <a href="0003-first-signal.html">L3</a> 起写的 <code>position = signal.shift(1)</code>,配上收盘价收益,表达的是:<strong>在收盘算出信号,并按那个收盘价成交</strong>。crypto 永不收市,这是诚实的。股票在信号存在的那一刻交易所已经关门了,最早只能等<span class="term">次日开盘</span>。</p>
+
+  <div class="flow">
+  <span class="dim"># 原来(crypto 假设)</span>
+  ret      = close.pct_change()          <span class="dim"># close[t-1] -> close[t]</span>
+  position = signal.<span class="hl">shift(1)</span>
+  ────────────────────────────────────────────────
+  <span class="dim"># 诚实的股票假设</span>
+  ret      = <span class="good">open</span>.pct_change()           <span class="dim"># open[t-1] -> open[t]</span>
+  position = signal.<span class="hl">shift(2)</span>              <span class="dim"># 不是 1</span></div>
+
+  <p><strong>为什么是 2?</strong> <code>open.pct_change()</code> 在第 <em>t</em> 行是 <code>open[t-1] → open[t]</code> 这一段的收益。要吃到这一段,你必须<strong>在 open[t−1] 之前就已经在仓位里</strong>,那么决策只能用截至 <code>close[t−2]</code> 的信息。</p>
+
+  <div class="callout warn">
+    <span class="label">这里是本课唯一真正的陷阱</span>
+    如果你把成交价换成开盘价、却<strong>留着 <code>shift(1)</code></strong>,你就是在用 <code>close[t−1]</code> 的信息去成交 <code>open[t−1]</code>——那个开盘发生在<strong>那根收盘之前</strong>。这是一个<strong>崭新的前视偏差</strong>,而且是被"让回测更诚实"这个动作亲手引进来的。改假设的时候,<strong>延迟必须跟着一起重算</strong>,不能继承。
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">为什么次日开盘成交要用 <code>shift(2)</code>,而不是 <code>shift(1)</code>?</div>
+    <button class="opt">开盘到开盘的收益覆盖前一天,信号必须提前一天算出</button>
+    <button class="opt">开盘价比收盘价晚一天出现,因此信号也要顺延一整天</button>
+    <div class="fb right" data-for="right">对。<code>open.pct_change()</code> 第 t 行是 <code>open[t−1]→open[t]</code>,要吃到它你得在 <code>open[t−1]</code> 之前就在仓位里,所以决策只能用到 <code>close[t−2]</code>。收盘版之所以是 <code>shift(1)</code>,是同一条逻辑的另一个实例——<strong>延迟由"收益区间的起点"决定,不是一个可以照抄的常数</strong>。</div>
+    <div class="fb nope" data-for="nope">反了。开盘价比同一天的收盘价<strong>早</strong>出现,不是晚。正因为它早,拿 <code>close[t−1]</code> 去成交 <code>open[t−1]</code> 才是前视——你用了尚未发生的信息。真正的理由是收益区间的<strong>起点</strong>提前了一整根 bar,所以决策也得提前一根。</div>
+  </div>
+
+  <h2>结果:几乎没损失</h2>
+
+  <table class="g">
+    <thead><tr><th>标的</th><th>夏普(收盘成交)</th><th>夏普(次日开盘)</th><th>差</th><th>CAGR 收盘</th><th>CAGR 开盘</th><th>笔数</th></tr></thead>
+    <tbody>
+      <tr><td>SPY</td><td>0.78</td><td>0.79</td><td class="ok">+0.01</td><td>8.7%</td><td>9.0%</td><td>47</td></tr>
+      <tr><td>AAPL</td><td>0.81</td><td>0.72</td><td class="bad">−0.08</td><td>15.4%</td><td>14.1%</td><td>55</td></tr>
+      <tr><td>KO</td><td>0.31</td><td>0.35</td><td class="ok">+0.05</td><td>3.4%</td><td>4.0%</td><td>55</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">SMA(20,60),2015 起,fee 5bp/边。两边用同一个 fee,所以差额是<strong>纯粹的成交假设</strong>,不含成本变化。</p>
+
+  <p>L23 明明量到 SPY <strong>62%</strong>、KO <strong>92%</strong> 的收益产生在隔夜段。跳过隔夜,怎么可能不痛?</p>
+
+  <p>因为那个数字衡量的是<strong>持有</strong>。你连续持仓的每一个晚上,跳空照样落进你口袋——两种假设都一样。跳空只在<strong>换仓那一天</strong>才把你的进出场价推到另一侧。而这个策略十一年只换 47 次,占全部交易日的 <strong>1.6%</strong>。</p>
+
+  <div class="callout tip">
+    <span class="label">被我自己搞混的两个量</span>
+    <strong>隔夜收益占比</strong>(总收益里有多少发生在夜里)和 <strong>每笔换仓的跳空成本</strong>,是两个独立的量。前者可以是 92%,后者可以是 0。前者关于<em>持有</em>,后者关于<em>切换</em>。我上节课末尾用前者去预测后者,所以预测错了。<br>
+    <strong>一个诚实的回测不是靠直觉推出来的,是靠跑出来的。</strong>这正是本课的技能。
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">L23 量到 SPY 62% 的收益在隔夜段,为什么换成次日开盘成交却几乎没损失?</div>
+    <button class="opt">跳空只在换仓那天影响你,而这个策略十一年只换四十七次</button>
+    <button class="opt">开盘价和收盘价高度相关,两种成交假设本来就差不了多少</button>
+    <div class="fb right" data-for="right">对。持仓期间的每一个跳空,两种假设都照吃不误;只有<strong>换仓那一天</strong>,你的成交价被整段跳空推到另一侧。47 笔 ÷ 2918 根 bar = 1.6% 的日子。<strong>受影响的日子有多少,由换手决定</strong>——这就是下一节那条公式。</div>
+    <div class="fb nope" data-for="nope">相关性不是理由:两个价格高度相关,不代表它们之间那道跳空小——L23 量到隔夜段承载了 SPY 六成的<strong>全部</strong>收益,跳空一点都不小。真正的原因是这道跳空<strong>只在换仓那天</strong>作用于你,而这个策略十一年只换 47 次。</div>
+  </div>
+
+  <h2>那到底什么决定损失?一条公式,20 个格子全中</h2>
+
+  <div class="formula">年化损失 ≈ <strong>换手/年</strong> × <strong>每笔跳空成本</strong></div>
+  <p class="caption" style="text-align:center">每笔跳空成本 = 换仓方向 × (open[t+1]/close[t] − 1)。买进撞上跳空为正(吃亏)。</p>
+
+  <table class="g">
+    <thead><tr><th>标的 / 策略</th><th>换手/年</th><th>每笔成本</th><th>公式预测</th><th>实测</th><th>误差</th></tr></thead>
+    <tbody>
+      <tr><td>SPY · SMA(20,60)</td><td>4.1</td><td>−0.060%</td><td>+0.24%</td><td>+0.29%</td><td>0.04%</td></tr>
+      <tr><td>SPY · SMA(5,20)</td><td>14.1</td><td>+0.110%</td><td>−1.55%</td><td>−1.65%</td><td>−0.10%</td></tr>
+      <tr><td>AAPL · SMA(3,10)</td><td>26.6</td><td>−0.138%</td><td>+3.68%</td><td>+4.27%</td><td>0.58%</td></tr>
+      <tr><td>MSFT · SMA(20,60)</td><td>4.2</td><td>−0.414%</td><td>+1.75%</td><td>+2.00%</td><td>0.25%</td></tr>
+      <tr><td>XOM · SMA(3,10)</td><td>30.3</td><td>+0.068%</td><td>−2.05%</td><td>−2.18%</td><td>−0.12%</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">5 个标的 × 4 个策略 = 20 个格子,误差几乎都在 0.2% 以内(上表节选 5 行,全表跑 <code>python stocks.py fill</code>)。<strong>换手是唯一的放大器</strong>——同一个跳空,换手翻 7 倍,影响就翻 7 倍。</p>
+
+  <h2>但真正的发现在符号那一列</h2>
+
+  <table class="g">
+    <thead><tr><th>年化影响</th><th>SMA(20,60)</th><th>SMA(5,20)</th><th>SMA(3,10)</th><th>zscore(20,1.0)</th></tr></thead>
+    <tbody>
+      <tr><td>SPY</td><td class="ok">+0.29%</td><td class="bad">−1.65%</td><td class="bad">−1.56%</td><td class="ok">+0.43%</td></tr>
+      <tr><td>AAPL</td><td class="bad">−1.32%</td><td class="bad">−1.16%</td><td class="ok">+4.27%</td><td class="ok">+1.13%</td></tr>
+      <tr><td>KO</td><td class="ok">+0.68%</td><td class="bad">−0.33%</td><td class="bad">−0.15%</td><td class="ok">+1.04%</td></tr>
+      <tr><td>MSFT</td><td class="ok">+2.00%</td><td class="ok">+0.79%</td><td class="bad">−1.63%</td><td class="bad">−1.58%</td></tr>
+      <tr><td>XOM</td><td class="bad">−1.02%</td><td class="ok">+1.49%</td><td class="bad">−2.18%</td><td class="ok">+1.04%</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">变差 <strong>10</strong> 格,变好 <strong>10</strong> 格。面板均值 <strong>+0.03%/年</strong>(≈0),单格从 −2.2% 到 +4.3%。</p>
+
+  <p>掷硬币。跳空对你的信号来说是<strong>无偏噪声</strong>,不是像手续费那样的系统性抽水。它<strong>不改变期望,只放大方差</strong>。</p>
+
+  <p>所以换掉这个假设的收获,不是"省下一笔可预测的成本"。是这句:</p>
+
+  <div class="callout warn">
+    <span class="label">本课的一句话</span>
+    你原来那个夏普里,有一部分是<strong>跳空运气</strong>——而你分不清是哪一部分。<br>
+    AAPL 的 SMA(3,10) 靠跳空白捡了 <strong>+4.27%/年</strong>;XOM 的同一个策略被吃掉 <strong>−2.18%/年</strong>。这两个数字都<strong>不是策略的性质</strong>,是掷硬币的结果。用错的成交假设,你会把它们当成策略的性质去比较、去选参。
+  </div>
+
+  <h2>那还要不要改?要——但理由和你以为的不一样</h2>
+
+  <ol>
+    <li><strong>正确是免费的。</strong> 期望上不吃亏(面板均值 ≈ 0),但从此你不再需要为"这个数里掺了多少跳空"打问号。</li>
+    <li><strong>换手一升,噪声立刻放大。</strong> 公式说得很清楚:换手是放大器。你现在的策略只换 4 次/年,所以侥幸没事;<a href="0012-mean-reversion.html">均值回归</a>换 15 次,更快的 SMA 换 30 次。<strong>下一次你调快参数,这个 bug 就上岗了</strong>——而它不会通知你。</li>
+    <li><strong>主流框架的默认就是次日开盘。</strong> backtrader 的文档写着:不作弊时,"订单在前一天收盘时发出,并与下一个到来的价格——也就是 <code>open</code> ——撮合"。你继承自 crypto 的收盘成交,在股票语境里是那个<strong>要专门开开关</strong>的非默认行为,而那个开关名叫 <code>cheat_on_open</code>(作弊)。</li>
+  </ol>
+
+  <div class="callout tip">
+    <span class="label">动手挑战:先预测,再跑</span>
+    <strong>①</strong> <code>python stocks.py fill</code> —— 看第 ② 张全表。<strong>KO 的 SMA(3,10) 每笔成本只有 +0.005%,几乎是 0。为什么?</strong>(提示:KO 是什么样的公司,它的隔夜跳空长什么样?)<br>
+    <strong>②</strong> 面板均值 ≈ 0,说明期望上无偏。<strong>那么什么样的策略会让这个成本变成【系统性为正】、真的抽你的水?</strong> 想一个具体的信号,说清机制。<br>
+    <strong>③</strong> 我们把 <code>backtest</code> 和 <code>backtest_next_open</code> 做成了两个函数。<strong>如果只保留一个、让它同时服务 crypto 和股票,接口该长什么样?</strong> 想清楚再说——上一轮你已经见过"一个静默的常数"能造成什么。<br>
+    <strong>④</strong> 现在回头看 <a href="../learning-records/0026-holdout-verdict-do-not-fund.md">留出集那次判决</a>(BTC 0.67 → 0.17)。<strong>那次的衰减里,有没有可能也掺着同一类"我分不清哪部分是运气"的东西?</strong>
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.quantconnect.com/docs/v2/writing-algorithms/reality-modeling/key-concepts">QuantConnect · Reality Modeling</a></strong> —— 把"回测与实盘的差距"拆成可替换的模型组件:成交模型(fill)、滑点模型(slippage)、手续费、容量。原话是"让回测尽可能贴近该策略在实盘中的表现"。你这节课手工换掉的正是其中的 <em>fill model</em>;这篇给你看完整的清单——还有多少个你没换。</p>
+    <p style="margin:0"><strong><a href="https://www.backtrader.com/docu/cerebro/cheat-on-open/cheat-on-open/">backtrader · Cheat-On-Open</a></strong> —— 一个成熟框架如何表述这件事,以及它把哪一边叫作"作弊"。读它是为了确认:你刚做的不是特殊处理,是<strong>回到默认</strong>。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想弄清怎么把"开盘 5 分钟 VWAP 成交"这类更细的成交模型接进来、股票做空的融券成本和可借性、开盘集合竞价的滑点为什么和盘中不同、或者挑战 ③ 那个接口该怎么设计——直接说。<br><br>
+      <strong>下一站(按上一课定的顺序):L25 预注册的独立检验。</strong> 时钟校准了(<a href="0023-stocks-recalibrating-the-clock.html">L23</a>),成交假设修好了(本课),机器现在可以焊死了。然后<strong>先写判据、再开数据、只跑一次</strong>——股票这段数据是你手上最干净的一次独立样本,只能花一次。
+    </div>
+    <div class="nav">
+      <a href="0023-stocks-recalibrating-the-clock.html">← L23:先把时钟调对</a>
+      <a href="../reference/backtest-recipe.html">回测配方 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

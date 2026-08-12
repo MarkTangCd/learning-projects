@@ -1,0 +1,292 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L1 · Cerebro 装配线</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script src="../assets/quiz.js" defer></script>
+
+<div class="wrap">
+
+<p class="kicker">Lesson 01 · backtrader 框架评估</p>
+<h1>Cerebro 装配线</h1>
+<p class="subtitle">八个零件、三条怪癖、一次跑通。
+然后当场抓住这个框架替你做的第一个错误决定。</p>
+
+<div class="callout">
+  <span class="label">这节课的单一胜利</span>
+  用 <strong>25 行代码</strong>跑完一个完整回测——数据、信号、下单、手续费、成绩单——
+  <strong>一个指标、一个绩效公式都不用自己写</strong>。
+  然后回答一个你必须回答的问题:这些白送的东西,可信吗?
+</div>
+
+<p>你已经手搓过这一切了(隔壁 L1–L23)。所以这节课的口吻不是"教你回测",
+而是<strong>验收一个供应商</strong>:它交付的零件,和你自己车的那些,对得上吗?</p>
+
+<h2>一、装配线:八个零件</h2>
+
+<p>backtrader 的全部 API 挂在一个叫 <code>Cerebro</code>(西班牙语"大脑")的对象上。
+八个零件,你只需要记住它们的<strong>接缝在哪</strong>:</p>
+
+<div class="partgrid">
+  <div class="part"><div class="n">① Cerebro</div><div class="d">引擎。持有一切,跑事件循环。</div></div>
+  <div class="part"><div class="n">② Data Feed</div><div class="d">OHLCV → 可按 bar 索引的 line。</div></div>
+  <div class="part"><div class="n">③ Strategy</div><div class="d">你的逻辑。声明 + 决策两个钩子。</div></div>
+  <div class="part"><div class="n">④ Indicator</div><div class="d">惰性 line 运算,在策略里声明。</div></div>
+  <div class="part"><div class="n">⑤ Sizer</div><div class="d">下多少量。策略只说买卖,不说量。</div></div>
+  <div class="part"><div class="n">⑥ Broker</div><div class="d">现金、费率、撮合。钱在这里动。</div></div>
+  <div class="part"><div class="n">⑦ Analyzer</div><div class="d">成绩单。Sharpe / DrawDown / …</div></div>
+  <div class="part"><div class="n">⑧ Observer</div><div class="d">绘图轨迹。默认已挂,先不管。</div></div>
+</div>
+
+<p>对照你自己那套,接缝几乎一一对应——这是好消息,说明你的心智模型可以直接迁移:</p>
+
+<table>
+  <tr><th>backtrader</th><th>你手搓栈里的</th><th>差异</th></tr>
+  <tr><td>Data Feed</td><td><code>fetch_ohlcv.py</code> / <code>fetch_stock()</code></td><td>它吃 DataFrame,你的转接头照用</td></tr>
+  <tr><td>Strategy + Indicator</td><td><code>strategy.py</code></td><td><strong>逐 bar 循环</strong> vs 你的向量化</td></tr>
+  <tr><td>Sizer</td><td><code>sizing.py</code></td><td>它把"下多少"独立成了一个可替换零件</td></tr>
+  <tr><td>Broker</td><td><code>backtest.py</code> 里的成本项</td><td>它<strong>真的记账</strong>:现金、持仓、保证金</td></tr>
+  <tr><td>Analyzer</td><td><code>metrics.py</code> / <code>oos.py</code></td><td>白送十几个,但<strong>默认值是雷区</strong></td></tr>
+</table>
+
+<h2>二、跑起来</h2>
+
+<p>脚本已经写好并实测过。先拉数据(BTC 日线走 ccxt + 你的本地代理,SPY 走 yfinance,
+都会缓存成 CSV,之后可离线重跑):</p>
+
+<pre><code>cd ~/learning-projects/backtrader-framework/practice
+./venv/bin/python l01_first_run.py data
+./venv/bin/python l01_first_run.py run</code></pre>
+
+<p>核心装配就这些——注意<strong>没有一行在算指标或算夏普</strong>:</p>
+
+<pre><code>class SmaCross(bt.Strategy):
+    params = dict(fast=10, slow=30)
+
+    def __init__(self):                       # 声明一次
+        fast = bt.ind.SMA(self.data.close, period=self.p.fast)
+        slow = bt.ind.SMA(self.data.close, period=self.p.slow)
+        self.cross = bt.ind.CrossOver(fast, slow)   # 上穿 +1 / 下穿 −1 / 否则 0
+
+    def next(self):                           # 每根 bar 调一次
+        if not self.position and self.cross[0] > 0:
+            self.buy()
+        elif self.position and self.cross[0] < 0:
+            self.close()
+
+cerebro = bt.Cerebro()
+cerebro.adddata(bt.feeds.PandasData(dataname=df))
+cerebro.addstrategy(SmaCross)
+cerebro.addsizer(bt.sizers.PercentSizer, percents=95)
+cerebro.broker.setcash(10_000.0)
+cerebro.broker.setcommission(commission=0.0004)     # 4bp,你在 L20/L21 实测的
+cerebro.addanalyzer(bt.analyzers.DrawDown, _name='dd')
+strat = cerebro.run()[0]</code></pre>
+
+<p>我这边跑出来是这样(你的数字会因取数当天而略有不同):</p>
+
+<table>
+  <tr><th></th><th class="num">BTC (1000根)</th><th class="num">SPY (1912根)</th></tr>
+  <tr><td>资金 10,000 →</td><td class="num">12,866 (+28.7%)</td><td class="num">19,221 (+92.2%)</td></tr>
+  <tr><td>已平仓交易</td><td class="num">19 (盈利 5)</td><td class="num">26 (盈利 14)</td></tr>
+  <tr><td>MaxDD</td><td class="num">35.73%</td><td class="num">16.43%</td></tr>
+</table>
+
+<p>BTC 那列值得看一眼:<strong>19 笔只赢了 5 笔,却赚了 28.7%</strong>——典型趋势跟踪的形状。
+你在隔壁课程见过这个形状,所以你知道该问什么(单窗口不是判决,见你自己的
+<a href="../../quantitative-trading/learning-records/0026-holdout-verdict-do-not-fund.md">0026</a>)。
+本课不追这个问题,本课只验收零件。</p>
+
+<h2>三、三条必须先知道的怪癖</h2>
+
+<h3>1. <code>[0]</code> 是现在,<code>[-1]</code> 是上一根 —— 跟 pandas 反着</h3>
+
+<pre><code>self.data.close[0]     # 当前 bar 收盘价
+self.data.close[-1]    # 上一根
+# self.data.close[1]   # 不存在 —— 正数索引就是未来</code></pre>
+
+<div class="callout tip">
+  <span class="label">这不是随便设计的</span>
+  没有正数索引,意味着<strong>你在语法层面就写不出前视偏差</strong>。
+  pandas 里 <code>df['close'].shift(1)</code> 是一条你必须记得执行的<em>人工纪律</em>;
+  在这里它是<em>结构性保证</em>。这是 backtrader 最硬的一个卖点。
+</div>
+
+<h3>2. 参数走 <code>params</code> + <code>self.p</code></h3>
+
+<p><code>params = dict(fast=10, slow=30)</code> 声明,<code>self.p.fast</code> 读取,
+<code>cerebro.addstrategy(SmaCross, fast=20)</code> 覆盖。
+这套机制后面会撑起参数优化(<code>optstrategy</code>)——也会在那里跟你 L22 的"选择方差"正面撞上。</p>
+
+<h3>3. 指标在 <code>__init__</code> 里声明,不在 <code>next()</code> 里算</h3>
+
+<p><code>bt.ind.SMA(...)</code> 不返回数字,返回一个<strong>惰性 line 对象</strong>。
+声明一次,框架逐 bar 替你推进它。写进 <code>next()</code> 里就是每根 bar 新建一个指标——
+慢,而且状态是错的。</p>
+
+<h2>四、实验 A:它到底在哪根 bar、用什么价成交?</h2>
+
+<p>这是换引擎最关键的一个问题。你手搓栈的假设是<strong>收盘价成交</strong>。
+它呢?别猜,跑一个每根 bar 价格都明显不同的玩具序列,让成交价自己说话:</p>
+
+<pre><code>./venv/bin/python l01_first_run.py fill</code></pre>
+
+<pre><code>next()  bar#2  date=2023-01-02  close[0]=20.5  -> 调用 buy()
+成交    bar#3  date=2023-01-03  成交价=30.0  (这根 bar 的 open=30.0, close=30.5)</code></pre>
+
+<p><strong>信号在第 2 根收盘算出,成交在第 3 根开盘。</strong>
+你决策时看到的那个价,永远买不到。</p>
+
+<div class="callout warn">
+  <span class="label">这对你意味着什么</span>
+  你手搓栈用"次日收盘成交",backtrader 用"<strong>次日开盘成交</strong>"。
+  在 crypto 上差别不大;但你在隔壁 L23 刚测出来:
+  <strong>SPY 隔夜跳空占了 62% 的收益,KO 占 92.5%</strong>。
+  在股票上,这两个假设根本不是同一个策略。对拍时数字对不上,先怀疑这里。
+</div>
+
+<h2>五、实验 B:三个都叫 "Sharpe" 的数</h2>
+
+<p>Analyzer 是这个框架最诱人的部分——<code>addanalyzer</code> 一行,夏普就有了,
+不用碰 <code>metrics.py</code>。现在验收这个零件:</p>
+
+<pre><code>./venv/bin/python l01_first_run.py sharpe</code></pre>
+
+<pre><code>同一个策略、同一段 BTC 日线,三种叫法都叫 'Sharpe':
+
+  A 默认参数                          0.3130781174566167
+  B annualize=True (不指定 factor)    0.3788
+  C annualize=True, factor=365        0.4559
+
+  B / C 的比值 = 1.2035
+  sqrt(365/252) = 1.2035</code></pre>
+
+<p><strong>0.31 到 0.46,差 46%。三个都不报错。</strong>拆开看:</p>
+
+<table>
+  <tr><th></th><th>发生了什么</th></tr>
+  <tr><td><strong>A</strong></td>
+      <td>默认 <code>timeframe=TimeFrame.Years</code>。它把 1000 根日线折成<strong>约 3 个年度收益</strong>,
+          然后对这 3 个数求均值/标准差。统计上毫无意义,但它给了你一个长得很像夏普的数。
+          <br>更糟:数据不足两年时它<strong>静默返回 <code>None</code></strong>——我用 300 根 bar 实测过。
+          同一段代码,数据长度一变,行为就变。</td></tr>
+  <tr><td><strong>B</strong></td>
+      <td>改成按日 + 年化,对了一半。年化因子没指定 → 框架查它自己的表,
+          拿到<strong>硬编码的 252</strong>(<code>backtrader/analyzers/sharpe.py:128</code>)。
+          BTC 一年 365 根 bar。</td></tr>
+  <tr><td><strong>C</strong></td>
+      <td>显式 <code>factor=365</code>。<strong>与我用 <code>TimeReturn</code> 导出的日收益手算的结果逐位相同。</strong></td></tr>
+</table>
+
+<div class="callout warn">
+  <span class="label">你认识这个数</span>
+  <code>sqrt(365/252) = 1.2035</code>。你在隔壁
+  <a href="../../quantitative-trading/learning-records/0027-calendar-inferred-not-hardcoded.md">0027</a>
+  里刚把这个常数从自己代码里赶出去——你当时的结论是:
+  <em>"把一个静默的常数换成一个静默的估计量,不算修好。"</em>
+  <br><br>
+  现在它在 backtrader 里,<strong>以默认值的身份等着你</strong>。
+  框架省掉的不是"写公式的时间",是"<strong>想清楚公式里每个常数</strong>的时间"——
+  而后者才是你隔壁那 23 课真正学到的东西。
+</div>
+
+<p>顺带,同一个 Analyzer 还有两个默认值会让你对拍失败:
+<code>riskfreerate=0.01</code>(默认扣 1%)和 <code>stddev_sample=False</code>
+(总体标准差,pandas <code>.std()</code> 默认是样本)。全在
+<a href="../reference/backtrader-api-map.html">API 地图</a>的"必查清单"里。</p>
+
+<h2>六、检查一下</h2>
+
+<div class="quiz" data-answer="1">
+  <div class="q">你在 <code>next()</code> 里读到 <code>self.data.close[0]</code> 并立刻 <code>self.buy()</code>。这笔单的成交价是——</div>
+  <button class="opt">这一根 bar 的收盘价</button>
+  <button class="opt">下一根 bar 的开盘价</button>
+  <button class="opt">这一根 bar 的开盘价</button>
+  <button class="opt">下一根 bar 的收盘价</button>
+  <div class="fb right" data-for="right">对。你看到的价永远买不到——前视偏差被结构性堵死了。代价是:这跟你手搓栈"次日收盘成交"的假设不同,对拍时会差出一整个隔夜跳空。</div>
+  <div class="fb nope" data-for="nope">是"下一根 bar 的开盘价"。<code>next()</code> 在 bar 收盘后被调用,订单进队列,下一根 bar 一开盘就撮合。跑 <code>l01_first_run.py fill</code> 亲眼看一次。</div>
+</div>
+
+<div class="quiz" data-answer="0">
+  <div class="q">backtrader 的 <code>SharpeRatio</code> 在你的 crypto 日线上给出偏低的数,那个 1.2035 倍的根因是——</div>
+  <button class="opt">年化因子硬编码成了二五二天</button>
+  <button class="opt">无风险利率默认取了百分之一</button>
+  <button class="opt">标准差用了总体而非样本口径</button>
+  <button class="opt">收益序列被按周度做了重采样</button>
+  <div class="fb right" data-for="right">对。<code>sharpe.py:128</code> 那张表把 Days 映射到 252。注意另两个选项<strong>也是真的默认值</strong>(<code>riskfreerate=0.01</code>、<code>stddev_sample=False</code>)——它们同样会让你对拍失败,只是不产生 1.2035 这个特定比值。</div>
+  <div class="fb nope" data-for="nope">是年化因子那条。1.2035 正好等于 <code>sqrt(365/252)</code>,这个指纹只可能来自年化天数。你选的那条<strong>确实也是真实的默认值</strong>、也会让对拍失败——但它对不上这个比值。</div>
+</div>
+
+<h2>七、动手挑战</h2>
+
+<ol>
+  <li><strong>跑通四条命令</strong>:<code>data</code> / <code>run</code> / <code>fill</code> / <code>sharpe</code>,把 <code>run</code> 的输出贴给我。</li>
+  <li><strong>用通用招式自己翻一次默认值。</strong>不看我的参考卡,跑:
+    <pre><code>./venv/bin/python -c "
+from backtrader.brokers import BackBroker
+for k, v in BackBroker.params._getitems(): print(k, '=', v)"</code></pre>
+    <strong>Broker 有 17 个参数。挑出你认为最危险的那一个</strong>——
+    也就是"默认值会让回测结果偏乐观、而且不报错"的那个。告诉我你挑了哪个、为什么。</li>
+  <li><strong>预测再验证</strong>:把 <code>l01_first_run.py</code> 里 SPY 那行的 <code>bars_per_year</code>
+    从 252 改成 365,重跑。<strong>先写下你预测的新夏普值</strong>(用旧值算),再看实际输出对不对得上。</li>
+  <li><strong>一句话回答</strong>:就"我要快速试很多策略"这个需求,今天看到的东西里,
+    最让你想用 backtrader 的是什么?最让你警惕的是什么?</li>
+</ol>
+
+<h2>八、评估栏</h2>
+
+<p>本课程每节的固定收尾。这两栏会一路累积成最终的框架评分卡。</p>
+
+<div class="verdict">
+  <div class="col win">
+    <h4>省了</h4>
+    <ul>
+      <li><strong>前视偏差结构性消灭</strong>——没有正数索引,写不出来。比人工 <code>shift(1)</code> 可靠</li>
+      <li>指标、Analyzer、Sizer 全是白送的零件,25 行跑完整条链路</li>
+      <li><strong>真·记账</strong>:现金、持仓、手续费逐 bar 结算,不是事后减一个成本项</li>
+      <li>停更三年,但 Python 3.14 + pandas 3.0 上端到端跑通,含绘图,不用打补丁</li>
+      <li>组件边界清晰(Sizer 可换、Analyzer 可插),你手搓栈的心智模型能直接迁移</li>
+    </ul>
+  </div>
+  <div class="col cost">
+    <h4>坑了</h4>
+    <ul>
+      <li><strong>Analyzer 默认值是雷区</strong>:同一个 Sharpe 能给出 0.31 / 0.38 / 0.46,不报错</li>
+      <li>失败模式<strong>随数据长度改变</strong>——300 根返回 <code>None</code>,1000 根返回一个错的数</li>
+      <li>成交假设与你手搓栈不同(次日开盘 vs 次日收盘),股票上差一整个隔夜跳空</li>
+      <li>官方停更(最后一版 2023-04-19);官方论坛实测 HTTP 522 不可达</li>
+      <li>"省下写公式的时间"换来"必须去读源码确认常数"——<strong>净收益待定</strong></li>
+    </ul>
+  </div>
+</div>
+
+<div class="callout">
+  <span class="label">本课的评估结论(暂定)</span>
+  backtrader 的<strong>执行模型</strong>比你手搓的更严谨(反前视 + 真记账),这是真价值。
+  但它的<strong>绩效层</strong>不能盲信——每一个 Analyzer 都要按你自己的
+  <code>metrics.py</code> 对拍过才能用。
+  <br>可行的分工:<strong>用它跑执行,用 <code>TimeReturn</code> 把日收益导出来,用你自己的公式算分。</strong>
+  这个假设会在 L6 正式检验。
+</div>
+
+<div class="source-box">
+  <div class="label">首选阅读源</div>
+  <a href="https://www.backtrader.com/docu/quickstart/quickstart/">backtrader 官方 Quickstart</a>
+  —— 从裸 Cerebro 一路加零件到 Sizer/Analyzer 的渐进示例,和本课装配顺序一致,值得对照读一遍。
+  <br><br>
+  <strong>更重要的一条</strong>:官方已停更,<strong>源码就是文档</strong>。
+  本地路径 <code>practice/venv/lib/python3.14/site-packages/backtrader/</code>。
+  今天那个 252 就是从 <code>analyzers/sharpe.py:128</code> 挖出来的,文档里没写。
+</div>
+
+<div class="lesson-foot">
+  <div class="ask">
+    <strong>卡住就问我。</strong>我是你这门课的老师——报错、某个参数看不懂、
+    或者你觉得我今天哪个说法不对(隔壁课程你已经用数据纠正过我两次了),直接说。
+  </div>
+  <div class="nav">
+    <a href="../reference/backtrader-api-map.html">API 地图(参考卡)→</a>
+    <a href="../MISSION.md">使命</a>
+  </div>
+</div>
+
+</div>

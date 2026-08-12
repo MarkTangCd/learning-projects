@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>信源地图 — 策略想法从哪里来</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">Research Quant Strategies · Reference</p>
+  <h1>信源地图</h1>
+  <p class="subtitle">策略想法的四层来源，按信任度排序。链接于 2026-08-11 全部核实。</p>
+
+  <div class="callout">
+    <span class="label">核心权衡</span>
+    信任度和可执行度成反比：学术论文最可信但没有代码；开源代码最好跑但没人担保它赚钱。
+    研究流水线的存在意义就是把高信任的<em>想法</em>转换成可执行的<em>代码</em>，再用自己的评估机器定罪。
+  </div>
+
+  <h2>Tier 1 · 学术一手（信任最高，可执行度最低）</h2>
+  <table>
+    <tr><th>来源</th><th>是什么</th><th>什么时候用</th></tr>
+    <tr><td><a href="https://papers.ssrn.com/">SSRN</a> ⚠ 反爬，浏览器开</td><td>金融工作论文主库</td><td>被 Tier 2 指到某篇论文后，来这里拿原文</td></tr>
+    <tr><td><a href="https://arxiv.org/list/q-fin.TR/recent">arXiv q-fin.TR</a> / <a href="https://arxiv.org/list/q-fin.PM/recent">q-fin.PM</a></td><td>预印本，周更，常带代码，含 crypto</td><td>找前沿/crypto 想法；⚠ 无同行评审，先查有无真实回测</td></tr>
+  </table>
+  <p>必读锚点论文：<a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2089463">TSMOM（Moskowitz-Ooi-Pedersen）</a> ·
+  <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2156623">McLean &amp; Pontiff（发表后衰减 −58%）</a> ·
+  <a href="https://www.bauer.uh.edu/rsusmel/phd/jegadeesh-titman93.pdf">Jegadeesh-Titman 1993（横截面动量）</a></p>
+
+  <h2>Tier 2 · 从业者精选（信任高，已替你读过论文）</h2>
+  <table>
+    <tr><th>来源</th><th>是什么</th><th>什么时候用</th></tr>
+    <tr><td><a href="https://quantocracy.com/">Quantocracy</a></td><td>150+ 量化博客每日聚合，纯策展</td><td><strong>每日发现信息流第一站</strong></td></tr>
+    <tr><td><a href="https://quantpedia.com/screener/">Quantpedia</a>（免费页）</td><td>学术策略百科：规则+回测区间+源论文</td><td>把"想找策略"变成"具体规则+论文"；⚠ 全库付费，免费页够复现</td></tr>
+    <tr><td><a href="https://alphaarchitect.com/blog/">Alpha Architect</a> ⚠ 403，浏览器开</td><td>资管机构的因子论文白话解读</td><td>复现前搞懂一个因子<em>为什么</em>有效</td></tr>
+    <tr><td><a href="https://robotwealth.com/blog/">Robot Wealth</a></td><td>前职业交易员的研究方法论</td><td>学研究<em>流程</em>，不是找策略目录</td></tr>
+    <tr><td><a href="https://zhuanlan.zhihu.com/mitcshi">石川·川流不息</a> / <a href="https://www.factorwar.com">因子动物园</a></td><td>中文因子方法论，每篇有论文支撑</td><td>因子方向的中文必读与选题</td></tr>
+  </table>
+
+  <h2>Tier 3 · 开源代码（可执行度最高，绩效自验）</h2>
+  <table>
+    <tr><th>来源</th><th>是什么</th><th>什么时候用</th></tr>
+    <tr><td><a href="https://github.com/freqtrade/freqtrade-strategies">freqtrade-strategies</a> + <a href="https://www.freqtrade.io/en/stable/">docs</a></td><td>官方 crypto 策略示例库，开箱可回测</td><td><strong>第一次 crypto 复现的最低摩擦入口</strong></td></tr>
+    <tr><td><a href="https://github.com/microsoft/qlib">qlib</a> <code>examples/benchmarks/</code></td><td>25+ 可复现模型 + Alpha158/360 因子库</td><td>A股/ML 阶段的系统化策略来源</td></tr>
+    <tr><td><a href="https://www.quantconnect.com/learning/articles/">QuantConnect 策略库</a></td><td>学术策略完整实现+真实回测</td><td>clone 即跑的参考实现（股票为主）</td></tr>
+    <tr><td><a href="https://github.com/je-suis-tm/quant-trading">je-suis-tm/quant-trading</a></td><td>经典具名策略的干净参考实现</td><td>读结构学写法，不信其绩效</td></tr>
+    <tr><td><a href="https://www.fmz.com/square">FMZ 策略广场</a>（只用免费区）</td><td>crypto 策略源码，网格/套利范式</td><td>学实现范式；⚠ 付费订阅=卖信号，排除</td></tr>
+    <tr><td><a href="https://hummingbot.org/blog/">Hummingbot Blog</a></td><td>开源做市 bot 策略指南</td><td>做市/网格专题</td></tr>
+  </table>
+
+  <h2>Tier 4 · 论坛社媒（噪音最高——找智慧，不找策略）</h2>
+  <table>
+    <tr><th>来源</th><th>什么时候用</th></tr>
+    <tr><td><a href="https://www.reddit.com/r/algotrading/">r/algotrading</a></td><td>想法 sanity-check、工具链问题；wiki 和高票帖优先</td></tr>
+    <tr><td><a href="https://www.quantconnect.com/forum/discussions/1/hot">QuantConnect 论坛</a></td><td>复现卡壳求助；帖子附代码+回测</td></tr>
+    <tr><td><a href="https://www.vnpy.com/forum/">vn.py 论坛</a></td><td>中文 CTA 实现细节讨论</td></tr>
+    <tr><td><a href="https://www.joinquant.com/community">聚宽社区</a> ⚠ 仅大陆 IP</td><td>A股 策略复现素材；普遍过拟合，自己 OOS 复验</td></tr>
+    <tr><td><a href="https://community.quantopian.com/">Quantopian Lectures</a> + <a href="https://quantopian-archive.netlify.app/">存档</a></td><td>免费研究方法论课；移植概念不移植代码</td></tr>
+  </table>
+
+  <div class="callout warn">
+    <span class="label">永久排除</span>
+    Telegram/微信带单群、卖信号者（含 FMZ 付费订阅）、"X 天学会量化"卖课号、
+    已死站（Nuclear Phynance）。判据：凡是"付钱拿信号/策略"而非"公开可验证"，一律不进流水线。
+  </div>
+
+  <p class="no-print" style="margin-top:2.5rem"><a href="../lessons/0001-strategy-research-pipeline.html">← 第 1 课：策略研究流水线</a> · 完整注释版见 <code>RESOURCES.md</code></p>
+</div>
+</body>
+</html>

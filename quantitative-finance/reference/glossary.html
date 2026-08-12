@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>词表 — 计量金融</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+
+<p class="kicker">计量金融 · 参考文档</p>
+<h1>词表</h1>
+<p class="subtitle">期权术语中英混用严重。<strong>以本表为准</strong>——每节课新增的词都加到这里，课上一律用这里的译法。</p>
+
+<div class="callout tip">
+  <span class="label">怎么用</span>
+  这是<strong>参考文档</strong>，不是课程。课会被读一遍就放下，这份表要反复回来查。每个词条给一句人话解释 + 出处课号。打印出来贴墙上也行。
+</div>
+
+<h2>合约与基本机制</h2>
+
+<table>
+<thead><tr><th style="width:22%">中文</th><th style="width:26%">英文</th><th>一句话</th></tr></thead>
+<tbody>
+<tr><td><strong>衍生品</strong></td><td>derivative</td><td>价值<em>派生</em>自另一个资产的合约。股票是本体，期权是影子。</td></tr>
+<tr><td><strong>标的资产</strong></td><td>underlying</td><td>影子所依附的那个本体，如股票、指数、BTC。</td></tr>
+<tr><td><strong>看涨期权</strong></td><td>call</td><td>以约定价 K <em>买入</em>的权利。到期收益 <code>max(S<sub>T</sub>−K, 0)</code>。<span class="term">L1</span></td></tr>
+<tr><td><strong>看跌期权</strong></td><td>put</td><td>以约定价 K <em>卖出</em>的权利。到期收益 <code>max(K−S<sub>T</sub>, 0)</code>。<span class="term">L1</span></td></tr>
+<tr><td><strong>行权价 / 执行价</strong></td><td>strike price, K</td><td>合约里事先约定死的那个成交价格。</td></tr>
+<tr><td><strong>到期日</strong></td><td>expiry, maturity, T</td><td>权利消失的那一天。</td></tr>
+<tr><td><strong>欧式 / 美式</strong></td><td>European / American</td><td>欧式只能<em>到期日当天</em>行权；美式随时可以。美式难得多（涉及最优停时）。</td></tr>
+<tr><td><strong>收益函数</strong></td><td>payoff</td><td>到期那一刻，这份合约按 S<sub>T</sub> 付你多少钱。整个定价问题的输入。<span class="term">L1</span></td></tr>
+<tr><td><strong>期权金</strong></td><td>premium</td><td>你今天为买入这份合约付出的价格。<em>定价要求的就是它。</em></td></tr>
+<tr><td><strong>看跌看涨平价</strong></td><td>put-call parity</td><td><code>C − P = S₀ − K·e<sup>−rT</sup></code>。<strong>不依赖任何模型</strong>，纯无套利关系。<span class="term">L1 挑战</span></td></tr>
+</tbody>
+</table>
+
+<h2>定价的核心概念</h2>
+
+<table>
+<thead><tr><th style="width:22%">中文</th><th style="width:26%">英文</th><th>一句话</th></tr></thead>
+<tbody>
+<tr><td><strong>无套利</strong></td><td>no-arbitrage</td><td>不存在"零成本、零风险、必赚钱"的组合。<strong>整个定价理论唯一的公理。</strong></td></tr>
+<tr><td><strong>复制</strong></td><td>replication</td><td>用股票 + 现金动态调仓，造出与期权<em>完全相同</em>的收益。造得出来 → 价格被钉死。<span class="term">L1→L2</span></td></tr>
+<tr><td><strong>风险中性定价</strong></td><td>risk-neutral pricing</td><td>定价时把漂移 μ 换成无风险利率 r。<strong>不是假设大家不怕风险，是 μ 被对冲掉了。</strong><span class="term">L1</span></td></tr>
+<tr><td><strong>P 测度 / Q 测度</strong></td><td>physical / risk-neutral measure</td><td>P = 真实世界（预测用，μ 是主角）；Q = 定价世界（μ:=r，σ 是主角）。<strong>你隔壁课两年全在 P 里，本课在 Q 里。</strong><span class="term">L1</span></td></tr>
+<tr><td><strong>漂移</strong></td><td>drift, μ</td><td>资产的预期收益率。<em>预测的猎物，定价的无关变量。</em><span class="term">L1</span></td></tr>
+<tr><td><strong>波动率</strong></td><td>volatility, σ</td><td>收益率的年化标准差。<strong>定价里唯一真正需要你判断的输入。</strong><span class="term">L1</span></td></tr>
+<tr><td><strong>无风险利率</strong></td><td>risk-free rate, r</td><td>不承担风险能拿到的收益率（国债一类）。连续复利记法，折现用 <code>e<sup>−rT</sup></code>。<span class="term">L1</span></td></tr>
+<tr><td><strong>折现</strong></td><td>discounting</td><td>把未来的钱换算成今天的钱。乘 <code>e<sup>−rT</sup></code>。<span class="term">L1</span></td></tr>
+</tbody>
+</table>
+
+<h2>模型与方法</h2>
+
+<table>
+<thead><tr><th style="width:22%">中文</th><th style="width:26%">英文</th><th>一句话</th></tr></thead>
+<tbody>
+<tr><td><strong>几何布朗运动</strong></td><td>Geometric Brownian Motion, GBM</td><td>标准股价模型。终值一行写完：<code>S<sub>T</sub> = S₀·exp[(μ−σ²/2)T + σ√T·Z]</code>。<span class="term">L1</span></td></tr>
+<tr><td><strong>波动率拖累</strong></td><td>volatility drag, σ²/2</td><td><code>几何收益 = 算术收益 − σ²/2</code>。GBM 公式里那个 −σ²/2 就是它。<strong>你在量化交易 LR-0025 亲手实测过。</strong><span class="term">L1</span></td></tr>
+<tr><td><strong>对数正态分布</strong></td><td>lognormal</td><td>取对数后服从正态。GBM 下 S<sub>T</sub> 的分布——右偏、永远为正。<span class="term">L1</span></td></tr>
+<tr><td><strong>蒙特卡洛定价</strong></td><td>Monte Carlo pricing</td><td>模拟大量未来 → 算每个的 payoff → 折现取平均。<strong>慢但通用，任何 payoff 都能算。</strong><span class="term">L1</span></td></tr>
+<tr><td><strong>标准误 / 收敛率</strong></td><td>standard error, 1/√N</td><td>蒙特卡洛误差按 <code>1/√N</code> 下降：路径 ×100，精度只提升 10 倍。<span class="term">L1</span></td></tr>
+<tr><td><strong>闭式解</strong></td><td>closed-form solution</td><td>能直接写成公式算出来，不用模拟。Black-Scholes 就是一个。<span class="term">L1→L3</span></td></tr>
+<tr><td><strong>Black-Scholes</strong></td><td>Black-Scholes(-Merton)</td><td>欧式期权的闭式定价公式。本课程 L1 只当基准，L3 才拆开。</td></tr>
+</tbody>
+</table>
+
+<h2>与隔壁课的术语冲突（重要）</h2>
+
+<div class="callout warn">
+  <span class="label">同一个词，两个意思</span>
+  <p style="margin:0 0 0.5rem"><strong>"波动率"</strong>：在量化交易课里它是<em>风险度量</em>（vol targeting 的分母，越小越好）；在这里它是<em>价格的主要驱动力</em>（σ 越大期权越贵）。同一个 σ，一边是要压制的敌人，一边是要交易的商品。</p>
+  <p style="margin:0"><strong>"预期收益 μ"</strong>：隔壁课是唯一目标；这里是<strong>无关量</strong>。每当你想去估计 μ 的时候，停下来问：我是在预测，还是在定价？</p>
+</div>
+
+<div class="lesson-foot">
+  <div class="ask">
+    <strong>这份表有词条不清楚就直接问我。</strong>词表的价值在于精确——如果某条"一句话"读完你还是没画面，那是这一条写坏了，告诉我，我重写。
+  </div>
+  <div class="nav">
+    <span><a href="../lessons/0001-pricing-is-not-forecasting.html">← L1 定价不是预测</a></span>
+    <span><a href="../RESOURCES.md">资源清单</a></span>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

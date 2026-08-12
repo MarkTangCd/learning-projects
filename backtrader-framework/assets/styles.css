@@ -1,0 +1,329 @@
+/* Shared stylesheet for the Backtrader Framework course.
+   Inherited from the Quantitative Trading course so both read as one body of work.
+   Tufte-inspired: readable typography, generous margins, print-friendly.
+   Every lesson and reference doc links this file. */
+
+:root {
+  --ink: #1a1a1a;
+  --ink-soft: #4a4a4a;
+  --ink-faint: #767676;
+  --bg: #fdfcf9;
+  --rule: #e2ddd2;
+  --accent: #b8341b;        /* signal red — used sparingly */
+  --accent-soft: #f6e9e5;
+  --link: #0a5f9c;
+  --code-bg: #f3f0e8;
+  --good: #1a7a4c;
+  --warn: #b07d00;
+  --max-width: 46rem;
+  --serif: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: var(--serif);
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.6;
+  font-size: 19px;
+  margin: 0;
+  padding: 3.5rem 1.5rem 6rem;
+}
+
+.wrap { max-width: var(--max-width); margin: 0 auto; }
+
+/* ---- Kicker / breadcrumb ---- */
+.kicker {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin: 0 0 0.6rem;
+}
+
+/* ---- Headings ---- */
+h1 {
+  font-size: 2.1rem;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.4rem;
+}
+h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 2.6rem 0 0.8rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--rule);
+}
+h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 1.8rem 0 0.5rem;
+}
+.subtitle {
+  font-size: 1.15rem;
+  color: var(--ink-soft);
+  font-style: italic;
+  margin: 0 0 2rem;
+}
+
+p { margin: 0 0 1.1rem; }
+
+a { color: var(--link); text-decoration: none; border-bottom: 1px solid rgba(10,95,156,0.3); }
+a:hover { border-bottom-color: var(--link); }
+
+strong { font-weight: 700; }
+em { font-style: italic; }
+
+/* ---- Lists ---- */
+ul, ol { margin: 0 0 1.1rem; padding-left: 1.4rem; }
+li { margin: 0.35rem 0; }
+
+/* ---- Code ---- */
+code {
+  font-family: var(--mono);
+  font-size: 0.82em;
+  background: var(--code-bg);
+  padding: 0.12em 0.35em;
+  border-radius: 3px;
+}
+pre {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+  margin: 0 0 1.3rem;
+}
+pre code { background: none; padding: 0; font-size: inherit; }
+
+/* ---- Callouts ---- */
+.callout {
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  padding: 0.9rem 1.1rem;
+  border-radius: 0 6px 6px 0;
+  margin: 0 0 1.3rem;
+}
+.callout.tip { border-left-color: var(--good); background: #e9f5ee; }
+.callout.warn { border-left-color: var(--warn); background: #fbf3dd; }
+.callout .label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+
+/* ---- Key term / definition ---- */
+.term { font-weight: 700; color: var(--accent); }
+
+/* ---- Pipeline / stage diagram ---- */
+.pipeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: stretch;
+  margin: 1.5rem 0 2rem;
+  font-family: var(--sans);
+}
+.stage {
+  flex: 1 1 8rem;
+  min-width: 8rem;
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--accent);
+  border-radius: 6px;
+  background: #fff;
+  padding: 0.8rem 0.9rem;
+}
+.stage .n {
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+.stage .t { font-weight: 700; font-size: 0.98rem; margin: 0.15rem 0 0.3rem; }
+.stage .d { font-size: 0.8rem; color: var(--ink-soft); line-height: 1.4; }
+
+/* ---- Tables ---- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  margin: 0 0 1.5rem;
+}
+th, td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid var(--rule); }
+th { font-weight: 700; border-bottom: 2px solid var(--ink-soft); }
+
+/* ---- Quiz widget (styling; behavior lives in quiz.js) ---- */
+.quiz {
+  font-family: var(--sans);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 1.2rem 1.3rem;
+  margin: 1.5rem 0;
+  background: #fff;
+}
+.quiz .q { font-weight: 700; font-size: 1rem; margin-bottom: 0.8rem; }
+.quiz .opt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 0.92rem;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  margin: 0.4rem 0;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.quiz .opt:hover { border-color: var(--ink-soft); }
+.quiz .opt.correct { background: #e9f5ee; border-color: var(--good); }
+.quiz .opt.wrong { background: var(--accent-soft); border-color: var(--accent); }
+.quiz .opt:disabled { cursor: default; }
+.quiz .fb {
+  font-size: 0.88rem;
+  margin-top: 0.7rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  display: none;
+  line-height: 1.5;
+}
+.quiz .fb.show { display: block; }
+.quiz .fb.right { background: #e9f5ee; color: var(--good); }
+.quiz .fb.nope { background: var(--accent-soft); color: var(--accent); }
+
+/* ---- Footer / navigation ---- */
+.lesson-foot {
+  margin-top: 3.5rem;
+  padding-top: 1.3rem;
+  border-top: 2px solid var(--ink-soft);
+  font-family: var(--sans);
+  font-size: 0.9rem;
+}
+.lesson-foot .ask {
+  background: var(--accent-soft);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 1.3rem;
+}
+.nav { display: flex; justify-content: space-between; gap: 1rem; }
+.nav a { font-weight: 600; }
+
+.source-box {
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  margin: 1.5rem 0;
+}
+.source-box .label {
+  font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent); font-weight: 700; margin-bottom: 0.4rem;
+}
+
+/* ---- Dark mode ---- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e8e4da; --ink-soft: #b3ad9e; --ink-faint: #8a8577;
+    --bg: #14130f; --rule: #33302a; --accent: #e8613f; --accent-soft: #2a1c17;
+    --link: #6cb6e8; --code-bg: #201e18; --good: #4fb37e; --warn: #d6a63a;
+  }
+  .stage, .quiz, .source-box { background: #1b1a15; }
+  .quiz .opt.correct, .callout.tip { background: #16281f; }
+  .callout.warn { background: #2a2413; }
+}
+
+/* ================================================================
+   Backtrader-course components (added for the evaluation mission)
+   ================================================================ */
+
+/* ---- Verdict box: "what it bought you / what it cost you" ----
+   Markup:
+   <div class="verdict">
+     <div class="col win"><h4>省了</h4><ul>…</ul></div>
+     <div class="col cost"><h4>坑了</h4><ul>…</ul></div>
+   </div>                                                          */
+.verdict {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1.5rem 0 2rem;
+  font-family: var(--sans);
+  font-size: 0.88rem;
+}
+.verdict .col {
+  flex: 1 1 15rem;
+  min-width: 14rem;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  background: #fff;
+}
+.verdict .col.win { border-top: 3px solid var(--good); }
+.verdict .col.cost { border-top: 3px solid var(--accent); }
+.verdict h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.verdict .col.win h4 { color: var(--good); }
+.verdict .col.cost h4 { color: var(--accent); }
+.verdict ul { margin: 0; padding-left: 1.1rem; }
+.verdict li { margin: 0.3rem 0; line-height: 1.45; }
+
+/* ---- Component map: the framework's parts as a grid ---- */
+.partgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.6rem;
+  margin: 1.5rem 0 2rem;
+  font-family: var(--sans);
+}
+.part {
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--link);
+  border-radius: 0 6px 6px 0;
+  background: #fff;
+  padding: 0.65rem 0.8rem;
+}
+.part .n { font-family: var(--mono); font-size: 0.82rem; font-weight: 700; }
+.part .d { font-size: 0.76rem; color: var(--ink-soft); line-height: 1.4; margin-top: 0.2rem; }
+.part.later { border-left-color: var(--ink-faint); opacity: 0.72; }
+
+/* ---- Numeric emphasis inside prose tables ---- */
+td.num, th.num { text-align: right; font-family: var(--mono); font-size: 0.85rem; }
+
+@media (prefers-color-scheme: dark) {
+  .verdict .col, .part { background: #1b1a15; }
+}
+
+/* ---- Print ---- */
+@media print {
+  body { background: #fff; color: #000; font-size: 11pt; padding: 0; }
+  .quiz .opt { cursor: default; }
+  .lesson-foot .ask, a { color: #000; }
+  .no-print { display: none; }
+}

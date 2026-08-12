@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L1 · 定价不是预测 — 计量金融</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+
+<p class="kicker">计量金融 · 第 1 课</p>
+<h1>定价不是预测</h1>
+<p class="subtitle">你将亲手给一份期权定价——然后用一个实验，证明"先预测涨跌再定价"这条路根本走不通。</p>
+
+<h2>为什么从这里开始</h2>
+
+<p>你过去两年做的所有事情，都在回答同一个问题：<strong>这个东西接下来会涨还是会跌？</strong>信号、回测、walk-forward、留出集判决——全部是在估计那个漂移项 μ。而<a href="../../quantitative-trading/learning-records/0026-holdout-verdict-do-not-fund.md">留出集给的答案是"不上钱"</a>。</p>
+
+<p>衍生品定价问的是一个<em>结构完全不同</em>的问题：<strong>已知这只股票现在的价格，那么建立在它之上的那份合约值多少钱？</strong></p>
+
+<p>关键差别在于：第一个问题只有上帝知道答案；第二个问题<strong>有唯一正确答案，而且不需要预测就能算出来</strong>。这节课的单一目标，就是让你亲手撞上这个反直觉的事实。</p>
+
+<h2>一、合约</h2>
+
+<p><span class="term">欧式看涨期权(European call)</span>：一份合约，给你在<strong>未来某个固定日期 T</strong>，以<strong>事先约定的价格 K</strong> 买入 1 股的<em>权利</em>——不是义务。</p>
+
+<p>"不是义务"是全部的要害。到期那天你看一眼股价 S<sub>T</sub>：</p>
+
+<ul>
+  <li>S<sub>T</sub> = 130，K = 100 → 你用 100 买入、市价 130，<strong>赚 30</strong></li>
+  <li>S<sub>T</sub> = 70，K = 100 → 你不行权，<strong>赚 0</strong>（而不是亏 30）</li>
+</ul>
+
+<div class="formula">
+  payoff = max(S<sub>T</sub> − K, 0)
+  <span class="gloss">一份欧式看涨期权到期时的收益。整节课的一切都从这一行长出来。</span>
+</div>
+
+<p>这个 <code>max(·, 0)</code> 就是<strong>不对称性</strong>：上涨全拿，下跌截断。所以它值钱，问题只是——值多少。</p>
+
+<h2>二、定价三步（不需要任何微积分）</h2>
+
+<div class="pipeline">
+  <div class="stage"><div class="n">STEP 1</div><div class="t">模拟未来</div><div class="d">生成几十万个"股票在 T 时刻可能落在哪"的情景</div></div>
+  <div class="stage"><div class="n">STEP 2</div><div class="t">算收益</div><div class="d">每个情景下这份合约付你多少钱</div></div>
+  <div class="stage"><div class="n">STEP 3</div><div class="t">折现取平均</div><div class="d">平均收益折回今天 = 价格</div></div>
+</div>
+
+<p>这就是<span class="term">蒙特卡洛定价(Monte Carlo pricing)</span>的全部。它的美德是：<strong>对任何形状的 payoff 都成立</strong>——包括那些根本没有闭式公式的奇异期权。</p>
+
+<p>唯一需要的模型是"股票怎么走"。标准假设叫<span class="term">几何布朗运动(GBM)</span>，写成终值就一行：</p>
+
+<div class="formula">
+  S<sub>T</sub> = S<sub>0</sub> · exp[ (μ − σ²/2)·T &nbsp;+&nbsp; σ·√T·Z ]
+  <span class="gloss">左边那块决定"云的中心在哪"，右边那块决定"云散得多开"。Z 是标准正态随机数。</span>
+</div>
+
+<div class="callout math">
+  <span class="label">数学补给 · 这一行里只有三件事</span>
+  <p style="margin:0 0 0.6rem"><strong>1. 为什么是 exp？</strong> 因为收益是<em>乘</em>起来的，不是加起来的。涨 10% 再跌 10% 不回原点。取对数后乘法变加法，加法好处理正态分布——所以建模建在对数上，最后 <code>exp</code> 还原。</p>
+  <p style="margin:0 0 0.6rem"><strong>2. 那个 −σ²/2 是什么？</strong> <strong>你已经亲手测过它。</strong>在量化交易课里你算出 BTC 算术均值年化 +13.39%、波动率拖累 σ²/2 = 13.57%，几何收益被精确抹平成 −0.06%。就是同一个东西：<code>几何 = 算术 − σ²/2</code>。这里它的作用是让平均值精确等于 S<sub>0</sub>·e<sup>μT</sup>。</p>
+  <p style="margin:0"><strong>3. 为什么是 √T？</strong> 方差随时间线性累加，标准差就是它的平方根。四年的波动是一年的 2 倍，不是 4 倍。</p>
+</div>
+
+<h2>三、跑起来</h2>
+
+<p>脚本已经写好在 <code>practice/mc_price.py</code>。先看基准：</p>
+
+<pre><code>$ cd practice
+$ ./venv/bin/python mc_price.py bs
+
+contract: call  S0=100.0  K=100.0  T=1.0y  r=0.05  sigma=0.2
+Black-Scholes price = 10.4506</code></pre>
+
+<p>10.45 —— 这是这份合约在真实市场上的价格（Black-Scholes 闭式解，L3 才讲它怎么来的，现在只当裁判）。<strong>现在轮到你用蒙特卡洛去打这个靶。</strong></p>
+
+<pre><code># practice/mc_price.py 的核心，一共三行
+z = rng.standard_normal(n_paths)
+s_t = S0 * np.exp((mu - 0.5 * SIGMA**2) * T + SIGMA * math.sqrt(T) * z)   # 1. 模拟
+payoff = np.maximum(s_t - K, 0.0)                                         # 2. 收益
+price = math.exp(-R * T) * payoff.mean()                                  # 3. 折现平均</code></pre>
+
+<p>问题来了：<strong>那个 <code>mu</code> 该填多少？</strong>按你的全部本能，这里应该填你对这只股票的收益预测。那就填填看。</p>
+
+<h2>四、实验：拧 μ</h2>
+
+<p>拖动下面的滑块。<strong>合约没变、波动率没变，变的只有"我认为这只股票会怎么走"。</strong></p>
+
+<div class="mcp" data-mu="0.15" data-sigma="0.20"></div>
+
+<p>脚本跑出来的是同一件事（<code>./venv/bin/python mc_price.py drift</code>）：</p>
+
+<table>
+<thead><tr><th>我的预测 μ</th><th>我算出的价格</th><th>相对 μ=5% 的偏差</th></tr></thead>
+<tbody>
+<tr><td>−20%</td><td>1.45</td><td>−86%</td></tr>
+<tr><td>−10%</td><td>3.60</td><td>−66%</td></tr>
+<tr><td>0%</td><td>7.59</td><td>−27%</td></tr>
+<tr><td><strong>+5%</strong></td><td><strong>10.46</strong></td><td><strong>±0%</strong></td></tr>
+<tr><td>+10%</td><td>13.96</td><td>+33%</td></tr>
+<tr><td>+20%</td><td>22.81</td><td>+118%</td></tr>
+<tr><td>+40%</td><td>46.98</td><td>+349%</td></tr>
+</tbody>
+</table>
+
+<p>一份合约，价格从 <strong>1.45 到 46.98</strong>，差 32 倍。</p>
+
+<div class="callout warn">
+  <span class="label">崩溃点</span>
+  如果这条路是对的，那么一个看空的交易员和一个看多的交易员，对<strong>完全相同</strong>的合约会报出相差 32 倍的价格。市场上不存在这种事——期权的买价卖价差通常只有百分之几。<strong>所以这条路一定错了。</strong>
+</div>
+
+<h2>五、真相</h2>
+
+<p>看那张表里唯一对上市场价格 10.45 的那一行：<strong>μ = 5%，正好是无风险利率 r</strong>。</p>
+
+<div class="formula">
+  定价时，把 μ 换成 r。
+  <span class="gloss">S<sub>T</sub> = S<sub>0</sub> · exp[ (<strong>r</strong> − σ²/2)·T + σ·√T·Z ]</span>
+</div>
+
+<p>这条规则叫<span class="term">风险中性定价(risk-neutral pricing)</span>。<strong>最容易误解的一点，现在就说清楚：</strong></p>
+
+<div class="callout">
+  <span class="label">它不是在假设"大家都不怕风险"</span>
+  没有人真的认为股票只赚 5%。r 出现在这里，是因为期权的风险<strong>可以通过动态买卖股票被复制掉</strong>——既然能复制，它的价格就被复制成本钉死了，而复制成本跟任何人的涨跌观点无关。<strong>μ 不是被假设掉的，是被对冲掉的。</strong>完整论证是 L2。
+</div>
+
+<p>这就是你需要完成的思维反转：</p>
+
+<table>
+<thead><tr><th></th><th>你熟悉的世界（量化交易）</th><th>这门课的世界（定价）</th></tr></thead>
+<tbody>
+<tr><td>要回答的问题</td><td>它会涨还是会跌</td><td>它值多少钱</td></tr>
+<tr><td>主角参数</td><td><strong>μ</strong>（漂移/预期收益）</td><td><strong>σ</strong>（波动率）</td></tr>
+<tr><td>μ 的地位</td><td>唯一的猎物</td><td><strong>完全无关</strong></td></tr>
+<tr><td>答案的性质</td><td>只有事后才知道对错</td><td>无套利下唯一确定</td></tr>
+<tr><td>赚钱的方式</td><td>预测对</td><td>复制得比别人便宜</td></tr>
+</tbody>
+</table>
+
+<p>注意最后一行的含义：<strong>σ 取代了 μ，成为唯一需要你判断的东西。</strong>你两年来练的"预测"技能在这里失效了，但"估计波动率"是一个<em>可测量得多</em>的问题——这正是衍生品这条路的价值所在。</p>
+
+<h2>六、检验一下</h2>
+
+<div class="quiz" data-answer="2">
+  <div class="q">同一只股票、同一个到期日，A 认为年化涨 30%，B 认为年化跌 10%。两人对同一份看涨期权的<strong>理论价格</strong>应该是：</div>
+  <button class="opt">A 报的价格明显高于 B</button>
+  <button class="opt">A 报的价格明显低于 B</button>
+  <button class="opt">两人报出完全一样的价格</button>
+  <button class="opt">要看两人的风险偏好程度</button>
+  <div class="fb right" data-for="right">对。分歧在 μ 上，而 μ 不进入定价公式。他们真正会吵起来的是 <strong>σ</strong>——那才是期权交易员之间实际交易的东西。</div>
+  <div class="fb nope" data-for="nope">这正是本课要拆掉的直觉。μ 被对冲掉了，不进入价格。他们唯一可能报出不同价格的原因是对 <strong>σ</strong> 的看法不同。</div>
+</div>
+
+<div class="quiz" data-answer="1">
+  <div class="q">在 GBM 公式 S<sub>T</sub> = S<sub>0</sub>·exp[(μ−σ²/2)T + σ√T·Z] 中，那个 <strong>−σ²/2</strong> 项的作用是：</div>
+  <button class="opt">惩罚高波动资产的定价</button>
+  <button class="opt">修正算术与几何收益之差</button>
+  <button class="opt">保证股价永远不会为负</button>
+  <button class="opt">把年化数据换算成日频</button>
+  <div class="fb right" data-for="right">对，而且你已经实测过它：BTC 算术年化 +13.39%，被 σ²/2 = 13.57% 的波动率拖累精确抹平成 −0.06%。同一个东西，换了个场景。</div>
+  <div class="fb nope" data-for="nope">再看一眼 LR-0025：几何 = 算术 − σ²/2。这一项就是那个修正，让 E[S<sub>T</sub>] 精确等于 S<sub>0</sub>·e<sup>μT</sup>。（股价不为负是 exp 保证的，跟这项无关。）</div>
+</div>
+
+<div class="quiz" data-answer="3">
+  <div class="q">蒙特卡洛定价相比 Black-Scholes 闭式公式，最大的实际优势是：</div>
+  <button class="opt">算得更快而且精度更高</button>
+  <button class="opt">不需要假设股价的模型</button>
+  <button class="opt">对波动率的估计更稳健</button>
+  <button class="opt">任何形状的收益都能算</button>
+  <div class="fb right" data-for="right">对。闭式解只对少数几种标准合约存在；蒙特卡洛只要你能写出 payoff 函数就能定价——亚式、障碍、篮子期权全都靠它。代价是慢（误差按 1/√N 下降）。</div>
+  <div class="fb nope" data-for="nope">蒙特卡洛<strong>更慢</strong>（跑 <code>mc_price.py converge</code> 看看：100 万条路径才把误差压到 0.003），而且同样需要模型假设。它的价值是<strong>通用</strong>：任何 payoff 都能算。</div>
+</div>
+
+<h2>七、动手挑战</h2>
+
+<p>三件事，跑完把输出贴给我：</p>
+
+<ol>
+  <li><code>./venv/bin/python mc_price.py drift</code> —— 确认你那台机器上也复现出这张表。</li>
+  <li><code>./venv/bin/python mc_price.py converge</code> —— 看误差怎么随路径数下降。<strong>问题：路径数 ×100，误差大约变成原来的几分之一？这个规律叫什么？</strong></li>
+  <li>改一行代码：把 <code>payoff</code> 改成<strong>看跌期权(put)</strong> <code>np.maximum(K - s_t, 0)</code>，用 μ = r 跑一次。<strong>问题：得到的价格是多少？把它和看涨的 10.45 一起代入 <code>C − P = S₀ − K·e^(−rT)</code>，等式成立吗？</strong>（这叫看跌看涨平价，是一条不需要任何模型就成立的关系——L2 的开胃菜。）</li>
+</ol>
+
+<p>还有一个思考题，不用跑代码：<strong>拖动上面组件的 σ 滑块，价格是单调上升的。为什么"更不确定"会让一份合约<em>更值钱</em>？</strong>（提示：回到 <code>max(·, 0)</code> 的不对称性。）</p>
+
+<div class="source-box">
+  <div class="label">首选精读源</div>
+  <p style="margin:0 0 0.5rem"><strong><a href="https://intro.quantecon.org/monte_carlo.html">QuantEcon — Monte Carlo and Option Pricing</a></strong></p>
+  <p style="margin:0">开源、代码优先、和这节课同一条路子：模拟终值 → 算 payoff → 折现取平均，并明确说明它采用风险中性定价、"忽略投资者的风险偏好"。读它的代码部分，跟你刚跑的脚本对照。<br>
+  想要纸质主线教材：<strong>Hull, <em>Options, Futures, and Other Derivatives</em></strong>——第 1、10、13 章正好覆盖本课（见 <a href="../RESOURCES.md">RESOURCES.md</a>）。</p>
+</div>
+
+<div class="lesson-foot">
+  <div class="ask">
+    <strong>我是你的老师，随时问。</strong>特别是这几种情况：数学补给块看不懂（说明我垫得不够低，那是我的问题不是你的）；"μ 被对冲掉"这句话你还没真的接受（很好，你<em>不应该</em>就这么接受，L2 就是来证明它的）；或者你想知道这套东西在实盘上怎么失效。
+  </div>
+  <div class="nav">
+    <span>词表 · <a href="../reference/glossary.html">glossary.html</a></span>
+    <span>下一课 · L2 复制论证：为什么偏偏是 r</span>
+  </div>
+</div>
+
+</div>
+<script src="../assets/quiz.js"></script>
+<script src="../assets/mc-pricer.js"></script>
+</body>
+</html>

@@ -39,6 +39,42 @@ def backtest(df, fee=FEE, funding=FUNDING):
     return df
 
 
+def backtest_next_open(df, fee=FEE, funding=FUNDING):
+    """L24: the same backtest under an HONEST stock fill — next open, not this close.
+
+    `backtest()` above assumes you compute the signal at a bar's close and get
+    filled at THAT close. Crypto never closes, so that is defensible. A stock
+    exchange is shut when the signal exists; the earliest you can trade is the
+    NEXT OPEN, and L23 measured that the skipped overnight window is where most
+    of the return lives (SPY 62%, KO 92%).
+
+    Two things change together, and the second one is the trap:
+
+      1. Accounting moves to OPEN-to-OPEN. `open.pct_change()` at row t is the
+         return from open[t-1] to open[t].
+      2. The lag becomes shift(2), NOT shift(1). To earn the open[t-1]->open[t]
+         move you must already be positioned AT open[t-1], so the decision has
+         to be made with data available before it — at close[t-2]. Reusing
+         shift(1) here would fill you at an open using a signal computed at the
+         close that comes AFTER it: a brand-new look-ahead bug, introduced by
+         the very change meant to make the backtest more honest.
+
+    Takes `signal` (not `position`) because the lag is this function's business.
+    """
+    df = df.copy()
+    df["ret"] = df["open"].pct_change()                   # open[t-1] -> open[t]
+    df["position"] = df["signal"].shift(2)                # see docstring
+    df["strat_ret"] = df["position"] * df["ret"]
+    df["trade"] = df["position"].diff().abs()
+    df["cost"] = df["trade"] * fee + df["position"].abs() * funding
+    df["strat_ret_net"] = df["strat_ret"] - df["cost"]
+
+    df["equity_gross"] = (1 + df["strat_ret"].fillna(0)).cumprod()
+    df["equity_net"] = (1 + df["strat_ret_net"].fillna(0)).cumprod()
+    df["equity_hold"] = (1 + df["ret"].fillna(0)).cumprod()
+    return df
+
+
 def report(df, fast, slow, fee):
     total_net = df["equity_net"].iloc[-1] - 1
     total_gross = df["equity_gross"].iloc[-1] - 1

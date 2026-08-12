@@ -41,7 +41,7 @@ trades     = int(df["trade"].sum())             # 总成交笔数</code></pre>
   <table>
     <thead><tr><th>纪律</th><th>怎么落实</th></tr></thead>
     <tbody>
-      <tr><td>① 不用未来信息</td><td><code>position = signal.shift(1)</code>;丢掉未收盘 K 线</td></tr>
+      <tr><td>① 不用未来信息</td><td><code>position = signal.shift(1)</code>;丢掉未收盘 K 线。<strong>延迟由收益区间的起点决定,不是常数</strong>——见下</td></tr>
       <tr><td>② 扣掉交易成本</td><td><code>trade × FEE</code>,含手续费 + 滑点</td></tr>
       <tr><td>③ 和"躺平"比</td><td>永远对比 <code>equity_hold</code>(买入持有)</td></tr>
     </tbody>
@@ -51,9 +51,28 @@ trades     = int(df["trade"].sum())             # 总成交笔数</code></pre>
   <pre><code># pip install matplotlib
 df[["equity_net", "equity_hold"]].plot(figsize=(10, 5))</code></pre>
 
+  <h2>成交假设:收盘成交 vs 次日开盘(L24)</h2>
+  <p><code>shift(1)</code> + 收盘价收益 = "<strong>收盘算信号,按那个收盘价成交</strong>"。crypto 永不收市,成立;股票在信号存在时已收市,最早只能次日开盘。</p>
+  <pre><code># 诚实的股票成交:两处一起改,少改一处就是新的前视 bug
+df["ret"]      = df["open"].pct_change()   # open[t-1] -> open[t]
+df["position"] = df["signal"].shift(<strong>2</strong>)     # 不是 1</code></pre>
+  <table>
+    <thead><tr><th>成交假设</th><th>收益列</th><th>延迟</th><th>为什么</th></tr></thead>
+    <tbody>
+      <tr><td>收盘成交(crypto)</td><td><code>close.pct_change()</code></td><td><code>shift(1)</code></td><td>区间起点是 <code>close[t−1]</code>,决策用 <code>close[t−1]</code></td></tr>
+      <tr><td>次日开盘(股票)</td><td><code>open.pct_change()</code></td><td><code>shift(2)</code></td><td>区间起点是 <code>open[t−1]</code>,决策只能用 <code>close[t−2]</code></td></tr>
+    </tbody>
+  </table>
+  <div class="callout tip">
+    <span class="label">这个改动值多少钱?一条实测过的公式</span>
+    <p style="margin:0 0 0.5rem"><strong>年化损失 ≈ 换手/年 × 每笔跳空成本</strong>,其中每笔跳空成本 <code>= 换仓方向 × (open[t+1]/close[t] − 1)</code>。在 5 标的 × 4 策略 = 20 个格子上验证,误差几乎都 &lt;0.2%。</p>
+    <p style="margin:0 0 0.5rem"><strong>换手是唯一的放大器。</strong> 低换手策略(4 次/年)几乎不受影响——哪怕隔夜段承载了总收益的 92%:那个数字关于<em>持有</em>,跳空只在<em>换仓那天</em>作用于你。</p>
+    <p style="margin:0"><strong>但符号是随机的。</strong> 20 格里变差 10、变好 10,面板均值 +0.03%/年,单格 −2.2% ~ +4.3%。跳空是<strong>无偏噪声</strong>,不改变期望、只放大方差。所以改它不是为了省成本,是为了<strong>让你的夏普里不再掺着分不清的运气</strong>。换手越高,掺得越多。</p>
+  </div>
+
   <div class="callout warn">
     <span class="label">这个配方的简化假设(要心里有数)</span>
-    按<strong>收盘价即时成交</strong>、成本<strong>固定</strong>、<strong>无部分成交/无资金约束</strong>、无爆仓/保证金。够用来快速筛选策略,但实盘前需用 <a href="https://www.freqtrade.io/en/stable/">freqtrade</a> / <a href="https://vectorbt.dev/">vectorbt</a> 等引擎做更真实的验证。
+    成本<strong>固定</strong>、<strong>无部分成交/无资金约束</strong>、无爆仓/保证金、成交价就是 OHLC 里的某一个(没有盘口深度)。够用来快速筛选策略,但实盘前需用 <a href="https://www.freqtrade.io/en/stable/">freqtrade</a> / <a href="https://vectorbt.dev/">vectorbt</a> 等引擎做更真实的验证。完整的"回测 vs 实盘"差距清单见 <a href="https://www.quantconnect.com/docs/v2/writing-algorithms/reality-modeling/key-concepts">QuantConnect Reality Modeling</a>。
   </div>
 
   <div class="lesson-foot">

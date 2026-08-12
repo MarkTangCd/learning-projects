@@ -12,8 +12,10 @@ import pandas as pd
 
 from backtest import backtest
 from strategy import fetch_ohlcv, sma_crossover_signal
+from trading_calendar import bars_per_year_of
 
-BARS_PER_YEAR = 365  # daily crypto candles trade 7x24 -> ~365 bars/year
+BARS_PER_YEAR = 365  # crypto daily. NO LONGER THE DEFAULT (L23) — kept as a
+                     # name for scripts that deliberately force this calendar.
 
 
 def max_drawdown(equity):
@@ -23,17 +25,28 @@ def max_drawdown(equity):
     return drawdown.min()
 
 
-def sharpe(returns, bars_per_year=BARS_PER_YEAR):
-    """Annualized Sharpe ratio (risk-free rate assumed 0 for simplicity)."""
+def sharpe(returns, bars_per_year=None):
+    """Annualized Sharpe ratio (risk-free rate assumed 0 for simplicity).
+
+    bars_per_year=None INFERS the calendar from the series' own DatetimeIndex
+    (L23). It used to default to 365, which was silently wrong by +20.4% on
+    every stock. Pass a number to override — stocks.py does exactly that to run
+    the same returns under both calendars on purpose.
+    """
     r = returns.dropna()
     if r.std() == 0:
         return float("nan")
-    return r.mean() / r.std() * (bars_per_year ** 0.5)
+    return r.mean() / r.std() * (bars_per_year_of(r, bars_per_year) ** 0.5)
 
 
-def cagr(equity, bars_per_year=BARS_PER_YEAR):
-    """Compound annual growth rate from an equity curve starting at 1.0."""
-    years = len(equity) / bars_per_year
+def cagr(equity, bars_per_year=None):
+    """Compound annual growth rate from an equity curve starting at 1.0.
+
+    Same inference as sharpe(). The 365 bug hit CAGR through a different door:
+    years = bars/365 turned 10 years of stock data into 6.9, compressing the
+    same total return into fewer years and overstating the annual rate.
+    """
+    years = len(equity) / bars_per_year_of(equity, bars_per_year)
     return equity.iloc[-1] ** (1 / years) - 1
 
 

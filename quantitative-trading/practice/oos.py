@@ -10,20 +10,20 @@ Reuses L4 backtest() + L5 metrics. One signal, reused everywhere (L1 rule).
 import math
 
 from backtest import backtest
-from metrics import BARS_PER_YEAR, cagr, max_drawdown, sharpe
+from metrics import cagr, max_drawdown, sharpe
 from strategy import fetch_ohlcv, sma_crossover_signal
 
 TRAIN_FRAC = 0.7
 GRID = [(f, s) for f in (5, 10, 20, 30) for s in (40, 60, 90, 120) if f < s]
 
 
-def score(net_returns, bars_per_year=BARS_PER_YEAR):
+def score(net_returns, bars_per_year=None):
     """Scorecard for a slice, rebuilt from its own per-bar net returns.
 
-    bars_per_year defaults to 365 (crypto trades 7x24), which keeps every lesson
-    L5-L22 byte-identical. STOCKS TRADE ~252 DAYS A YEAR — leaving this at 365
-    inflates Sharpe by sqrt(365/252) = 1.20 and misstates CAGR. Pass the right
-    calendar when you leave crypto (see stocks.py).
+    bars_per_year=None INFERS the calendar from the slice's own DatetimeIndex
+    (L23). This used to default to 365, correct for crypto and silently wrong
+    by sqrt(365/252) = 1.20 on stocks. Crypto results are unchanged: inference
+    measures 365.2 and snaps to the same 365 it always used.
     """
     r = net_returns.dropna()
     equity = (1 + r).cumprod()

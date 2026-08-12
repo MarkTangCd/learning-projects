@@ -16,7 +16,7 @@
   <p>一个回测过的 <code>df</code>(来自 <a href="backtest-recipe.html">向量化回测配方</a>),含 <code>equity_net</code>、<code>strat_ret_net</code>、<code>ret</code>、<code>equity_hold</code>。</p>
 
   <h2>三个指标</h2>
-  <pre><code>BARS_PER_YEAR = 365   # 日线 crypto:7×24,约 365 根/年;4h 线用 365×6
+  <pre><code>BARS_PER_YEAR = infer_bars_per_year(df.index)   # 实测,别写死(见下方"年化因子")
 
 # ① 最大回撤:从历史高点跌到之后谷底的最大跌幅(≤0,越接近 0 越好)
 roll_max = df["equity_net"].cummax()
@@ -46,8 +46,14 @@ cagr = df["equity_net"].iloc[-1] ** (1 / years) - 1</code></pre>
   </div>
 
   <div class="callout tip">
-    <span class="label">年化因子怎么定</span>
-    Sharpe / CAGR 里的 <code>BARS_PER_YEAR</code> 取决于 K 线周期:日线 ≈ 365(crypto)或 252(传统股票交易日);4h 线 = 365×6;1h 线 = 365×24。用错因子,数字全错。
+    <span class="label">年化因子怎么定:实测,别写死(L23)</span>
+    写死一个数,换市场就静默出错:365 跑股票,夏普恒定虚高 <code>sqrt(365/252)=1.204</code>(<strong>+20.4%</strong>),而且<strong>不抛任何异常</strong>。改成从数据的 <code>DatetimeIndex</code> 推断,三道闸门缺一不可:
+    <ol style="margin:0.5rem 0 0;padding-left:1.2rem">
+      <li><strong>数 bar,别量间隔。</strong> 股票日线的 bar 间隔<em>也是</em>一天 —— 量间隔会给股票算出 365。年化要的是"一年几个观测",所以 <code>(len−1) / 跨越年数</code>。<code>len−1</code> 不能省:跨度只覆盖 n−1 个间隔,漏掉会让 63 根的窗口读成 256(+1.6%)。</li>
+      <li><strong>吸附到已知日历。</strong> 原始估计随窗口抖动(90 根折:244–258)。返回带小数的原始值会让每个 walk-forward 折拿到不同除数,折间夏普不可比。吸附回 {365, 2190, 8760, 252, 1638} 之一,同时保证 crypto 结果和以前<strong>逐字节相同</strong>(365.2 → 365)。</li>
+      <li><strong>对不上就抛,绝不猜。</strong> 自动推断没有消灭静默失败,只是换了个地方:数据有洞(拼接/停牌/下载中断)会稀释估计。再加一道<strong>最大间隔检查</strong> —— SPY 最大正常间隔 4 天 = 中位数的 4 倍,超过 10 倍即报错。光靠"离已知日历 &gt;10%"抓不住小洞。</li>
+    </ol>
+    <p style="margin:0.5rem 0 0">同一个常数还有<strong>第二个受害者</strong>:<code>weight = target_vol / rv</code> 里 <code>rv</code> 在<em>分母</em>,所以 365 跑股票会把仓位<strong>压小 17.0%</strong> —— 与夏普反向。更糟的是它在夏普上<strong>看不见</strong>(仓位同比例缩放,均值和标准差一起缩,比值不变)。实现见 <code>practice/trading_calendar.py</code>,自检 <code>python trading_calendar.py</code>。</p>
   </div>
 
   <div class="lesson-foot">

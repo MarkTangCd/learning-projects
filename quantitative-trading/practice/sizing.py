@@ -18,12 +18,26 @@ with a noisy estimate it over-bets and blows up. Vol targeting is also a risk
 tool: it caps how much a wrong signal can cost.
 """
 
-PERIODS_PER_YEAR = 365   # crypto trades 24/7; daily bars
+from trading_calendar import bars_per_year_of
+
+PERIODS_PER_YEAR = 365   # crypto daily. NO LONGER THE DEFAULT (L23) — kept as a
+                         # name for scripts that deliberately force this calendar.
 
 
-def realized_vol(returns, window=20, periods_per_year=PERIODS_PER_YEAR):
-    """Annualized rolling realized volatility from per-bar returns."""
-    return returns.rolling(window).std() * (periods_per_year ** 0.5)
+def realized_vol(returns, window=20, periods_per_year=None):
+    """Annualized rolling realized volatility from per-bar returns.
+
+    periods_per_year=None INFERS the calendar from the series' DatetimeIndex.
+    The old 365 default did damage here OPPOSITE in sign to the one it did to
+    Sharpe: P sits in the numerator of rv, but rv sits in the DENOMINATOR of
+    weight = target_vol / rv. So on stocks it over-stated vol by +20.4% and
+    therefore UNDER-SIZED every position by 17.0% (measured: `stocks.py size`).
+    Sharpe reads too high while the machine actually bets too small — and
+    because a constant scaling cancels in mean/std, the under-sizing is
+    INVISIBLE in the Sharpe you would use to spot it.
+    """
+    ann = bars_per_year_of(returns, periods_per_year) ** 0.5
+    return returns.rolling(window).std() * ann
 
 
 def vol_target_position(df, target_vol=0.20, window=20, max_leverage=3.0):

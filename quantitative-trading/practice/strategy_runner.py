@@ -32,7 +32,7 @@ import time
 
 from execution import connect, guarded_create, show_order, SYMBOL
 from strategy import fetch_ohlcv, regime_switch_signal
-from sizing import vol_target_weight
+from sizing import realized_vol, vol_target_weight
 
 TIMEFRAME = "1d"
 ALLOCATED_CAPITAL = 40.0    # $ given to this strategy; sizing base (stays < $50 gate)
@@ -86,7 +86,9 @@ def tick(ex, forced_target=None, target_vol=TARGET_VOL):
     delta_value = target_value - current_value
 
     tag = "手动覆盖" if forced_target is not None else "信号"
-    rv_ann = ret.rolling(VOL_WINDOW).std().iloc[-1] * (365 ** 0.5)
+    # L23: annualize off the INFERRED calendar, not a hardcoded 365 — this line
+    # is what the display shows, so a stale constant here lies to your eyes too.
+    rv_ann = realized_vol(ret, VOL_WINDOW).iloc[-1]
     print(f"[{bar_key}] {SYMBOL} ${price:,.2f} | {tag}={signal} 当前波动 {rv_ann:.0%} "
           f"-> 权重 {weight:.2f} 目标仓位 {target_weight:.2f}")
     print(f"  目标敞口 ${target_value:.2f}  当前 ${current_value:.2f}  "
