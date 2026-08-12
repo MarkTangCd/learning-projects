@@ -273,6 +273,21 @@
 
     <dt>全仓 / 逐仓 <span class="en">Cross / Isolated Margin</span></dt>
     <dd><strong>逐仓</strong>:为单张仓位划出孤立保证金,亏光即止,损失被关在笼子里。<strong>全仓</strong>:整个钱包给所有仓位垫背,小单几乎打不爆(实测 $57 空单爆仓价 559 万),代价是<strong>真爆时赔的是全部</strong>。结论:<strong>爆仓价不是仓位的属性,是「仓位+抵押品」的属性</strong>。测试网默认全仓——"我的爆仓价好远"是全仓在顶,不是安全。见 <a href="../lessons/0021-leverage-margin-liquidation.html">L21</a>。</dd>
+
+    <dt>成交假设 <span class="en">Fill Assumption</span></dt>
+    <dd>回测里"信号变成成交价"用的那条规则。收盘算信号<strong>按当根收盘成交</strong>在 crypto 成立(永不收市),在股票是物理不可能——诚实版是<strong>次日开盘</strong>,且延迟须重算为 <code>shift(2)</code>(收益区间起点提前了一根 bar;留 shift(1) = 亲手引入新前视)。实测:跳空对信号是<strong>无偏噪声</strong>(20 格 10 好 10 坏,面板均值 ≈0),不改期望只放大方差,<strong>换手是唯一放大器</strong>;主流框架(backtrader)默认就是次日开盘,同根成交的开关叫 <code>cheat_on_open</code>。见 <a href="../lessons/0024-honest-fills-next-open.html">L24</a>。</dd>
+
+    <dt>预注册 <span class="en">Pre-registration</span></dt>
+    <dd>在打开判决数据<strong>之前</strong>,把假设、样本、方法、判读阈值和每格对应的<strong>行动</strong>登记在案,然后只跑一次、结果照收。锁的不是参数(walk-forward 已锁)、不是选参方差(高原选法已压),是最后一个自由度:<strong>裁判本人</strong>。区分两种合法活动:生成假设(看数据找模式,L12–L21)与检验假设(先押注后看牌)——<strong>混用才是罪</strong>。模板见 <a href="preregistration-checklist.html">预注册清单</a>。见 <a href="../lessons/0025-preregistered-stock-holdout.html">L25</a>。</dd>
+
+    <dt>研究者自由度 <span class="en">Researcher Degrees of Freedom</span></dt>
+    <dd>每个"事后才做"的决定(挑哪个指标、算不算这只票、阈值取多少)都是一个岔路口;看过结果的人会不自觉走向让结果好看的那条。危险在于<strong>不改任何数字</strong>——数据全诚实,被扭曲的是"哪个数字算数",所以代码审查抓不到,只有时间顺序(判据在前、数据在后)能证明。心理学复现危机(100 项研究仅约 1/3 复现)的主因,也是"回测好看、实盘归零"的流程根源。见 <a href="../lessons/0025-preregistered-stock-holdout.html">L25</a>。</dd>
+
+    <dt>多重检验账本 <span class="en">Multiple-Testing Ledger</span></dt>
+    <dd>一份清单:判决数据被"看"过几次、每次改变了什么决定。独立性的可执行判准是问<strong>决策</strong>:有没有旋钮因这些数字而改变?没有 → 选择层干净;见过相关数字 → 软污染,如实记录(它削弱预测的盲度,不摧毁检验)。L22 的 0.67 无法做多重检验修正,正是因为这本账没记——看过多少次已数不清。见 <a href="../lessons/0025-preregistered-stock-holdout.html">L25</a>。</dd>
+
+    <dt>三态判读表 <span class="en">Three-state Verdict Table</span></dt>
+    <dd>预注册的核心交付物:支持 / 反驳 / 含糊(可加"惊喜"),每格阈值是<strong>数字</strong>,每格接一个<strong>行动</strong>。两条硬规则:写不出行动的判据是装饰;<strong>四格里不允许出现"再试一次"</strong>。含糊格的默认行动 = 按「不上钱」处理。见 <a href="../lessons/0025-preregistered-stock-holdout.html">L25</a>。</dd>
   </dl>
 
   <div class="lesson-foot">

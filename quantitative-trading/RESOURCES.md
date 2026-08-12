@@ -47,6 +47,14 @@
 - [TA-Lib](https://ta-lib.org/) — 200+ 技术指标与 K 线形态,业界标准(2001 至今)。
 - [pandas-ta-classic](https://github.com/xgboosted/pandas-ta-classic) — 纯 Python、200+ 指标。**注意:** 原 `pandas-ta` 2025 年转商业、原仓库已 404,这是当前推荐的开源续维护分支。
 
+### 研究方法论(诚实回测/预注册)
+- [Nosek et al. · The Preregistration Revolution(PNAS 2018)](https://www.pnas.org/doi/10.1073/pnas.1708274114)
+  预注册的经典论述:生成假设(postdiction)与检验假设(prediction)都合法,混用才是罪。**用于:** L25 判决流程的理论底座。
+- [AsPredicted — 预注册模板](https://aspredicted.org/)
+  沃顿维护,8 个问题写完一份预注册。**用于:** 任何"结果将驱动不可逆决定"的运行前,对照自查。
+- [Bailey & López de Prado — Pseudo-Mathematics and Financial Charlatanism](https://www.ams.org/notices/201405/rnoti-p458.pdf)
+  回测过拟合与多重检验的数学(L15 首选源,与预注册同族)。**用于:** 理解为什么"看过多少次"必须记账。
+
 ## Wisdom(Communities)
 - [r/algotrading](https://www.reddit.com/r/algotrading/) — 最大的散户/独立算法交易社区(策略、基建、数据、券商)。**用于:** 策略吐槽、基建选型。
 - [r/quant](https://www.reddit.com/r/quant/) — 更偏学术/职业的量化金融社区。**用于:** 方法论、职业向讨论。

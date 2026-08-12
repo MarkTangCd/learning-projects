@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>参考 · 预注册清单</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">参考文档 · 常读常新</p>
+  <h1>预注册清单</h1>
+  <p class="subtitle">在打开判决数据之前,把裁判也锁进笼子。配 <a href="../lessons/0025-preregistered-stock-holdout.html">L25</a>;首次实战见 <a href="../lessons/0022-parameter-stability.html">L22</a> 的留出集判决。</p>
+
+  <h2>什么时候需要它</h2>
+  <p>任何"这次的结果要用来做<strong>不可逆决定</strong>"的运行:上真钱之前的最后检验、一段从未打开过的留出数据、换市场/换资产的独立复现。日常研究迭代不用——预注册锁的是<strong>判决</strong>,不是探索。生成假设(看数据找模式)与检验假设(先押注后看牌)都合法,<strong>混用才是罪</strong>。</p>
+
+  <h2>七步,按顺序,一步都不能换位</h2>
+  <table>
+    <thead><tr><th>#</th><th>步骤</th><th>检查问题</th></tr></thead>
+    <tbody>
+      <tr><td>①</td><td><strong>冻结机器</strong></td><td>每个旋钮列出来:值是多少,定于哪一课/哪个数据?有没有哪个是"待会儿看情况"?有 = 没冻结。</td></tr>
+      <tr><td>②</td><td><strong>记多重检验账本</strong></td><td>判决数据被"看"过几次?每次看改变了什么决定?选择层干净(没有旋钮因它而变)才算独立;软污染(见过相关数字)如实记录。</td></tr>
+      <tr><td>③</td><td><strong>写死移植决定</strong></td><td>不得不为新场子改的旋钮(费率/杠杆帽/折长/成交假设),每条能否指出<strong>来自哪条规则</strong>?"两个都跑跑看再选"= 作废。</td></tr>
+      <tr><td>④</td><td><strong>定样本与主判据</strong></td><td>标的怎么选的(规则,非挑选)?判决只读哪一行/哪个方法?其余输出明确标为背景。</td></tr>
+      <tr><td>⑤</td><td><strong>写三态判读表</strong></td><td>支持 / 反驳 / 含糊(可加"惊喜"),每格阈值是数字,每格接一个<strong>行动</strong>。写不出行动的判据是装饰。四格里不允许出现"再试一次"。</td></tr>
+      <tr><td>⑥</td><td><strong>排练机制</strong></td><td>管路在<strong>已烧掉的数据</strong>上验通。排练数字无论多好看,证据价值为零(那是机器出生的数据)。</td></tr>
+      <tr><td>⑦</td><td><strong>跑一次,落档,照收</strong></td><td>运行留下带时间戳的档案(marker 文件/commit)。结果落进哪格就执行哪格的行动——尤其当你不喜欢它的时候。</td></tr>
+    </tbody>
+  </table>
+
+  <h2>判读表模板</h2>
+  <pre><code>H1(主命题):&lt;指标&gt; &lt;比较符&gt; &lt;数字阈值&gt; 于 ≥ k/n 个标的
+H2(对立面):&lt;第二指标的预期方向&gt;
+
+支持   H1 ✓ 且 H2 ✓   -> 行动:________
+反驳   H1 ✗           -> 行动:________
+惊喜   &lt;反向大幅超预期&gt; -> 行动:________
+含糊   其余一切         -> 行动:按「不上钱」处理</code></pre>
+
+  <h2>三条最容易犯的错</h2>
+  <table>
+    <thead><tr><th>错</th><th>为什么致命</th></tr></thead>
+    <tbody>
+      <tr><td>事后换判据("夏普不行看回撤")</td><td>数字全诚实,裁判被换了——代码审查抓不到,只有时间顺序能证明</td></tr>
+      <tr><td>重跑挑好看的那次</td><td>每多跑一次,"最好一次"的期望就上移一截;落档 + 重跑摩擦是故意设计的</td></tr>
+      <tr><td>把排练数字当证据</td><td>已烧数据上机器必然好看——它就是在那段数据上出生的</td></tr>
+    </tbody>
+  </table>
+
+  <h2>实例对照</h2>
+  <p>课程里的两次真实预注册,可当范文:<code>practice/holdout.py</code>(L22,跨时间)与 <code>practice/holdout_stocks.py</code>(L25,跨市场)的文件头。外部模板:<a href="https://aspredicted.org/">AsPredicted</a>(8 问);理论出处:<a href="https://www.pnas.org/doi/10.1073/pnas.1708274114">Nosek et al., PNAS 2018</a>。</p>
+
+  <div class="lesson-foot">
+    <div class="ask">
+      <strong>提醒:</strong>预注册不产生 edge,它只保证你读到的结果是真的。机器烂,预注册会诚实地告诉你它烂——那正是它的价值。
+    </div>
+    <div class="nav">
+      <a href="../lessons/0025-preregistered-stock-holdout.html">← 回到 L25</a>
+      <a href="out-of-sample-recipe.html">样本外验证配方 →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
