@@ -1,0 +1,176 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>参考卡 · 夏普比率</title>
+<link rel="stylesheet" href="../assets/styles.css">
+
+<div class="wrap">
+
+<p class="kicker">Reference · 绩效指标</p>
+<h1>夏普比率</h1>
+<p class="subtitle">一个公式,四个决定。你以为你在读一个数字,其实你在读四个选择。</p>
+
+<h2>公式</h2>
+
+<pre><code>Sharpe = mean(r - rf) / std(r) * sqrt(N)
+
+  r    收益序列(每根 bar 一个数)
+  rf   同周期的无风险利率
+  std  收益的标准差
+  N    一年有多少个 bar —— 年化因子</code></pre>
+
+<p>字面意思:<strong>每承担一单位波动,换来多少超额收益</strong>;乘 <code>sqrt(N)</code>
+把它折算成"一年"的口径,好让日线和月线能互相比较。</p>
+
+<p>为什么是 <code>sqrt(N)</code> 而不是 <code>N</code>:收益按 <strong>N 倍</strong>累加,
+但独立同分布的波动只按 <strong>sqrt(N) 倍</strong>累加。分子涨 N,分母涨 √N,比值涨 √N。</p>
+
+<h2>四个决定(公式没告诉你的部分)</h2>
+
+<table>
+  <tr><th>决定</th><th>选项</th><th>影响</th></tr>
+  <tr>
+    <td><strong>① 用哪条收益序列</strong></td>
+    <td>日 / 周 / 月 / 年;账户净值收益 vs 持仓收益</td>
+    <td><strong>最大</strong>。同一策略,日线 n=1000 vs 年线 n=4,是两个完全不同的统计量</td>
+  </tr>
+  <tr>
+    <td><strong>② 年化因子 N</strong></td>
+    <td>股票 252,crypto 365,周线 52,月线 12</td>
+    <td>crypto 上误用 252 → 系统性虚低 <code>sqrt(365/252)=1.2035</code> 倍</td>
+  </tr>
+  <tr>
+    <td><strong>③ 无风险利率 rf</strong></td>
+    <td>0 / 当期国债 / 某个写死的常数</td>
+    <td>短样本、低收益时影响大;<strong>还要注意它减在年化前还是年化后</strong></td>
+  </tr>
+  <tr>
+    <td><strong>④ 标准差的自由度</strong></td>
+    <td><code>ddof=0</code>(总体)/ <code>ddof=1</code>(样本)</td>
+    <td>n 大时可忽略;<strong>n=4 时差 15%</strong>。pandas 默认 ddof=1,numpy 默认 0</td>
+  </tr>
+</table>
+
+<div class="callout warn">
+  <span class="label">报数字时必须一起报的</span>
+  「Sharpe 0.83」是一句<strong>不完整的话</strong>。完整版是:
+  「日收益、n=1912、rf=0、ddof=0、年化因子 252,Sharpe 0.83」。
+  两个人报的 Sharpe 对不上,九成是这四项里有一项不一样,而不是策略不一样。
+</div>
+
+<h2>手算(用你自己 L1 的数字)</h2>
+
+<pre><code>import pandas as pd, numpy as np
+
+r = pd.Series(strat.analyzers.ret.get_analysis())   # TimeReturn(timeframe=Days)
+sharpe = r.mean() / r.std(ddof=0) * np.sqrt(365)    # crypto -> 365</code></pre>
+
+<table>
+  <tr><th></th><th>mean(r)</th><th>std(r)</th><th>n</th><th>N</th><th>Sharpe</th></tr>
+  <tr><td>BTC</td><td class="num">0.000374</td><td class="num">0.015678</td><td class="num">1000</td><td class="num">365</td><td class="num"><strong>0.4559</strong></td></tr>
+  <tr><td>SPY</td><td class="num">0.000367</td><td class="num">0.007027</td><td class="num">1912</td><td class="num">252</td><td class="num"><strong>0.8281</strong></td></tr>
+</table>
+
+<p>注意 BTC 和 SPY 的<strong>日均收益几乎一样</strong>(0.000374 vs 0.000367)。
+Sharpe 差近一倍,全部来自分母——BTC 的日波动是 SPY 的 2.2 倍。
+这就是 Sharpe 在说的唯一一件事:<strong>同样的钱,你付了多少颠簸</strong>。</p>
+
+<h2>backtrader 的默认值,拆开看</h2>
+
+<p>源码:<code>backtrader/analyzers/sharpe.py</code>。默认参数:</p>
+
+<pre><code>timeframe    = TimeFrame.Years   # 用【年度】收益序列,不是日收益
+riskfreerate = 0.01              # 写死 1%
+convertrate  = True              # 把年利率折算到 timeframe(Years -> 因子 1,不变)
+annualize    = False             # 不再乘 sqrt(N)
+stddev_sample= False             # ddof=0
+factor       = None              # 走内置表 {Days:252, Weeks:52, Months:12, Years:1}</code></pre>
+
+<p>所以 <code>bt.analyzers.SharpeRatio</code> 不加参数时,算的是:</p>
+
+<pre><code>mean(年度收益 - 0.01) / std_总体(年度收益)</code></pre>
+
+<p>用 BTC 那份 1000 根日线实测复现(<code>TimeReturn(timeframe=Years)</code> 导出年度收益):</p>
+
+<table>
+  <tr><th>年份</th><th>年度收益</th></tr>
+  <tr><td>2023(仅 11-16 起,1.5 个月)</td><td class="num">+0.0000</td></tr>
+  <tr><td>2024</td><td class="num">+0.5454</td></tr>
+  <tr><td>2025</td><td class="num">−0.1211</td></tr>
+  <tr><td>2026(仅到 08-11,残年)</td><td class="num">−0.0527</td></tr>
+</table>
+
+<pre><code>ex = yr - 0.01
+ex.mean() / ex.std(ddof=0)   ->  0.3130781175
+框架默认返回                  ->  0.3130781174566167   # 逐位吻合</code></pre>
+
+<div class="callout warn">
+  <span class="label">这个默认值的问题</span>
+  <strong>n = 4</strong>,其中<strong>两个是残年</strong>(2023 只有 1.5 个月,2026 只到 8 月)。
+  用 4 个样本(含 2 个不可比样本)算标准差,统计上没有意义。
+  而它<strong>不报错、不警告、返回一个长得很像 Sharpe 的数</strong>。
+  <br>更早的实测里数据更短、折不出 ≥2 个年度收益时,它<strong>静默返回 <code>None</code></strong>——
+  同一个 API,失败模式随数据长度改变。
+</div>
+
+<h3>让它诚实的写法</h3>
+
+<pre><code>cerebro.addanalyzer(
+    bt.analyzers.SharpeRatio,
+    timeframe=bt.TimeFrame.Days,   # ① 用日收益
+    compression=1,
+    annualize=True,                # 乘 sqrt(factor)
+    factor=365,                    # ② crypto 用 365;股票 252。【必须显式写】
+    riskfreerate=0.0,              # ③ 明确 rf
+)                                  # ④ stddev_sample 默认 False = ddof=0</code></pre>
+
+<div class="callout">
+  <span class="label">factor 为什么必须显式写</span>
+  <code>annualize=True</code> 而不给 <code>factor</code> 时,它查内置表 <code>{Days: 252}</code>。
+  这个 252 是<strong>硬编码</strong>的,对 7×24 的 crypto 系统性虚低 1.2035 倍,而且不会提示你。
+</div>
+
+<h2>比数值本身更该看的:它有多不确定</h2>
+
+<p>Sharpe 是从有限样本估出来的,自带误差棒。Lo (2002) 的近似(同周期口径):</p>
+
+<pre><code>SE(Sharpe) ≈ sqrt((1 + Sharpe² / 2) / n)     # n = 样本数,不是年数
+年化时误差棒同样乘 sqrt(N)</code></pre>
+
+<table>
+  <tr><th></th><th>年化 Sharpe</th><th>± 1 SE</th><th>t = SR/SE</th><th>读法</th></tr>
+  <tr><td>BTC</td><td class="num">0.456</td><td class="num">0.604</td><td class="num">0.75</td><td>与 0 <strong>无法区分</strong></td></tr>
+  <tr><td>SPY</td><td class="num">0.829</td><td class="num">0.363</td><td class="num">2.28</td><td>勉强显著(且这是样本内)</td></tr>
+</table>
+
+<p>换句话说:L1 里那个 BTC 的 0.4559,<strong>算得完全正确,但它什么也没证明</strong>。
+把小数点后四位当结论用,是比用错 252 更贵的错误。</p>
+
+<h2>Sharpe 不说的事</h2>
+
+<ul>
+  <li><strong>不分好坏波动</strong>:暴涨和暴跌一样罚。(想只罚下跌 → Sortino)</li>
+  <li><strong>看不见回撤路径</strong>:两个策略 Sharpe 相同,一个最大回撤 10% 一个 50%。(→ Calmar)</li>
+  <li><strong>假设收益独立</strong>:自相关(动量/趋势策略常有)会让 Sharpe 虚高。</li>
+  <li><strong>对肥尾无感</strong>:卖期权式的"天天赚一点、偶尔爆掉"能刷出很高的 Sharpe。</li>
+  <li><strong>不做多重检验校正</strong>:扫 100 组参数取最好的那个 Sharpe,期望值天然大于 0。</li>
+</ul>
+
+<div class="source-box">
+  <div class="label">首选阅读源</div>
+  <a href="https://en.wikipedia.org/wiki/Sharpe_ratio">Wikipedia — Sharpe ratio</a>
+  (公式与历史沿革,注意 ex-ante / ex-post 的区分)。
+  <br>误差棒那节出自 Andrew Lo,
+  <a href="https://alo.mit.edu/wp-content/uploads/2017/06/The-Statistics-of-Sharpe-Ratios.pdf">
+  <em>The Statistics of Sharpe Ratios</em></a> (Financial Analysts Journal, 2002) —— 一手论文,值得读。
+  <br>backtrader 那半张卡的唯一权威来源是<strong>源码</strong>:
+  <code>practice/venv/lib/python3.14/site-packages/backtrader/analyzers/sharpe.py</code>。
+</div>
+
+<div class="lesson-foot">
+  <div class="nav">
+    <a href="./backtrader-api-map.html">← API 地图</a>
+    <a href="../lessons/0002-strategy-and-indicator.html">L2 Strategy & Indicator →</a>
+  </div>
+</div>
+
+</div>

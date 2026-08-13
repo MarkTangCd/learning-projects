@@ -1,0 +1,254 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L2 · Strategy 与 Indicator</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script src="../assets/quiz.js" defer></script>
+
+<div class="wrap">
+
+<p class="kicker">Lesson 02 · backtrader 框架评估</p>
+<h1>Strategy 与 Indicator</h1>
+<p class="subtitle">把你自己的指标搬进框架,并证明它搬对了。
+然后看着一行<strong>从不执行的死代码</strong>把 +28.7% 变成 −11.4%。</p>
+
+<div class="callout">
+  <span class="label">这节课的单一胜利</span>
+  写一个 <strong>你自己的 Indicator</strong>(隔壁那个 Efficiency Ratio),
+  用两种写法实现,与 pandas 版<strong>逐位对拍</strong>——最大偏差 <code>0.00e+00</code>。
+  这证明了一件对使命至关重要的事:<strong>backtrader 不是黑箱,你的存量资产可以迁移且可验证。</strong>
+</div>
+
+<h2>一、Strategy 的五个钩子</h2>
+
+<p>你在 L1 只用了两个:<code>__init__</code> 和 <code>next()</code>。完整的是五个,
+其中两个你可能从没听说过——而它们正是今天那个 bug 的藏身处:</p>
+
+<div class="pipeline">
+  <div class="stage"><div class="n">1</div><div class="t">__init__</div><div class="d">跑一次。只<strong>声明</strong> line 对象,不计算。此时没有任何值。</div></div>
+  <div class="stage"><div class="n">2</div><div class="t">start</div><div class="d">跑一次。数据已挂载,第一根 bar 还没送来。</div></div>
+  <div class="stage"><div class="n">3</div><div class="t">prenext</div><div class="d">每根<strong>预热期</strong>的 bar 调一次。默认什么都不做。<strong>你的 next() 不会被调用。</strong></div></div>
+  <div class="stage"><div class="n">4</div><div class="t">nextstart</div><div class="d">只调一次:预热刚好满足的那根 bar。默认实现 = 调 next()。</div></div>
+  <div class="stage"><div class="n">5</div><div class="t">next</div><div class="d">此后每根 bar 调一次。你的决策写在这。</div></div>
+  <div class="stage"><div class="n">6</div><div class="t">stop</div><div class="d">跑一次。收尾、存结果。</div></div>
+</div>
+
+<pre><code>cd ~/learning-projects/backtrader-framework/practice
+./venv/bin/python l02_strategy_indicator.py hooks</code></pre>
+
+<pre><code>  __init__     声明完毕。self.sma 现在是个 line 对象,还没有值。minperiod=30
+  start()      数据已挂载。策略 minperiod=30
+  prenext()    bar#1  指标还没算够 —— next() 不会被调用
+  prenext()    bar#29 指标还没算够 —— next() 不会被调用
+  nextstart()  bar#30 date=2023-12-15  sma=39721.24  &lt;- 第一根可用的 bar
+  next()       bar#30 sma[0]=39721.24  sma[-1]=nan          &lt;- 注意这个 nan
+  stop()       跑完 60 根 bar,前 29 根被 prenext 吃掉了</code></pre>
+
+<p><span class="term">minperiod</span>:一个 line 需要多少根 bar 才能给出第一个值。
+SMA(30) 的 minperiod 就是 30。<strong>框架自动推断它,自动跳过预热期</strong>——
+你手搓栈里那些 <code>.iloc[window:]</code> / <code>dropna()</code> 是你自己写的,这里白送。</p>
+
+<div class="callout tip">
+  <span class="label">这是真价值</span>
+  自动 minperiod 消灭了一整类前视偏差:<strong>你不可能读到一个还没算够的指标值</strong>,
+  因为那根 bar 上你的 <code>next()</code> 压根不会被调用。
+  但注意 <code>nextstart</code> 那根 bar 上 <code>sma[-1]</code> 仍然是 <code>nan</code>——
+  <strong>指标有值,不代表它的历史有值</strong>。任何 <code>x[0] &gt; x[-1]</code> 式的比较在第一根上都会静默失效。
+</div>
+
+<h2>二、bug 时间:一行死代码</h2>
+
+<p>minperiod 会<strong>向上传染</strong>:策略的 minperiod = 所有已声明指标的最大值。
+"已声明"——不是"已使用"。</p>
+
+<pre><code>def __init__(self):
+    f = bt.ind.SMA(self.data.close, period=10)
+    s = bt.ind.SMA(self.data.close, period=30)
+    self.cross = bt.ind.CrossOver(f, s)
+    self.unused = bt.ind.SMA(self.data.close, period=200)   # 声明了,从不读,不画图</code></pre>
+
+<p><code>self.unused</code> 是纯死代码——注释掉它,买卖逻辑一个字符都不会变。跑跑看:</p>
+
+<pre><code>./venv/bin/python l02_strategy_indicator.py minperiod</code></pre>
+
+<table>
+  <tr><th>多余的指标</th><th>首次 next</th><th>下单</th><th>期末资金</th><th>收益</th></tr>
+  <tr><td>无</td><td>2023-12-16</td><td class="num">38</td><td class="num">12,866</td><td class="num"><strong>+28.7%</strong></td></tr>
+  <tr><td>SMA(50)</td><td>2024-01-04</td><td class="num">38</td><td class="num">12,866</td><td class="num">+28.7%</td></tr>
+  <tr><td>SMA(200)</td><td>2024-06-02</td><td class="num">34</td><td class="num">8,857</td><td class="num"><strong>−11.4%</strong></td></tr>
+</table>
+
+<p>声明了就要算,算了就要等。等的那段时间,回测<strong>还没开始</strong>——
+SMA(200) 把起点从 2023-12 推到 2024-06,吃掉了 4 笔交易,
+其中包含 2024 上半年那波行情。结论从"赚 28.7%"翻转成"亏 11.4%"。</p>
+
+<div class="callout warn">
+  <span class="label">为什么这条特别毒</span>
+  <strong>它是间歇性的。</strong>SMA(50) 同样推迟了起点(晚 19 天),结果却<strong>一模一样</strong>——
+  因为那段窗口里刚好没有信号。所以这个坑<strong>大部分时候不咬人</strong>,
+  你会误以为"多声明几个指标无所谓",直到某次它吃掉了一笔关键交易。
+  没有警告、没有报错、两次运行的输出格式完全相同。
+  <br>这正是你在隔壁课程反复训练的那类 bug:<strong>不报错的错</strong>。
+</div>
+
+<p><strong>怎么防</strong>:任何跨策略/跨参数的对比,先固定一条<strong>共同起点</strong>——
+用 <code>fromdate</code> 明确切数据,或让所有对比组声明同一组指标。
+别让"回测窗口"成为一个由 <code>__init__</code> 里最长那个 period 隐式决定的量。</p>
+
+<div class="quiz" data-answer="2">
+  <div class="q">你把一个策略的 SMA(200) 趋势过滤器删掉了,只留 SMA(10)/SMA(30) 交叉。回测收益变了。最可能的原因是?</div>
+  <button class="opt">交叉信号的计算方式跟着一起改变了</button>
+  <button class="opt">删除指标让每根柱子的手续费下降了</button>
+  <button class="opt">策略的预热期缩短,回测起点提前了</button>
+  <button class="opt">框架把剩余现金重新分配给了新仓位</button>
+  <div class="fb right" data-for="right">对。minperiod 是所有已声明指标的最大值,它决定回测的真实起点。起点变,样本变,结论变。</div>
+  <div class="fb nope" data-for="nope">不是。买卖逻辑与费用都没动。变的是 <strong>minperiod</strong> —— 回测起点提前了,样本不同了。</div>
+</div>
+
+<h2>三、写你自己的 Indicator</h2>
+
+<p>把隔壁 <code>strategy.py</code> 里的 Kaufman Efficiency Ratio 搬进来。
+<code>ER = |window 内净变动| / 走过的总路程</code>,趋近 1 是单边趋势,趋近 0 是震荡。</p>
+
+<h3>写法 A:声明式(在 <code>__init__</code> 里做 line 运算)</h3>
+
+<pre><code>class EfficiencyRatio(bt.Indicator):
+    lines = ("er",)                  # 输出线的名字
+    params = dict(period=20)
+    plotinfo = dict(subplot=True)    # 单独一格画,不叠在价格上
+
+    def __init__(self):
+        c = self.data
+        net = abs(c - c(-self.p.period))                      # c(-n) = 整条线延迟 n 根
+        total = bt.ind.SumN(abs(c - c(-1)), period=self.p.period)
+        self.lines.er = net / total
+        super().__init__()           # minperiod 由操作数自动推断</code></pre>
+
+<p>关键语法:<code>c(-n)</code>(圆括号)是<strong>整条线延迟 n 根</strong>,
+而 <code>c[-n]</code>(方括号)是<strong>当前 bar 往前第 n 个标量值</strong>。
+<code>__init__</code> 里只能用圆括号——那里还没有"当前 bar"。</p>
+
+<h3>写法 B:命令式(自己逐 bar 填线)</h3>
+
+<pre><code>class EfficiencyRatioLoop(bt.Indicator):
+    lines = ("er",)
+    params = dict(period=20)
+
+    def __init__(self):
+        self.addminperiod(self.p.period + 1)     # 这种写法要【自己】声明预热期
+
+    def next(self):
+        n, c = self.p.period, self.data
+        net = abs(c[0] - c[-n])
+        total = sum(abs(c[-i] - c[-i - 1]) for i in range(n))
+        self.lines.er[0] = net / total if total else 0.0</code></pre>
+
+<table>
+  <tr><th></th><th>声明式 A</th><th>命令式 B</th></tr>
+  <tr><td>minperiod</td><td>自动推断</td><td><strong>你自己写</strong>,写错不报错</td></tr>
+  <tr><td>速度</td><td>快(内部批量求值)</td><td>慢(Python 逐 bar 循环)</td></tr>
+  <tr><td>能表达的逻辑</td><td>受限于 line 运算符</td><td>任意(状态机、条件分支)</td></tr>
+  <tr><td>适用</td><td>纯数学变换</td><td>带状态/带记忆的逻辑</td></tr>
+</table>
+
+<h3>对拍</h3>
+
+<pre><code>./venv/bin/python l02_strategy_indicator.py er</code></pre>
+
+<pre><code>            declarative     loop   pandas
+2023-12-06     0.571721 0.571721 0.571721
+2023-12-07     0.499533 0.499533 0.499533
+   ...
+  声明式 vs pandas 最大偏差   0.00e+00
+  循环式 vs pandas 最大偏差   0.00e+00</code></pre>
+
+<p>三种实现逐位吻合。<strong>这是本节课真正的胜利</strong>:
+你手搓栈里的任何指标都能搬进 backtrader,而且你有办法证明它搬对了。
+迁移风险从"未知"降级成"可验证"。</p>
+
+<div class="callout tip">
+  <span class="label">对拍是本课程的标准动作</span>
+  凡是要用框架替代你已有实现的地方,<strong>先跑一次对拍</strong>。
+  L1 那个夏普对上了(所以可信),今天这个 ER 也对上了。
+  L6 会把整条策略拿去对拍——那时对不上,你才知道该怀疑谁。
+</div>
+
+<h2>四、用起来(顺便撞上第二个坑)</h2>
+
+<p>用 ER 给交叉信号加一道"只在趋势市开仓"的闸门:</p>
+
+<pre><code>./venv/bin/python l02_strategy_indicator.py run</code></pre>
+
+<table>
+  <tr><th>er_thresh</th><th colspan="2">BTC 收益 / Sharpe</th><th colspan="2">SPY 收益 / Sharpe</th></tr>
+  <tr><td>0.0(关闭)</td><td class="num"><strong>+28.7%</strong></td><td class="num">0.46</td><td class="num"><strong>+92.2%</strong></td><td class="num">0.83</td></tr>
+  <tr><td>0.2</td><td class="num">−42.4%</td><td class="num">−1.33</td><td class="num">+25.2%</td><td class="num">0.51</td></tr>
+  <tr><td>0.3</td><td class="num">−7.3%</td><td class="num">−0.57</td><td class="num">+0.0%</td><td class="num">0.01</td></tr>
+  <tr><td>0.4</td><td class="num">0.0%</td><td class="num">nan</td><td class="num">0.0%</td><td class="num">nan</td></tr>
+</table>
+
+<p>ER 闸门<strong>在两个市场上都是纯亏损</strong>——一个诚实的否定结果,
+和隔壁 L13 那个 regime switch 的教训一致:多一个旋钮,通常是多一份过拟合面积。</p>
+
+<p>但请注意这张表<strong>本身</strong>的问题:我刚刚在 4 个阈值里挑,而你在看最右边那一列。
+如果 0.3 那格恰好是 +150%,你会不会想"ER 闸门有效"?
+这就是隔壁 L22 的<strong>选择方差</strong>——框架把扫参数变得太便宜,
+而便宜的搜索会稳定地生产出好看的样本内数字。<strong>L7 会正面打这一仗。</strong></p>
+
+<div class="verdict">
+  <div class="col win">
+    <h4>省了</h4>
+    <ul>
+      <li><strong>minperiod 自动推断</strong>:一整类"读到未算够的值"的前视偏差被结构性消灭</li>
+      <li>预热期自动跳过,不用再写 <code>dropna()</code> / <code>.iloc[w:]</code></li>
+      <li>自定义 Indicator 是一等公民:<code>lines</code> + <code>params</code> 两行就能接入全部管线</li>
+      <li>两种写法可选:纯数学用声明式(快),带状态用命令式(灵活)</li>
+      <li><strong>与 pandas 逐位对拍通过</strong> —— 存量指标可迁移,且迁移正确性可证明</li>
+    </ul>
+  </div>
+  <div class="col cost">
+    <h4>坑了</h4>
+    <ul>
+      <li><strong>minperiod 传染</strong>:一行从不执行的死代码能把 +28.7% 变成 −11.4%,零警告</li>
+      <li>而且<strong>间歇性发作</strong>——SMA(50) 同样推迟起点却结果不变,让人放松警惕</li>
+      <li>回测窗口成了 <code>__init__</code> 的隐式副产品,不是一个你显式设定的量</li>
+      <li><code>x(-n)</code> 与 <code>x[-n]</code> 语义完全不同,写错通常不报错</li>
+      <li>命令式 Indicator 的 <code>addminperiod</code> 要手写,写小了会读到脏数据</li>
+      <li>参数扫描变得太便宜 —— 这是特性,也是过拟合的加速器</li>
+    </ul>
+  </div>
+</div>
+
+<div class="callout">
+  <span class="label">本课的评估结论(累计第 2 条)</span>
+  Indicator 层是 backtrader <strong>目前为止最值得买的部分</strong>:
+  接口小、可自定义、可对拍,并且顺手消灭了一类前视偏差。
+  代价是它引入了一个你手搓栈里不存在的隐式状态——<strong>minperiod</strong>。
+  <br>使用纪律:<strong>永远显式固定回测起点</strong>(<code>fromdate</code>),
+  别让指标的 period 决定你的样本。
+</div>
+
+<div class="source-box">
+  <div class="label">首选阅读源</div>
+  <a href="https://www.backtrader.com/docu/inddev/">backtrader 官方 — Indicator Development</a>
+  ——<code>lines</code> / <code>params</code> / <code>plotinfo</code> / <code>addminperiod</code> 的权威说明,篇幅很短,值得整篇读完。
+  <br>配套读:<a href="https://www.backtrader.com/docu/concepts/">Platform Concepts</a>
+  里关于 <code>[0]</code> / <code>(-n)</code> 与 minperiod 传播那一节。
+  <br><br>
+  <strong>文档没写的部分</strong>(比如 minperiod 究竟怎么向上聚合)在源码里:
+  <code>practice/venv/lib/python3.14/site-packages/backtrader/lineiterator.py</code>。
+</div>
+
+<div class="lesson-foot">
+  <div class="ask">
+    <strong>卡住就问我。</strong>特别是:你上一课问的"夏普到底怎么算"——
+    我写成了一张单独的参考卡(下方链接),里面拆了四个决定、复现了框架默认值,
+    还加了一节<strong>你的 BTC 那个 0.4559 其实与 0 无法区分</strong>的误差棒计算。先读那张。
+  </div>
+  <div class="nav">
+    <a href="./0001-cerebro-assembly-line.html">← L1 Cerebro 装配线</a>
+    <a href="../reference/sharpe-ratio.html">夏普比率参考卡 →</a>
+    <a href="../reference/backtrader-api-map.html">API 地图</a>
+  </div>
+</div>
+
+</div>

@@ -31,8 +31,12 @@
 - 已实测确认的三条框架行为:
   1. **成交时点**:`next()` 里下单 → **下一根 bar 的 open 价成交**(默认 `cheat_on_open=False`)。
      微观实验见 scratchpad `fill.py`;bar#2 close=20.5 下单 → bar#3 open=30.0 成交。
-  2. **`SharpeRatio` 默认静默返回 `None`**:默认 `timeframe=8=TimeFrame.Years`,
-     日线数据折不出足够年度收益 → `None`,**不报错**。
+  2. **`SharpeRatio` 默认值撒谎**(2026-08-13 修正,原写"静默返回 None",不准确):
+     默认 `timeframe=Years` + `riskfreerate=0.01` + `ddof=0`,算的是
+     `mean(年度收益 - 0.01)/std_总体(年度收益)`。数据够长 → 返回一个基于 **n=4**
+     个年度样本(含 2 个残年)的数;数据太短 → 返回 `None`。
+     **同一个 API,失败模式随数据长度改变**,两种都不报错。
+     已逐位复现:手算 0.3130781175 vs 框架 0.3130781174566167。见 [[0002]]。
   3. **`annualize=True` 硬编码 252**(`analyzers/sharpe.py:128`),crypto 7×24 数据上
      系统性虚低 `sqrt(365/252)=1.2035`。实测:框架 −0.6241 vs 手算 ×√365 −0.7511,比值 1.2035。
      **这正是隔壁 [[0027]] 用户刚从自己代码里赶走的那个常数。**
@@ -42,10 +46,13 @@
 1. ⏳ **L1 Cerebro 装配线**:八件套一次跑通 + 三条 backtrader 语法怪癖(`[0]`/`[-1]` 索引、
    `params`+`self.p`、指标在 `__init__` 声明)+ 成交时点实验 + Sharpe 静默 None/252 常数。
    ← **已发布,待用户跑**
-2. L2 Data Feeds:PandasData 列映射、`fromdate/todate`、多数据源 `adddata`、
-   重采样 `resampledata`(手搓栈没有的能力)、股票日历与 backtrader 的关系
-3. L3 Indicators:内置指标库全景、`__init__` 里的 lazy 求值到底在算什么、
-   自定义 Indicator(把隔壁的 efficiency_ratio 搬过来)、指标的 `minperiod` 传染
+2. ✅ **L2 Strategy & Indicator**(用户点名要的,与原 L3 合并):五个钩子、
+   `minperiod` 传染实验(死代码把 +28.7% 翻成 −11.4%)、自定义 Indicator 两种写法 +
+   与 pandas 逐位对拍、ER 闸门的诚实否定结果。← **已发布,待用户跑**
+   附产:`reference/sharpe-ratio.html`(回答用户"夏普怎么算")
+3. L3 Data Feeds(原 L2 下移):PandasData 列映射、`fromdate/todate`(**L2 已埋伏笔:
+   固定起点是 minperiod 传染的解药**)、多数据源 `adddata`、重采样 `resampledata`、
+   股票日历与 backtrader 的关系
 4. L4 Orders & Broker:市价/限价/止损/StopTrail/**bracket 单**(手搓栈没有)、
    `notify_order` 生命周期 vs 隔壁 L9 的 ccxt 生命周期对照、滑点模型、成交量限制
 5. L5 Sizers & 资金核算:`PercentSizer`/自定义 Sizer、把隔壁 L18 的 vol-target 搬进来、
@@ -56,6 +63,14 @@
    框架让扫参数变得太容易,这是特性还是陷阱
 8. L8 多标的/横截面:多 data feed、`self.datas` 遍历、排序选股范式(文档薄弱区)
 9. L9 评估收官:`reference/framework-scorecard.html` 横向尺子 + 回答 MISSION 的 Open question
+
+## 用户已确认的知识缺口(2026-08-13)
+
+- **不会手推夏普公式**。会用、会怀疑、能读懂结果,但没拆过公式(隔壁 L1–L23 一路在用)。
+  → 教学含义:**继承的先验里有空洞,不能默认"绩效指标全部掌握"**。
+  下次涉及 Sortino / Calmar / t 统计量时,先问一句再决定要不要展开。
+- 已交付 `reference/sharpe-ratio.html` 补上。其中"误差棒"一节(Lo 2002)可能是
+  比公式本身更重要的东西——用户此前把 0.4559 当结论看。
 
 ## 待确认
 

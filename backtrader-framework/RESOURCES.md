@@ -20,7 +20,17 @@
 - [backtrader2 社区分支](https://github.com/backtrader2/backtrader)
   官方停更后的社区修 bug 分支。**用于**:撞到 bug 时先来这里看有没有人修过。
 
+- [Indicator Development — 官方](https://www.backtrader.com/docu/inddev/)
+  `lines` / `params` / `plotinfo` / `addminperiod` 的权威说明。篇幅很短。
+  **用于**:写自定义 Indicator(L2 用过)。
+- [Platform Concepts — 官方](https://www.backtrader.com/docu/concepts/)
+  `[0]` / `(-n)` 索引语义、minperiod 传播规则。**用于**:搞不清"为什么我的 next() 没被调用"。
+
 ### 概念背景(非 backtrader 专属,但本课要用)
+
+- [Andrew Lo, *The Statistics of Sharpe Ratios* (FAJ 2002)](https://alo.mit.edu/wp-content/uploads/2017/06/The-Statistics-of-Sharpe-Ratios.pdf)
+  一手论文。夏普比率的**标准误**与自相关修正。**用于**:判断一个 Sharpe 是不是与 0 无法区分
+  ——L2 附的参考卡用它算出 BTC 的 0.4559 ± 0.604(t=0.75)。
 
 - [Backtesting.py 文档](https://kernc.github.io/backtesting.py/)
   另一个事件驱动框架,API 更小更现代。**用于**:横向对比时的参照物,不是主线。
