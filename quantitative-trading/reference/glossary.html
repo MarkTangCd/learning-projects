@@ -288,6 +288,18 @@
 
     <dt>三态判读表 <span class="en">Three-state Verdict Table</span></dt>
     <dd>预注册的核心交付物:支持 / 反驳 / 含糊(可加"惊喜"),每格阈值是<strong>数字</strong>,每格接一个<strong>行动</strong>。两条硬规则:写不出行动的判据是装饰;<strong>四格里不允许出现"再试一次"</strong>。含糊格的默认行动 = 按「不上钱」处理。见 <a href="../lessons/0025-preregistered-stock-holdout.html">L25</a>。</dd>
+
+    <dt>收益归因 <span class="en">Return Attribution</span></dt>
+    <dd>把净收益按<strong>恒等式</strong>拆给署名的来源:<code>净 = 多头贡献 + 空头贡献 − 成本</code>(position 拆正负两半分别乘收益,逐 bar 相加,合计须与实际分毫不差——差一分就是有凶手漏网)。是"尸检"的第一刀:先问<strong>每一分亏损是谁签收的</strong>,再谈为什么。实测 L25 反驳:SPY/AAPL 主凶是空头(−11.7%/−18.0% 每年),KO 主凶竟是成本。见 <a href="../lessons/0026-autopsy-of-a-refutation.html">L26</a>。</dd>
+
+    <dt>反事实阶梯 <span class="en">Counterfactual Ladder</span></dt>
+    <dd>一列回测,<strong>每级只改一件事</strong>(净→零成本→拔掉空头→买入持有),于是每个<strong>级差</strong>就是那件事的价格。读法两条:①级差定价(SPY:成本 0.37 个夏普、空头 0.90 个);②<strong>最后一级的剩余</strong>最扎心——长平版仍远输买持 = 择时本身在赔。警告:除顶层外每级都是判决后的新回测 = <strong>生成假设</strong>,好看之处须新数据才算数。见 <a href="../lessons/0026-autopsy-of-a-refutation.html">L26</a>。</dd>
+
+    <dt>水下时间 <span class="en">Time under Water</span></dt>
+    <dd>equity 从峰值跌落到<strong>重新收复</strong>之间度过的时间(AFML 第 14 章的标准统计量)。与回撤深度互补:深度量"多疼",水下时间量"疼多久"。它是区分<strong>气候</strong>的关键刀:BTC 2021-23 最深回撤 378 根 bar 跌落、窗口内未收复(长熊);SPY 同期最深一次 23 根跌完、97 根收复(V 型)。长熊喂饱趋势空头,V 型绞杀它。见 <a href="../lessons/0026-autopsy-of-a-refutation.html">L26</a>。</dd>
+
+    <dt>气候特化 <span class="en">Regime Specialization</span>(课程用语)</dt>
+    <dd>一台机器的 edge 只在<strong>它出生的那种市场气候</strong>里启动——机器没坏,是"它会的那件事"换了地方发生。证据链(L26 三刀闭合于 XOM):同一根做空扳机,BTC 老家扣动后次 bar −7.6bp(有肉),美股五票全为正(送钱);五票里唯一有长熊的 XOM,恰是唯一空头赚钱、唯一回撤浅于买持的。精化后的假设:<strong>保护跨气候,不跨市场</strong>——检验须用新数据(如 2000-02、2008)。见 <a href="../lessons/0026-autopsy-of-a-refutation.html">L26</a>。</dd>
   </dl>
 
   <div class="lesson-foot">

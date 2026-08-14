@@ -28,6 +28,8 @@
   短篇入门连载。Part 10 讲用成交量确认趋势信号、Part 12 讲用量确认形态。每篇几分钟，适合碎片时间。
 - [ChartSchool — Relative Volume (RVOL)](https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/relative-volume-rvol)
   把"放量/缩量"量化的公式与阈值（>2 为显著放量）。第 14 课的算法出处。
+- [ChartSchool — Support and Resistance](https://chartschool.stockcharts.com/table-of-contents/chart-analysis/support-and-resistance)
+  支撑/压力的定义、由前期高低点确立、角色互换（broken support becomes resistance）、支撑压力带（zone）。第 15 课的出处。
 - [John Murphy 技术交易十律](https://chartschool.stockcharts.com/table-of-contents/overview/john-murphys-10-laws-of-technical-trading)
   一页纸的纪律清单。第 10 条 "Volume precedes price"（量先于价）是量价分析的总纲。
 - Book:《Technical Analysis of the Financial Markets》— John J. Murphy

@@ -1,0 +1,122 @@
+<meta charset="utf-8">
+<title>第 15 课 · 技术分析入门：支撑与压力</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+<div class="wrap">
+
+  <p class="eyebrow">股票投资 · 第 15 课 · 技术分析篇 · 第 5 课</p>
+  <h1>支撑与压力：价格为什么总在某些位置停下</h1>
+  <p class="subtitle">K 线、均线、交叉、成交量之后，最后一块常用积木：图上那些"看不见的地板和天花板"。</p>
+  <p class="progress">● ● ● ● ○ &nbsp; 技术分析篇 · 第 5 课</p>
+
+  <div class="keyidea">
+    <strong>今天的小胜利：</strong>能在一张日 K 图上<strong>画出支撑位和压力位</strong>，并理解技术分析里最反直觉的规律之一：<strong>压力一旦被突破，常会变成新的支撑</strong>（角色互换）。
+  </div>
+
+  <div class="callout warn">
+    <span class="label">先接上一课</span>
+    上一课学了用成交量给信号"验真"。今天的支撑与压力是<strong>被验真的对象里最重要的一类</strong>——"突破"可不可信，量说了算。本课示范，不构成任何交易建议。
+  </div>
+
+  <h2>两个定义：地板与天花板</h2>
+  <p><em class="term">支撑位</em>（Support）＝ <strong>买盘需求足够强、价格跌到附近就止跌</strong>的价格区域——像一块地板。<br>
+  <em class="term">压力位</em>（Resistance，也叫阻力位）＝ <strong>卖盘供给足够强、价格涨到附近就回落</strong>的价格区域——像一块天花板。</p>
+  <p>它们不是玄学，本质是<strong>供需在某个价位上的对峙点</strong>。最常见的画法也很朴素：<strong>前期的低点就是支撑，前期的高点就是压力</strong>——因为历史已经证明，买方/卖方曾在那里大规模出手过。</p>
+
+  <div class="callout">
+    <span class="label">为什么这些位置会"记仇"？</span>
+    因为<strong>人有记忆</strong>。在 20 元被套的人，等价格回到 20 元时最想"回本就跑"——卖压就聚在那里；在 15 元买到过便宜货的人，价格再跌回 15 元时又想"再捡一次"——买盘就聚在那里。ChartSchool 的解释正是：曾在这些价位持仓的交易者，会在价格回来时寻找出场/进场机会。<strong>支撑压力，是市场的集体记忆。</strong>
+  </div>
+
+  <h2>本课重点：角色互换</h2>
+  <p>最有用、也最反直觉的规律：<strong>支撑跌破后，常变成压力；压力突破后，常变成支撑</strong>。ChartSchool 的原话：<em>"If a support or resistance level is broken, the relationship between supply and demand has changed."</em>（支撑或压力一旦被突破，供需关系就已改变。）</p>
+  <p>John Murphy 在他的交易法则里说得更狠：<em>"After a resistance peak has been broken, it will usually provide support on subsequent pullbacks. In other words, the old 'high' becomes the new low."</em>——<strong>旧的"天花板"，会变成新的"地板"</strong>。</p>
+
+  <div style="background:var(--card);border-radius:10px;padding:1rem;margin:1.4rem 0;text-align:center">
+    <svg viewBox="0 0 440 270" width="100%" style="max-width:440px" role="img" aria-label="支撑压力与角色互换示意图">
+      <!-- range shading -->
+      <rect x="30" y="90" width="260" height="80" fill="#8a8a8a" opacity="0.08"/>
+      <!-- resistance line -->
+      <line x1="30" y1="90" x2="425" y2="90" stroke="#c0392b" stroke-width="2" stroke-dasharray="6 5"/>
+      <text x="34" y="82" font-family="var(--font-sans)" font-size="12" fill="#c0392b" font-weight="600">压力（前期高点）</text>
+      <!-- support line -->
+      <line x1="30" y1="170" x2="295" y2="170" stroke="#16a34a" stroke-width="2" stroke-dasharray="6 5"/>
+      <text x="34" y="190" font-family="var(--font-sans)" font-size="12" fill="#16a34a" font-weight="600">支撑（前期低点）</text>
+      <!-- price path: range, breakout, pullback, rally -->
+      <polyline points="40,150 70,118 95,94 125,138 150,166 180,118 205,93 230,142 252,167 275,128 295,88 315,68 335,54 355,74 371,91 392,66 418,42"
+                fill="none" stroke="#1f6f86" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- breakout annotation -->
+      <text x="286" y="118" font-family="var(--font-sans)" font-size="12" fill="#1f6f86" font-weight="600">放量突破 ↑</text>
+      <!-- pullback annotation -->
+      <circle cx="371" cy="91" r="5" fill="none" stroke="#16a34a" stroke-width="2"/>
+      <text x="330" y="240" font-family="var(--font-sans)" font-size="12" fill="#16a34a" font-weight="600" text-anchor="middle">回踩：旧压力 → 新支撑</text>
+      <line x1="366" y1="228" x2="371" y2="100" stroke="#16a34a" stroke-width="1" stroke-dasharray="2 3"/>
+      <text x="150" y="240" font-family="var(--font-sans)" font-size="12" fill="#8a8a8a" text-anchor="middle">交易区间：在地板和天花板之间震荡</text>
+    </svg>
+  </div>
+  <p>读这张图：价格先在支撑和压力之间来回震荡（<em class="term">交易区间</em>，供需大致平衡）→ 某天<strong>放量突破</strong>天花板（供需关系改变）→ 随后<strong>回踩</strong>到旧压力位附近获得承接、止跌回升——<strong>旧天花板正式变成新地板</strong>。这个"突破 → 回踩确认"的组合，是技术分析里可信度较高的结构之一。</p>
+
+  <h2>三个使用要点</h2>
+  <table>
+    <tr><th>要点</th><th>怎么做</th></tr>
+    <tr><td>画的是<strong>区域</strong>不是精确线</td><td>ChartSchool 建议：区间跨度大、时间长时，用<strong>支撑/压力带（zone）</strong>。别指望价格精确到分毫——把它想成一条"宽带子"</td></tr>
+    <tr><td>位置决定买卖的<strong>性价比</strong></td><td>Murphy：<em>"The best place to buy a market is near support levels… The best place to sell a market is near resistance levels."</em> 靠近支撑买、靠近压力卖/减，赔率更合算</td></tr>
+    <tr><td>突破必须<strong>用量验真</strong></td><td>接上一课：<strong>放量突破</strong>＝有真实资金推动，可信度高；<strong>缩量突破</strong>＝多半是假突破（骗线），警惕追高被套</td></tr>
+  </table>
+
+  <div class="callout warn">
+    <span class="label">别过度使用</span>
+    ① 支撑压力是<strong>概率</strong>不是铁板——它们经常被突破，"跌到支撑就买"不加任何验证等于接飞刀。<br>
+    ② 触碰次数越多、时间越近、当时成交量越大，这个位置越"硬"；三年前的一个小高点，参考价值有限。<br>
+    ③ 整数关口（如 10 元、100 美元）常有心理性支撑压力，但同样只是倾向，不是规律。
+  </div>
+
+  <h2>练一练</h2>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">1. 某股在 20 元压力位下挣扎许久后放量突破上行，几天后回落到 20 元附近。这个位置现在最可能扮演什么角色？</div>
+    <button class="opt">仍是压力：旧位置的压制作用不会因突破改变</button>
+    <button class="opt">失去意义：被突破的价格水平此后不再有意义</button>
+    <button class="opt">变成支撑：突破后回踩时旧压力常会变成支撑</button>
+    <div class="fb ok" data-for="correct">对。这就是<strong>角色互换</strong>：突破说明供需关系已变，回踩旧压力位获得承接是常见结构——"the old 'high' becomes the new low"。</div>
+    <div class="fb no" data-for="wrong">突破意味着<strong>供需关系已经改变</strong>。被有效突破的旧压力位，在之后的回踩中常会<strong>变成支撑</strong>——这就是本课的"角色互换"。</div>
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">2. 下面对"支撑位"的理解，哪个最准确？</div>
+    <button class="opt">买盘足够强、跌到附近常止跌的价格区域</button>
+    <button class="opt">卖盘足够强、涨到附近常回落的价格区域</button>
+    <button class="opt">成交量最大、全场换手最活跃的价格区域</button>
+    <div class="fb ok" data-for="correct">对。支撑＝买盘需求强到能止住下跌的<strong>区域</strong>（注意是区域不是一条精确的线），常由前期低点标出。</div>
+    <div class="fb no" data-for="wrong">支撑位是<strong>买盘</strong>足够强、价格跌到附近就<strong>止跌</strong>的区域（地板）；"卖盘强、涨到就回落"描述的是<strong>压力位</strong>（天花板）。</div>
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">3. 股价横盘许久后向上突破压力位。怎样判断这次突破更可信？</div>
+    <button class="opt">只要收盘价一站上压力位，突破就已经确认成立</button>
+    <button class="opt">突破当天明显放量，说明有真实资金推动更可信</button>
+    <button class="opt">突破当天明显缩量，说明筹码锁定得更牢更可信</button>
+    <div class="fb ok" data-for="correct">对。突破是最需要<strong>用量验真</strong>的信号：放量＝有真金白银在推；缩量突破多为<strong>假突破</strong>。这正是上一课工具的落地。</div>
+    <div class="fb no" data-for="wrong">突破必须<strong>用量验真</strong>（上一课的工具）：<strong>放量</strong>突破才说明有真实资金推动、可信度高；仅凭收盘价站上、或<strong>缩量</strong>的突破，都要先怀疑是假突破。</div>
+  </div>
+
+  <h2>一句话总结</h2>
+  <div class="keyidea">
+    支撑＝买盘聚集的<strong>地板</strong>（前期低点），压力＝卖盘聚集的<strong>天花板</strong>（前期高点），本质是市场的<strong>集体记忆</strong>。最重要的规律是<strong>角色互换</strong>：压力被放量突破后，回踩时常变成新支撑。记住三件事：<strong>画区域不画线、靠近支撑买靠近压力卖、突破必用量验真</strong>。
+  </div>
+
+  <div class="source">
+    <span class="label">最佳一手资源（推荐精读）</span>
+    <a href="https://chartschool.stockcharts.com/table-of-contents/chart-analysis/support-and-resistance">StockCharts ChartSchool — Support and Resistance</a>（英文，定义、角色互换与支撑压力带的出处）。纪律层面读 <a href="https://chartschool.stockcharts.com/table-of-contents/overview/john-murphys-10-laws-of-technical-trading">John Murphy 技术交易十律</a>第 3 条（靠近支撑买、靠近压力卖、旧高变新低）。见 <a href="../RESOURCES.md">RESOURCES</a> 与 <a href="../reference/glossary.html">术语表</a>。
+  </div>
+
+  <div class="ask">
+    💬 <strong>随时问我。</strong> 想动手就发我<strong>一张自选股的日 K 截图</strong>，我们一起把支撑带和压力带画出来，看最近有没有"突破 + 回踩"结构；或深问："<strong>怎么判断一个支撑位够不够硬？</strong>""<strong>假突破有什么典型长相？</strong>" 下一课：<strong>技术分析篇小结——把 5 课拼成一张"看图判断流程图"，并做一次估值+技术的混合复习</strong>。
+  </div>
+
+  <div class="lesson-nav">
+    <span>← <a href="0014-volume.html">第 14 课：成交量</a></span>
+    <span>下一课预告：技术分析篇小结 →</span>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>

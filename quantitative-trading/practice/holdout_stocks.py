@@ -203,10 +203,28 @@ def cmd_run():
     from stocks import fetch_stock   # yfinance only needed for the real run
 
     print("留出判决 —— 冻结的机器,第一次也是唯一一次踏上股票。\n")
+    # Fetch EVERYTHING first. A data failure must abort the verdict BEFORE any
+    # judgment prints — not leave it half-read. Learned the hard way on the
+    # first attempt (2026-08-14): Yahoo transiently dropped AAPL after SPY had
+    # already been judged. Mechanics fix only; no judging rule changed.
+    import time
+    prices, err = {}, None
+    for sym in UNIVERSE:
+        for attempt in range(3):
+            try:
+                prices[sym] = fetch_stock(sym, since=SINCE)
+                break
+            except (Exception, SystemExit) as e:
+                err = e
+                if attempt < 2:
+                    time.sleep(5 * (attempt + 1))
+        else:
+            raise SystemExit(f"{sym} 连续 3 次取不到数据({err})—— 判决整体中止,"
+                             "一个标的都不判。稍后重跑 run。")
+
     rows = []
     for sym in UNIVERSE:
-        price = fetch_stock(sym, since=SINCE)
-        s3, bh = judge_symbol(sym, price)
+        s3, bh = judge_symbol(sym, prices[sym])
         rows.append((sym, s3, bh))
     verdict(rows)
 

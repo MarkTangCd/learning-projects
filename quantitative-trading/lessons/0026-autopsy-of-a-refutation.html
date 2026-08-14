@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L26 · 尸检:给否定结果开膛</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    table.g { width: 100%; border-collapse: collapse; font-size: 0.83rem;
+              margin: 1.1rem 0 0.5rem; font-variant-numeric: tabular-nums; }
+    table.g th, table.g td { padding: 0.36rem 0.5rem; border-bottom: 1px solid var(--rule);
+                             text-align: right; }
+    table.g th:first-child, table.g td:first-child { text-align: left; }
+    table.g th { font-size: 0.7rem; letter-spacing: 0.03em; color: var(--ink-soft);
+                 text-transform: uppercase; border-bottom: 2px solid var(--rule); }
+    table.g td.bad { color: var(--accent); font-weight: 700; }
+    table.g td.ok { color: var(--good); font-weight: 700; }
+    .caption { font-size: 0.78rem; color: var(--ink-soft); line-height: 1.5; margin: 0 0 1.4rem; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 26 课 · 工位 5 · 研究重开</p>
+  <h1>尸检:给否定结果开膛</h1>
+  <p class="subtitle">L25 判决已生效:【反驳】,0/5,机器不能原样复用。这段判决数据是花了真实盲度换来的——不解剖,它就白花了。本课的单一胜利:把 SPY 那个 <strong>−0.51</strong> 拆成三个<strong>署名的凶手</strong>,每人一个精确到小数点的数字。</p>
+
+  <h2>先换执照:从"检验"切回"生成"</h2>
+
+  <div class="callout warn">
+    <span class="label">模式切换(Nosek 的区分,L25 讲过)</span>
+    判决前,这段数据是考卷,看一眼都要记账;判决后,它是<strong>尸体</strong>,可以合法开膛。但执照有边界:尸检可以<strong>指认嫌疑人</strong>(生成假设),不能<strong>宣判</strong>(检验假设)。本课任何"如果当初……就好了"的发现,都是新假设——拿它在<strong>同一段数据</strong>上宣布"改好了",就是把 L22 到 L25 五节课防的那件事从后门放回来。
+  </div>
+
+  <h2>第一刀:归因恒等式——每一分亏损都必须有人签收</h2>
+
+  <p>净收益逐 bar 恒等于三项之和:<code>净 = 多头贡献 + 空头贡献 − 成本</code>(position 拆正负两半,分别乘收益)。不是近似,是<strong>恒等式</strong>——合计列和实际列必须分毫不差,差一分就是有凶手漏网:</p>
+
+  <table class="g">
+    <thead><tr><th>标的</th><th>多头/年</th><th>空头/年</th><th>成本/年</th><th>合计=实际/年</th><th>空仓时间</th></tr></thead>
+    <tbody>
+      <tr><td>SPY</td><td class="ok">+9.0%</td><td class="bad">−11.7%</td><td>−6.8%</td><td>−9.5%</td><td>41%</td></tr>
+      <tr><td>AAPL</td><td class="ok">+2.9%</td><td class="bad">−18.0%</td><td>−3.6%</td><td>−18.7%</td><td>36%</td></tr>
+      <tr><td>KO</td><td class="ok">+4.6%</td><td>−4.2%</td><td class="bad">−5.5%</td><td>−5.2%</td><td>42%</td></tr>
+      <tr><td>MSFT</td><td class="ok">+12.9%</td><td class="bad">−6.6%</td><td>−4.2%</td><td>+2.1%</td><td>40%</td></tr>
+      <tr><td>XOM</td><td class="ok">+6.3%</td><td class="ok">+0.6%</td><td class="bad">−4.0%</td><td>+2.9%</td><td>43%</td></tr>
+    </tbody>
+  </table>
+  <p class="caption"><code>python autopsy.py parts</code>。主凶一列一目了然:SPY/AAPL/MSFT 是<strong>空头</strong>;KO 竟是<strong>成本</strong>(空头只亏 4.2%,手续费+换手吃了 5.5%);XOM 是五票里<strong>唯一空头为正</strong>的——记住它,第三刀会解释为什么。多头列全绿,但别急着下结论,先看第二刀。</p>
+
+  <h2>第二刀:反事实阶梯——每一级只改一件事,级差就是那件事的价格</h2>
+
+  <table class="g">
+    <thead><tr><th>SPY</th><th>Sharpe</th><th>CAGR</th><th>MaxDD</th><th>级差在给谁定价</th></tr></thead>
+    <tbody>
+      <tr><td>③双边·净(=L25 判决)</td><td>−0.51</td><td>−10.6%</td><td>−73.8%</td><td>—</td></tr>
+      <tr><td>③双边·零成本</td><td>−0.14</td><td>−4.3%</td><td>−58.5%</td><td>成本:0.37 个夏普</td></tr>
+      <tr><td>③长平·净(空头拔掉)</td><td>+0.39</td><td>+4.7%</td><td>−31.9%</td><td>空头:0.90 个夏普</td></tr>
+      <tr><td>买入持有</td><td>+0.88</td><td>+15.1%</td><td>−33.7%</td><td><strong>剩下的 0.49:择时本身在赔</strong></td></tr>
+    </tbody>
+  </table>
+  <p class="caption"><code>python autopsy.py ladder</code>(五票全打)。五个标的形状一致:长平版夏普 0.10–0.66,<strong>全部仍远输买持</strong>。这是本刀最扎心的发现:就算当初从没做空、从没付费,这台机器<strong>择时本身</strong>在美股大盘上也在赔——每次跳下车再爬回来,都错过一段只涨不等人的复利。</p>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">第一刀里多头列全为正,第二刀长平版也比双边版好——能否得出"改成只做多的机器就可以上钱"?</div>
+    <button class="opt">可以,归因和阶梯两刀证据互相印证,只做多版本已经在全部五个标的上验证过了</button>
+    <button class="opt">不行,这是在开过的数据上冒出的新假设,而且长平版夏普仍然全线远输买入持有</button>
+    <div class="fb right" data-for="right">对,两个理由缺一不可。①流程上:长平版是<strong>判决后</strong>在同一段数据上跑的新回测——它的好看之处需要新数据才算数,否则就是把预注册从后门作废。②实质上:它根本不好看——0.39 vs 买持 0.88,"比灾难好"不等于"好"。尸检的正确产出是把这两条<strong>一起</strong>写进下一步的假设里。</div>
+    <div class="fb nope" data-for="nope">"互相印证"恰恰是尸检最危险的幻觉:两刀切的是<strong>同一具尸体</strong>,当然互相印证——这不是两个独立证据,是同一段数据的两种投影。而且看清阶梯第三级:长平版 0.39,买持 0.88,它仍然远输躺平。指认嫌疑人 ≠ 宣判,宣判要新数据。</div>
+  </div>
+
+  <h2>第三刀:气候差——同一根扳机,两个市场,两个符号</h2>
+
+  <p>机器的做空扳机在哪里都是同一行代码:<code>SMA(20) &lt; SMA(60)</code>。那就问一个可证伪的问题:<strong>扳机扣动之后,市场下一根 bar 平均做了什么?</strong></p>
+
+  <table class="g">
+    <thead><tr><th>市场</th><th>扳机激活时间</th><th>扣动后次 bar 均值</th><th>最深回撤</th><th>跌落用时</th><th>收复用时</th></tr></thead>
+    <tbody>
+      <tr><td><strong>BTC(机器老家)</strong></td><td>53%</td><td class="ok">−7.6 bp</td><td>−76.6%</td><td>378 根</td><td><strong>未收复</strong></td></tr>
+      <tr><td>SPY</td><td>25%</td><td class="bad">+8.2 bp</td><td>−33.7%</td><td><strong>23 根</strong></td><td>97 根</td></tr>
+      <tr><td>AAPL</td><td>35%</td><td class="bad">+9.2 bp</td><td>−38.5%</td><td>62 根</td><td>194 根</td></tr>
+      <tr><td>KO</td><td>34%</td><td class="bad">+7.7 bp</td><td>−37.0%</td><td>21 根</td><td>339 根</td></tr>
+      <tr><td>MSFT</td><td>29%</td><td class="bad">+20.7 bp</td><td>−37.1%</td><td>240 根</td><td>153 根</td></tr>
+      <tr><td>XOM</td><td>44%</td><td class="ok">+5.7 bp*</td><td><strong>−61.3%</strong></td><td><strong>927 根</strong></td><td>460 根</td></tr>
+    </tbody>
+  </table>
+  <p class="caption"><code>python autopsy.py climate</code>。负 = 扳机扣动后市场平均在跌,做空有肉;正 = 做空在给别人送钱。BTC 老家 −7.6bp,美股五票<strong>全为正</strong>。*XOM 均值虽正,但它是五票里唯一有真·长熊的(油价崩盘:927 根 bar 跌落、−61.3% 深渊)——所以它成了唯一空头赚钱(+0.6%/年)、唯一 L25 回撤浅于买持的票。三张表在 XOM 上闭合成同一个故事。</p>
+
+  <p>再看 MSFT 那行:+20.7 bp,全场最高——<strong>越是十年如一日上涨的公司,死叉之后的反弹越猛</strong>。机器空的恰恰是最不该空的东西:一台复利机器的回调。</p>
+
+  <div class="callout tip">
+    <span class="label">尸检结论(这是假设,不是判决)</span>
+    机器没有"坏"——它是<strong>气候特化生物</strong>。它的全部本事是"在漫长的熊里空着或做空"(BTC:378 根 bar 跌落、窗口内未收复);美股这十年给的是 V 型崩盘(SPY:23 根跌完,97 根收复)加碾压式长牛,同一根扳机在这里扣动,后面跟的是反弹不是延续。<strong>把它带出老家,不是机器错了,是我们对"它会的那件事在哪里发生"想错了。</strong>而阶梯第三级补上另一半:即便不做空,择时单一大盘指数这件事本身,十年里也在稳定地输给"从不下车"。
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">XOM 在三张表里的表现(空头 +0.6%/年、L25 唯一回撤浅于买持、唯一长熊市场),合起来最支持哪个假设?</div>
+    <button class="opt">机器的保护本事真实存在,但它只在"长熊气候"里启动——不跨市场,只跨气候</button>
+    <button class="opt">机器在能源股这个行业上有特殊的适配性,应该把它专门部署到能源类的标的上</button>
+    <div class="fb right" data-for="right">对。XOM 不是"能源股所以特殊",是<strong>五票里唯一经历过长熊的</strong>——碰巧那是段油价崩盘。这把 L25 的结论从"保护不跨市场"精化成了一个更锋利的假设:<strong>保护跨的是气候,不是市场</strong>。BTC 2021-23 是长熊,所以保护显灵;美股 2016-26 没有长熊,所以保护变成伤害。注意:这个假设要用新数据才能检验——比如找一段美股真·长熊(2000-02、2008)去看。</div>
+    <div class="fb nope" data-for="nope">"行业适配"是从 1 个样本里读出了一个行业规律——这正是尸检最容易犯的过拟合。XOM 的特殊之处三张表都写着:它是唯一有<strong>长熊</strong>的(927 根跌落、−61.3%),而长熊正是机器在 BTC 老家赖以成名的气候。更简洁、且三个证据同时支持的假设是:<strong>保护跨气候,不跨市场</strong>。检验它需要新数据(如 2000-02、2008 的美股)。</div>
+  </div>
+
+  <h2>一条通往下一站的桥</h2>
+
+  <p>尸检的三个发现拼起来,指向同一个方向:这台机器赌的是<strong>"什么时候涨跌"</strong>(择时),而美股大盘把这个赌局的对手盘做成了绞肉机——V 型收复绞杀空头,只涨不等人绞杀下车者。<span class="term">横截面策略</span>赌的是另一个问题:<strong>"谁比谁强"</strong>——同时做多一篮子强的、做空一篮子弱的,市场整体涨跌(也就是"气候")在多空两腿之间被对冲掉。那正是股票市场给单标的时序判了死刑之后,还留着的另一扇门。</p>
+
+  <p class="caption">脚注:重跑 <code>ladder</code> 时 KO 的数字可能和 L25 判决存档差一点(−0.25 vs −0.33)。可能原因:yfinance 的复权价会随<strong>新发生的股息</strong>整体重算——回测的输入本身在漂。判决以 <code>holdout_stocks.RAN</code> 存档为准;这也是"落档"存在的又一个理由。</p>
+
+  <div class="callout tip">
+    <span class="label">动手挑战:自己开膛</span>
+    <strong>①</strong> 依次跑 <code>python autopsy.py parts / ladder / climate</code>,对照本课三张表。<br>
+    <strong>②</strong> parts 表里,<strong>KO 的主凶和其他四票不同</strong>——是谁?为什么偏偏是低波动的 KO 被它咬得最重?(提示:回想 vol targeting 的 weight 公式,波动低意味着仓位_____。)<br>
+    <strong>③</strong> climate 表里 MSFT 扣动后 +20.7bp 全场最高。用一句话解释:为什么<strong>越强的公司,做空它的死叉越亏</strong>?<br>
+    <strong>④</strong> "保护跨气候不跨市场"这个假设,设计一个<strong>不烧新钱、不碰已开数据</strong>的检验方案(提示:美股历史上哪两段是真·长熊?那段数据我们开过吗?)。<br>
+    <strong>⑤</strong> 写一句话:你要带去横截面的假设是什么?(我的版本下节课开头对答案。)
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.wiley.com/en-us/Advances+in+Financial+Machine+Learning-p-9781119482086">López de Prado · AFML 第 14 章 Backtest Statistics</a></strong> —— 本课第三刀用的"水下时间"(Time under Water)在这一章有正式定义,连同回撤、换手、集中度等一整套"给回测开膛"的标准刀具。读它是为了确认:你今天手工做的归因,是行业的标准尸检流程。</p>
+    <p style="margin:0"><strong><a href="https://github.com/quantopian/pyfolio">pyfolio(Quantopian 遗产库)</a></strong> —— 把这套尸检自动化成一页"tear sheet"(撕单):水下图、回撤分期表、多空暴露分解。看它的示例输出,对照你今天手工算的三张表——每一张都能在里面找到对应物。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想聊挑战④怎么拿 2000-02/2008 的数据、KO 那个"低波动反而被成本咬"的机制、或者"气候假设"还能怎么证伪——直接说。<br><br>
+      <strong>下一站:L27 横截面开篇。</strong> 从"什么时候涨"换到"谁比谁强":第一次把几百只股票放进同一张表里排序。这是股票量化的真正主场,也是 MISSION 里"传统股票量化"这一步的正式开工。
+    </div>
+    <div class="nav">
+      <a href="0025-preregistered-stock-holdout.html">← L25:预注册的独立检验</a>
+      <a href="../reference/glossary.html">词汇表 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>
