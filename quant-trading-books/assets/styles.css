@@ -210,6 +210,39 @@ th { font-weight: 700; border-bottom: 2px solid var(--ink-soft); }
 .quiz .fb.right { background: #e9f5ee; color: var(--good); }
 .quiz .fb.nope { background: var(--accent-soft); color: var(--accent); }
 
+/* ---- Free-recall widget (retrieval practice before revealing) ---- */
+.recall {
+  font-family: var(--sans);
+  border: 1px dashed var(--ink-faint);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  margin: 1.5rem 0;
+  background: #fff;
+}
+.recall > summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.95rem;
+  list-style: none;
+}
+.recall > summary::-webkit-details-marker { display: none; }
+.recall > summary::before { content: "▸ "; color: var(--accent); }
+.recall[open] > summary::before { content: "▾ "; }
+.recall .prompt {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin-top: 0.5rem;
+  line-height: 1.5;
+}
+.recall .reveal {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--rule);
+}
+.recall .reveal ol { margin-bottom: 0; }
+
 /* ---- Footer / navigation ---- */
 .lesson-foot {
   margin-top: 3.5rem;

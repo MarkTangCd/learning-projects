@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>词汇表 — 量化交易五书精读</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  table.gloss { font-size: 0.88rem; }
+  table.gloss td:first-child { white-space: nowrap; font-weight: 700; }
+  table.gloss td:first-child .en { display: block; font-weight: 400; font-size: 0.8rem; color: var(--ink-faint); }
+  table.gloss td:last-child { white-space: nowrap; color: var(--ink-faint); font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="kicker">参考卡 · 全课程共用</p>
+<h1>词汇表</h1>
+<p class="subtitle">五书精读的统一术语表。每课出现的新术语都追加到这里,读完五本书它就是你的总词汇表。</p>
+
+<div class="callout">
+  <span class="label">用法</span>
+  这是<b>本工作区自建</b>的词汇表,不依赖任何外部来源。一旦某个术语在这里定了中文说法,后面所有课都照此使用。
+  「出处」列指向第一次教到它的那一课。
+</div>
+
+<h2>B1 ·《Naked Statistics》</h2>
+
+<table class="gloss">
+  <tr><th>术语</th><th>说明</th><th>出处</th></tr>
+
+  <tr>
+    <td>描述性统计<span class="en">descriptive statistic</span></td>
+    <td>把一堆复杂信息<b>压缩成一个(或少数几个)数字</b>,以便比较。打击率、GPA、NFL 传球员评分、基尼系数、夏普比率都是。
+    强项与弱点是同一件事:<b>简化必然丢失细节</b>——所以「过度简化的描述性统计」中「过度简化」是废话。</td>
+    <td>B1.1</td>
+  </tr>
+
+  <tr>
+    <td>推断<span class="en">inference</span></td>
+    <td>用「已知世界」的数据,对「未知世界」做有根据的推测。例:抽查几个普查区来估算全市无家可归者人数。</td>
+    <td>B1.1</td>
+  </tr>
+
+  <tr>
+    <td>抽样<span class="en">sampling</span></td>
+    <td>只采集一小部分数据,再据此判断整体。做得好时可以和普查一样准,成本却低得多——Gallup 认为方法得当的 1,000 户民调,结果约等于访遍全美家庭。</td>
+    <td>B1.1</td>
+  </tr>
+
+  <tr>
+    <td>选择偏差 / 幸存者偏差<span class="en">selection / survivorship bias</span></td>
+    <td>样本里<b>能出现的对象本身被筛过</b>,导致结论失真。例:二十年同学会上比较抽烟者的癌症率——病重的少来,去世的一定不来,离毕业越久偏差越大。
+    金融版本:退市与破产的股票不在数据库里,回测因此虚高。</td>
+    <td>B1.1</td>
+  </tr>
+
+  <tr>
+    <td>回归分析<span class="en">regression analysis</span></td>
+    <td>在<b>控制住其他变量</b>(饮食、运动、体重……)的前提下,单独分离出两个变量之间的关系,并量化它。
+    能告诉你关系有多大、有多可能只是巧合;<b>不一定</b>能告诉你为什么,也<b>不一定</b>能证明因果。详见 B1.11–B1.12。</td>
+    <td>B1.1</td>
+  </tr>
+
+  <tr>
+    <td>统计显著<span class="en">statistically significant</span></td>
+    <td>分析发现的关联「不太可能仅由偶然产生」。对学术研究者来说这是「冒烟的枪」。严格含义见 B1.9(假设检验与 p 值)。</td>
+    <td>B1.1</td>
+  </tr>
+
+  <tr>
+    <td>基尼系数<span class="en">Gini index</span></td>
+    <td>衡量一国财富/收入分配均匀程度的描述性统计,取值 0(完全平等)到 1(一户独占)。
+    <b>本身没有内在含义,是用来比较的</b>——跨国比,或同一国跨年比。</td>
+    <td>B1.1</td>
+  </tr>
+</table>
+
+<div class="lesson-foot">
+  <div class="ask">词汇表里的说法如果和你在别处看到的不一致,直接问老师——我们以本表为准,但值得知道分歧在哪。</div>
+  <div class="nav">
+    <span><a href="curriculum.html">← 课程总纲</a></span>
+    <span><a href="../lessons/0001-b1-1-whats-the-point.html">B1.1 →</a></span>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
