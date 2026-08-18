@@ -300,6 +300,23 @@
 
     <dt>气候特化 <span class="en">Regime Specialization</span>(课程用语)</dt>
     <dd>一台机器的 edge 只在<strong>它出生的那种市场气候</strong>里启动——机器没坏,是"它会的那件事"换了地方发生。证据链(L26 三刀闭合于 XOM):同一根做空扳机,BTC 老家扣动后次 bar −7.6bp(有肉),美股五票全为正(送钱);五票里唯一有长熊的 XOM,恰是唯一空头赚钱、唯一回撤浅于买持的。精化后的假设:<strong>保护跨气候,不跨市场</strong>——检验须用新数据(如 2000-02、2008)。见 <a href="../lessons/0026-autopsy-of-a-refutation.html">L26</a>。</dd>
+    <dt>横截面策略 <span class="en">Cross-sectional Strategy</span></dt>
+    <dd>把提问方向从"<strong>什么时候</strong>涨"(时序,L3–L26 全部)转成"<strong>谁比谁强</strong>":同一时刻对全体标的排序,做多最强的一篮、做空最弱的一篮。三个缺一不可的词:<strong>同一时刻</strong>(横截面而非时序)、<strong>排序</strong>(相对而非绝对——熊市第 1 名可能是 −30%,照买)、<strong>两腿等额</strong>(市场共同涨跌在相减中抵消)。技术核心是 <code>rank(axis=1)</code>:在<strong>一行之内</strong>比较,权重取决于同侪而非自身绝对水平。见 <a href="../lessons/0027-the-cross-section.html">L27</a>。</dd>
+
+    <dt>面板数据 <span class="en">Panel Data</span></dt>
+    <dd>行是日期、列是标的的宽表。同一张表两种读法:<strong>竖着走一列 = 时序</strong>,<strong>横着走一行 = 横截面</strong>。转置本身不带来新数据,改变的是提问方向。<code>fetch_panel</code> 是 L23 那个 6 行 yfinance 转接头的批量版。见 <a href="../lessons/0027-the-cross-section.html">L27</a>。</dd>
+
+    <dt>美元中性 / beta 中性 <span class="en">Dollar / Beta Neutral</span></dt>
+    <dd>多空两腿等额(权重和 = 0)⇒ 市场共同因子在相减中抵消。实测(30 只道指成分,2016–2026):单拿多头篮 beta <strong>+1.10</strong>、单拿空头篮 <strong>−1.13</strong>、<strong>价差 −0.04</strong>。<strong>最常见的误用</strong>:把它当"低风险"——价差年化波动 <strong>21.6% &gt; 市场 17.1%</strong>。beta 归零只消掉市场共同那一份,不消掉<strong>特质风险</strong>;是<strong>换赛道,不是买保险</strong>。旧风险"赌错方向",新风险"赌错名次"。见 <a href="../lessons/0027-the-cross-section.html">L27</a>。</dd>
+
+    <dt>12-1 动量 / 短期反转 <span class="en">12-1 Momentum / Short-term Reversal</span></dt>
+    <dd>横截面排序最经得起复现的排序键:<code>close.shift(21)/close.shift(252)−1</code> —— 过去 12 个月涨幅,但<strong>跳过最近 21 天</strong>。跳过不是装饰:最近一个月里住着<strong>短期反转</strong>(刚涨完的容易回吐),方向与动量相反,不砍掉会互相稀释。出处 <a href="https://onlinelibrary.wiley.com/doi/10.1111/j.1540-6261.1993.tb04702.x">Jegadeesh &amp; Titman (1993)</a>。见 <a href="../lessons/0027-the-cross-section.html">L27</a>。</dd>
+
+    <dt>特质风险 <span class="en">Idiosyncratic Risk</span></dt>
+    <dd>剥掉市场共同因子后,每只票自己剩下的那份波动(财报、诉讼、CEO 发疯)。多空对冲消不掉它,而且每条腿只装 6 只票时它被<strong>浓缩</strong>了——这正是中性组合波动反而高于市场的原因。推论:<strong>波动率目标</strong>(L18)在横截面里不是可选项,是必需品。见 <a href="../lessons/0027-the-cross-section.html">L27</a>。</dd>
+
+    <dt>结构性数字 vs 名单依赖数字 <span class="en">Structural vs Roster-dependent</span>(课程用语)</dt>
+    <dd>读任何回测数字前先问:<strong>它靠什么撑着?</strong> 收益<strong>依赖名单</strong>——今天的道指成分是活到今天的赢家,被踢出去和死掉的不记账(<a href="../lessons/0023-stocks-recalibrating-the-clock.html">L23</a> 幸存者偏差),所以被向上污染。beta≈0 是<strong>结构性</strong>的——来自 <code>long − short</code> 等额相减的代数事实,换任何一篮子都成立。<strong>幸存者偏差污染收益,污染不了 beta</strong>:L27 因此只交付一个数字。见 <a href="../lessons/0027-the-cross-section.html">L27</a>。</dd>
   </dl>
 
   <div class="lesson-foot">

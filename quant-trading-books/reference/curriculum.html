@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>课程总纲 — 量化交易五书精读</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  .book-card {
+    font-family: var(--sans);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin: 1.5rem 0 1rem;
+    background: #fff;
+  }
+  .book-card .no { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+  .book-card .title { font-size: 1.15rem; font-weight: 700; margin: 0.15rem 0; }
+  .book-card .meta { font-size: 0.85rem; color: var(--ink-faint); }
+  table.plan { font-family: var(--sans); font-size: 0.86rem; width: 100%; }
+  table.plan th { white-space: nowrap; }
+  table.plan td:first-child { white-space: nowrap; font-weight: 700; color: var(--accent); }
+  table.plan td:nth-child(2) { white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="kicker">量化交易五书精读 · 课程总纲</p>
+<h1>逐章课程表:五本书,76 课</h1>
+<p class="subtitle">一天一课,每课约 1 小时。课堂直接讲授该章内容,课下自行温习原书。</p>
+
+<div class="callout">
+  <span class="label">课程怎么上</span>
+  每课就是教书中的一章(大章拆开,小章合并):老师用白话 + 数字例子把该章讲透,课内做检索练习,
+  课末给出<b>课下温习范围</b>(原书对应章节/页码),你自己翻书巩固。不布置课前阅读。
+</div>
+
+<h2>五本书的行军序列</h2>
+<div class="pipeline">
+  <div class="stage">① 统计直觉<br><small>Wheelan · 13 课</small></div>
+  <div class="stage">② 个人量化<br><small>Chan · 9 课</small></div>
+  <div class="stage">③ 机构黑箱<br><small>Narang · 14 课</small></div>
+  <div class="stage">④ 金融 ML<br><small>López de Prado · 20 课</small></div>
+  <div class="stage">⑤ 因子与组合<br><small>Grinold &amp; Kahn · 20 课</small></div>
+</div>
+<p>顺序由你钦定:<b>先直觉后严谨,先个人后机构</b>。按一天一课,全程约 76 天(两个半月出头);后两本数学重,个别章节可能再拆课,以实际掌握度为准。</p>
+
+<!-- ==================== BOOK 1 ==================== -->
+<div class="book-card">
+  <div class="no">Book 1 · 13 课</div>
+  <div class="title">《Naked Statistics》 — Charles Wheelan</div>
+  <div class="meta">EPUB · 导言 + 13 章(含 5½)+ 结语 · 零公式统计直觉</div>
+</div>
+<table class="plan">
+  <tr><th>课</th><th>章节</th><th>本课核心问题</th></tr>
+  <tr><td>B1.1</td><td>导言 + ch1</td><td>统计学到底拿来干什么?为什么它比微积分更贴近真实决策?</td></tr>
+  <tr><td>B1.2</td><td>ch2 + 附录</td><td>均值/中位数/标准差/百分位——怎么用一小撮数字概括一堆数据?(谁是史上最佳棒球手)</td></tr>
+  <tr><td>B1.3</td><td>ch3</td><td>"真实但严重误导"的统计量长什么样?单位、基准、通胀调整里藏的把戏</td></tr>
+  <tr><td>B1.4</td><td>ch4 + 附录</td><td>相关系数在度量什么、不在度量什么?Netflix 怎么猜你喜欢的电影?</td></tr>
+  <tr><td>B1.5</td><td>ch5 + 5½</td><td>期望值与概率思维:为什么别买 $99 打印机的延保?Monty Hall 为什么要换门?</td></tr>
+  <tr><td>B1.6</td><td>ch6</td><td>概率怎么害死人:自信的数学天才如何几乎搞垮全球金融体系(VaR 的故事)</td></tr>
+  <tr><td>B1.7</td><td>ch7</td><td>垃圾进垃圾出:选择偏差、幸存者偏差、发表偏差——数据坏了,后面全白算</td></tr>
+  <tr><td>B1.8</td><td>ch8</td><td>中心极限定理:为什么样本均值会乖乖排成钟形?(统计学的 LeBron James)</td></tr>
+  <tr><td>B1.9</td><td>ch9 + 附录</td><td>统计推断与假设检验:教授凭什么怀疑我作弊?p 值到底说了什么、没说什么</td></tr>
+  <tr><td>B1.10</td><td>ch10 + 附录</td><td>抽样与民调:凭 1000 人怎么敢说全国 64%?误差范围 ±3% 从哪来?</td></tr>
+  <tr><td>B1.11</td><td>ch11 + 附录</td><td>回归分析这剂灵药:控制变量后,"其他条件相同"是怎么实现的?</td></tr>
+  <tr><td>B1.12</td><td>ch12</td><td>回归的强制警告标签:七种常见误用,每种怎么识破?</td></tr>
+  <tr><td>B1.13</td><td>ch13 + 结语</td><td>项目评估与反事实:上哈佛真的改变人生吗?+ 全书收官与压缩参考卡</td></tr>
+</table>
+
+<!-- ==================== BOOK 2 ==================== -->
+<div class="book-card">
+  <div class="no">Book 2 · 9 课</div>
+  <div class="title">《Quantitative Trading》 — Ernest P. Chan</div>
+  <div class="meta">PDF · 8 章(2008 第 1 版;MATLAB 例子课上配 Python 对照)· 个人量化生意全流程</div>
+</div>
+<table class="plan">
+  <tr><th>课</th><th>章节</th><th>本课核心问题</th></tr>
+  <tr><td>B2.1</td><td>ch1</td><td>谁能做量化交易?它作为一门"生意"的账怎么算?(可扩展性/时间投入/无需营销)</td></tr>
+  <tr><td>B2.2</td><td>ch2</td><td>去哪找策略想法?怎么按自己的时间/资金/技能筛掉不适合的?(8 个筛选问题)</td></tr>
+  <tr><td>B2.3</td><td>ch3 前半(p31–50)</td><td>回测平台与历史数据:拆股分红调整、幸存者偏差、高低价数据的坑;绩效怎么度量?</td></tr>
+  <tr><td>B2.4</td><td>ch3 后半(p50–67)</td><td>回测三大陷阱:前视偏差、数据窥探偏差、交易成本——各怎么防?</td></tr>
+  <tr><td>B2.5</td><td>ch4</td><td>开业设置:零售户还是自营?怎么选券商?需要什么物理基础设施?</td></tr>
+  <tr><td>B2.6</td><td>ch5</td><td>执行系统:半自动到全自动怎么搭?纸上交易测什么?实盘为何偏离回测?</td></tr>
+  <tr><td>B2.7</td><td>ch6 + 附录</td><td>资金与风险管理:Kelly 公式怎么推、怎么用?为什么实践中都打对折?心理准备是什么?</td></tr>
+  <tr><td>B2.8</td><td>ch7 前半(p116–133)</td><td>均值回归 vs 动量、regime switching、平稳性与协整——策略的两大族与它们的地基</td></tr>
+  <tr><td>B2.9</td><td>ch7 后半(p133–156)+ ch8</td><td>因子模型、退出策略、季节性策略、高杠杆 vs 高 beta;独立交易者到底能不能成?+ 压缩参考卡</td></tr>
+</table>
+
+<!-- ==================== BOOK 3 ==================== -->
+<div class="book-card">
+  <div class="no">Book 3 · 14 课</div>
+  <div class="title">《Inside the Black Box》 — Rishi K. Narang</div>
+  <div class="meta">PDF · 17 章 4 部(2013 第 2 版)· 机构量化系统的模块化解剖 · 无公式</div>
+</div>
+<table class="plan">
+  <tr><th>课</th><th>章节</th><th>本课核心问题</th></tr>
+  <tr><td>B3.1</td><td>ch1–2</td><td>量化交易为什么重要?一个典型量化系统由哪几个模块组成?(全书地图)</td></tr>
+  <tr><td>B3.2</td><td>ch3 前半(p23–42)</td><td>理论驱动的 alpha 模型:趋势/回归/价值/成长/质量/情绪六族,各自赚的是什么钱?</td></tr>
+  <tr><td>B3.3</td><td>ch3 后半(p42–65)</td><td>数据驱动的 alpha 模型与策略实施:预测目标/期限/押注结构/投资域怎么选?多个 alpha 怎么混合?</td></tr>
+  <tr><td>B3.4</td><td>ch4</td><td>风险模型:限制风险的"量"与"型"分别怎么做?为什么风险控制独立于收益预测?</td></tr>
+  <tr><td>B3.5</td><td>ch5</td><td>交易成本模型:佣金/滑点/市场冲击各是什么?平的、线性的、二次的成本模型怎么选?</td></tr>
+  <tr><td>B3.6</td><td>ch6</td><td>组合构建模型:规则法 vs 优化器,各自怎么把 alpha/风险/成本揉成一个持仓表?</td></tr>
+  <tr><td>B3.7</td><td>ch7</td><td>执行:订单执行算法(被动/激进、VWAP、聪明路由)与交易基础设施长什么样?</td></tr>
+  <tr><td>B3.8</td><td>ch8</td><td>数据:类型、来源、清洗、存储——为什么说数据是量化系统的血液?</td></tr>
+  <tr><td>B3.9</td><td>ch9</td><td>研究:科学方法怎么落到策略研发?想法从哪来?测试怎么做才不自欺?</td></tr>
+  <tr><td>B3.10</td><td>ch10</td><td>量化策略的固有风险:模型风险、regime 变化、外生冲击、拥挤/传染——2007 年 8 月发生了什么?</td></tr>
+  <tr><td>B3.11</td><td>ch11</td><td>对量化的六大批评(艺术 vs 科学、放大波动、数据挖掘…),哪些成立哪些是误解?</td></tr>
+  <tr><td>B3.12</td><td>ch12</td><td>怎么评估一个量化策略和它的操盘手?edge、诚信、在组合里的位置怎么看?</td></tr>
+  <tr><td>B3.13</td><td>ch13–14</td><td>高速交易:速度为什么值钱?延迟藏在哪些环节?</td></tr>
+  <tr><td>B3.14</td><td>ch15–17</td><td>高频交易的策略与争议:做市/套利/快 alpha;HFT 不公平吗?+ 全书收官与压缩参考卡</td></tr>
+</table>
+
+<!-- ==================== BOOK 4 ==================== -->
+<div class="book-card">
+  <div class="no">Book 4 · 20 课</div>
+  <div class="title">《Advances in Financial Machine Learning》 — Marcos López de Prado</div>
+  <div class="meta">EPUB · 22 章 5 部(2018)· 数学渐重:白话与数字例子先行 · 每章带习题,课内选做</div>
+</div>
+<table class="plan">
+  <tr><th>课</th><th>章节</th><th>本课核心问题</th></tr>
+  <tr><td>B4.1</td><td>ch1</td><td>金融 ML 为什么是独立学科?这类项目通常死在哪?(全书路线图)</td></tr>
+  <tr><td>B4.2</td><td>ch2</td><td>金融数据结构:tick/volume/dollar bars 各怎么造?为什么 time bars 统计性质最差?</td></tr>
+  <tr><td>B4.3</td><td>ch3</td><td>标注:固定时间窗标签坏在哪?triple-barrier 怎么立三道墙?meta-labeling 怎么把方向和仓位分开学?</td></tr>
+  <tr><td>B4.4</td><td>ch4</td><td>样本权重:标签重叠为什么毁掉 IID 假设?唯一性、时间衰减、类权重怎么补救?</td></tr>
+  <tr><td>B4.5</td><td>ch5</td><td>分数差分:平稳性和记忆为什么互相打架?怎么差分到"刚好平稳、记忆最大"?</td></tr>
+  <tr><td>B4.6</td><td>ch6</td><td>集成方法:误差三来源;bagging 与 boosting 在金融里谁更合适、为什么?</td></tr>
+  <tr><td>B4.7</td><td>ch7</td><td>金融交叉验证:K-fold 为什么必然泄漏?purging 和 embargo 怎么修?</td></tr>
+  <tr><td>B4.8</td><td>ch8</td><td>特征重要性:MDI/MDA/SFI 三件套怎么用?为什么说"回测不是研究工具"?</td></tr>
+  <tr><td>B4.9</td><td>ch9</td><td>超参调优:为什么要用 purged CV 调参?log-uniform 抽样为什么比网格聪明?</td></tr>
+  <tr><td>B4.10</td><td>ch10</td><td>Bet sizing:预测概率怎么翻译成仓位大小?怎么平滑加减仓?</td></tr>
+  <tr><td>B4.11</td><td>ch11</td><td>回测的危险:回测七宗罪与"回测过拟合"——为什么试得越多越不可信?</td></tr>
+  <tr><td>B4.12</td><td>ch12</td><td>用交叉验证回测(CPCV):比单条历史路径多出什么信息?</td></tr>
+  <tr><td>B4.13</td><td>ch13</td><td>合成数据回测:怎么在人造价格路径上测策略,避开"就这一段历史"?</td></tr>
+  <tr><td>B4.14</td><td>ch14</td><td>回测统计:该报哪些数字?Deflated Sharpe——试了 N 次后夏普要打几折才可信?</td></tr>
+  <tr><td>B4.15</td><td>ch15</td><td>策略风险:胜率/赔率/频率决定的"策略生死线"怎么算?</td></tr>
+  <tr><td>B4.16</td><td>ch16</td><td>ML 资产配置:均值方差优化为什么脆?HRP(层次风险平价)怎么绕开求逆矩阵?</td></tr>
+  <tr><td>B4.17</td><td>ch17</td><td>结构性断裂:CUSUM、爆炸性检验——怎么探测"世界变了"?</td></tr>
+  <tr><td>B4.18</td><td>ch18</td><td>熵特征:价格序列的信息含量怎么量化?市场什么时候"可压缩"?</td></tr>
+  <tr><td>B4.19</td><td>ch19</td><td>微观结构特征:买卖价差、订单流毒性(VPIN)——从成交明细里读出什么?</td></tr>
+  <tr><td>B4.20</td><td>ch20–22(概览)</td><td>高性能计算三章鸟瞰:多进程/向量化的要点 + 全书收官与压缩参考卡</td></tr>
+</table>
+
+<!-- ==================== BOOK 5 ==================== -->
+<div class="book-card">
+  <div class="no">Book 5 · 20 课</div>
+  <div class="title">《Active Portfolio Management》 — Grinold &amp; Kahn</div>
+  <div class="meta">PDF 扫描版 · 22 章 + 附录(2000 第 2 版)· 数学最重:正文为主,技术附录选讲 · 附录 C 是随书数学急救包</div>
+</div>
+<table class="plan">
+  <tr><th>课</th><th>章节</th><th>本课核心问题</th></tr>
+  <tr><td>B5.1</td><td>ch1(+ 附录 C 预热)</td><td>主动管理凭什么可以是一门科学?全书的七个核心洞见是什么?</td></tr>
+  <tr><td>B5.2</td><td>ch2</td><td>CAPM 与共识预期收益:为什么主动管理的第一步是算出"大家都同意的收益"?</td></tr>
+  <tr><td>B5.3</td><td>ch3</td><td>风险:怎么定义、怎么用因子模型分解?风险模型预测得准吗?</td></tr>
+  <tr><td>B5.4</td><td>ch4</td><td>超额收益、基准与增加值:alpha/beta/残差收益的正式定义与拆解</td></tr>
+  <tr><td>B5.5</td><td>ch5</td><td>残差风险与信息比率(IR):主动管理的"业绩单位"怎么定义?典型数值多大?</td></tr>
+  <tr><td>B5.6</td><td>ch6 ★全书心脏</td><td>主动管理基本定律 IR ≈ IC·√BR:技能×宽度——它怎么推出来?怎么指导一切策略选择?</td></tr>
+  <tr><td>B5.7</td><td>ch7</td><td>APT 与多因子预期收益:它和 CAPM 什么关系?给主动管理者留了什么空间?</td></tr>
+  <tr><td>B5.8</td><td>ch8</td><td>估值(理论):现金流折现与风险调整——定价的第一性原理</td></tr>
+  <tr><td>B5.9</td><td>ch9</td><td>估值(实践):可比公司、股利折现模型——理论落地时打了什么折?</td></tr>
+  <tr><td>B5.10</td><td>ch10</td><td>预测基础:alpha = volatility · IC · score——原始信号怎么"精炼"成预期收益?</td></tr>
+  <tr><td>B5.11</td><td>ch11</td><td>进阶预测:一个时点上很多资产的信息(横截面)怎么正确处理?</td></tr>
+  <tr><td>B5.12</td><td>ch12</td><td>信息分析:怎么科学度量"我的信号里到底有没有信息"?(事件研究、IC 的度量)</td></tr>
+  <tr><td>B5.13</td><td>ch13</td><td>信息期限:信号会衰减——半衰期怎么度量?换仓节奏怎么跟上?</td></tr>
+  <tr><td>B5.14</td><td>ch14</td><td>组合构建:从 alpha 到持仓,优化器怎么用?dispersion 从哪来?</td></tr>
+  <tr><td>B5.15</td><td>ch15</td><td>多空投资:放开做空约束能赚回多少效率?long/short 的实证长什么样?</td></tr>
+  <tr><td>B5.16</td><td>ch16</td><td>交易成本、换手与交易:成本怎么建模?换手率的"值不值"怎么算?</td></tr>
+  <tr><td>B5.17</td><td>ch17</td><td>绩效分析:怎么把业绩拆成技能与运气?归因分析怎么做?</td></tr>
+  <tr><td>B5.18</td><td>ch18</td><td>资产配置:同一套主动管理框架怎么用到资产类别层面?</td></tr>
+  <tr><td>B5.19</td><td>ch19</td><td>基准择时:择时是宽度极小的生意——基本定律怎么解释它为什么难?</td></tr>
+  <tr><td>B5.20</td><td>ch20–22</td><td>主动管理的历史战绩、开放问题与全书总结 + 压缩参考卡 + 五书毕业</td></tr>
+</table>
+
+<h2>里程碑与产出</h2>
+<table class="plan">
+  <tr><th>节点</th><th>产出</th></tr>
+  <tr><td>每课</td><td>一次检索练习通过;课末列明课下温习范围(原书章节/页码)</td></tr>
+  <tr><td>每本书完结</td><td>一张全书压缩参考卡(存 <code>reference/</code>)+ 一条 learning record + 词汇表更新</td></tr>
+  <tr><td>五书全毕(约 76 课)</td><td>五张参考卡 + 一份贯通五书的总词汇表;通知老师追加新书单,另定课程</td></tr>
+</table>
+
+<div class="callout warn">
+  <span class="label">诚实条款</span>
+  课程表是地图不是铁轨:某章一课吃不下就拆成两课,某几章读来轻松就并课加速。
+  课号(B几.几)保持稳定,新拆的课用 B4.7b 这类后缀,lesson 文件按实际发生顺序编流水号。
+</div>
+
+<div class="lesson-foot">
+  <div class="ask">课上没听懂、课下温习卡住,随时问老师。老师读过这五本书的每一页,任何一章都可以展开重讲、换例子再讲。</div>
+  <div class="nav">
+    <span>工作区:<code>quant-trading-books/</code></span>
+    <span>教材:<code>resources/</code>(5 本电子书)</span>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

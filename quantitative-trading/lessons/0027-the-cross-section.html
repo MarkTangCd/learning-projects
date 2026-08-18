@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L27 · 横截面:从"什么时候"到"谁比谁强"</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    table.g { width: 100%; border-collapse: collapse; font-size: 0.83rem;
+              margin: 1.1rem 0 0.5rem; font-variant-numeric: tabular-nums; }
+    table.g th, table.g td { padding: 0.36rem 0.5rem; border-bottom: 1px solid var(--rule);
+                             text-align: right; }
+    table.g th:first-child, table.g td:first-child { text-align: left; }
+    table.g th { font-size: 0.7rem; letter-spacing: 0.03em; color: var(--ink-soft);
+                 text-transform: uppercase; border-bottom: 2px solid var(--rule); }
+    table.g td.bad { color: var(--accent); font-weight: 700; }
+    table.g td.ok { color: var(--good); font-weight: 700; }
+    table.g tr.hi td { background: color-mix(in srgb, var(--good) 12%, transparent); }
+    .caption { font-size: 0.78rem; color: var(--ink-soft); line-height: 1.5; margin: 0 0 1.4rem; }
+    .axes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin: 1.2rem 0; }
+    .axes > div { border: 1px solid var(--rule); border-radius: 6px; padding: 0.8rem 0.9rem; }
+    .axes h4 { margin: 0 0 0.4rem; font-size: 0.82rem; letter-spacing: 0.02em; }
+    .axes p { margin: 0; font-size: 0.8rem; line-height: 1.55; color: var(--ink-soft); }
+    @media (max-width: 620px) { .axes { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">量化交易 · 第 27 课 · 工位 6 · 横截面开篇</p>
+  <h1>横截面:从"什么时候"到"谁比谁强"</h1>
+  <p class="subtitle">L25 判了单标的择时死刑,L26 查明了死因:这台机器赌的是<strong>市场方向</strong>,而美股十年把这个赌局做成了绞肉机。本课换一个赌注,单一胜利是<strong>一个数字</strong>——多空价差组合对市场的 beta:<strong>−0.04</strong>。市场整体涨跌,从此不再决定你的盈亏。</p>
+
+  <h2>先把你自己的假设拧上最后三个词</h2>
+
+  <p>L26 挑战⑤,你写的是:<em>"强势的股票只有做多策略,弱势的股票只有做空策略。"</em> 方向正中靶心。缺的三个词把它从时序拧成横截面:</p>
+
+  <table class="g">
+    <thead><tr><th>缺的词</th><th>你的版本(时序)</th><th>横截面版本</th></tr></thead>
+    <tbody>
+      <tr><td><strong>同一时刻</strong></td><td style="text-align:left">每只票各自问"我强不强"</td><td style="text-align:left">同一天,全体一起比</td></tr>
+      <tr><td><strong>排序</strong></td><td style="text-align:left">强弱是绝对标准(涨了=强)</td><td style="text-align:left">强弱是名次(比别人强=强)</td></tr>
+      <tr><td><strong>两腿相消</strong></td><td style="text-align:left">各自建仓,敞口叠加</td><td style="text-align:left">多空等额,气候在相减中消掉</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">第三条是全课的支点。前两条只是换了个挑票方法,<strong>只有第三条改变了你在赌什么</strong>——这也是本课唯一要测的东西。</p>
+
+  <h2>一、转置:同一张表,两种读法</h2>
+
+  <p>L3 到 L26,你的数据一直是<strong>一列</strong>价格。横截面要的是一张<span class="term">面板</span>(panel):行是日期,列是标的。</p>
+
+  <pre><code>Ticker         MMM     AXP    AMGN    AMZN    AAPL
+Date
+2026-08-12  183.78  344.08  416.18  267.28  302.25
+2026-08-13  182.65  343.65  417.84  265.13  305.26
+2026-08-14  182.65  342.48  415.21  262.65  305.93</code></pre>
+
+  <div class="axes">
+    <div>
+      <h4>↓ 竖着走一列 = 时序</h4>
+      <p>"AAPL 现在该不该买?" —— L3 的 SMA、L12 的 z-score、L14 的 regime、L16 的做空,<strong>全部住在这一个方向上</strong>。这是被 L25 判死的那个问题。</p>
+    </div>
+    <div>
+      <h4>→ 横着走一行 = 横截面</h4>
+      <p>"这一天,这 30 家公司里谁最强?" —— 同一批数字,没有新数据源,<strong>换的只是提问的方向</strong>。</p>
+    </div>
+  </div>
+
+  <p class="caption"><code>python cross_section.py panel</code>。30 只道指成分股,2015 起,2921×30。代码上只是 <code>yf.download</code> 一次取一批、宽表返回(<code>fetch_panel</code>),L23 那个 6 行转接头的批量版。</p>
+
+  <h2>二、一个瞬间,横着排一次序</h2>
+
+  <p>排序用什么?本课用文献里最经得起复现的那个:<span class="term">12-1 动量</span>——过去 12 个月涨幅,但<strong>跳过最近 1 个月</strong>(<a href="../practice/cross_section.py">momentum()</a>):</p>
+
+  <pre><code>mom = close.shift(21) / close.shift(252) - 1.0   # 12 个月,砍掉最近 21 天
+rank = mom.rank(axis=1, ascending=False)         # axis=1 = 横着排</code></pre>
+
+  <p><code>axis=1</code> 是整节课的技术核心。<code>rank(axis=1)</code> 在<strong>一行之内</strong>比较,所以一只票的权重永远取决于<strong>它的同侪</strong>,而不是它自己的绝对水平。</p>
+
+  <table class="g">
+    <thead><tr><th>腿</th><th>名次</th><th>标的</th><th>形成期涨幅</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>做多</td><td>1</td><td>CAT</td><td class="ok">+113.5%</td></tr>
+      <tr class="hi"><td>做多</td><td>2</td><td>UNH</td><td class="ok">+59.9%</td></tr>
+      <tr class="hi"><td>做多</td><td>6</td><td>JNJ</td><td class="ok">+46.9%</td></tr>
+      <tr><td>—</td><td></td><td colspan="2" style="text-align:left">…中间 18 只不碰…</td></tr>
+      <tr><td>做空</td><td>25</td><td>MCD</td><td>−8.2%</td></tr>
+      <tr><td>做空</td><td>29</td><td>CRM</td><td class="bad">−26.5%</td></tr>
+      <tr><td>做空</td><td>30</td><td>NKE</td><td class="bad">−40.7%</td></tr>
+    </tbody>
+  </table>
+  <p class="caption"><code>python cross_section.py rank</code>(2026-08-14 那一行,节选)。<strong>为什么跳过最近一个月?</strong> 那 21 天里住着<strong>短期反转</strong>——刚涨完的容易回吐,方向与动量相反,不砍掉就会互相稀释。这不是我们调出来的,是 <a href="https://onlinelibrary.wiley.com/doi/10.1111/j.1540-6261.1993.tb04702.x">Jegadeesh &amp; Titman (1993)</a> 定下的标准做法。</p>
+
+  <div class="callout tip">
+    <span class="label">"相对"这两个字要落到胃里</span>
+    第 1 名的含义不是"它涨了",是"<strong>它比另外 29 个都强</strong>"。2008 年的第 1 名可能是 −30%,照买不误——因为另外 29 只跌得更惨。<strong>这台机器从此不再需要判断市场会涨还是会跌。</strong>它只需要名次是对的。
+  </div>
+
+  <h2>三、胜利:气候到底有没有被对冲掉?量一量</h2>
+
+  <p>做多前 6 名、做空后 6 名,各占一半资金(<span class="term">美元中性</span>:权重和 = 0)。然后问一个可证伪的问题:<strong>这三个组合,各自跟市场绑得多紧?</strong></p>
+
+  <table class="g">
+    <thead><tr><th>组合</th><th>与市场相关系数</th><th>对市场 beta</th><th>年化波动</th></tr></thead>
+    <tbody>
+      <tr><td>只拿多头篮</td><td>0.83</td><td class="bad">+1.10</td><td>22.5%</td></tr>
+      <tr><td>只拿空头篮</td><td>−0.86</td><td class="bad">−1.13</td><td>22.5%</td></tr>
+      <tr class="hi"><td><strong>多空价差</strong></td><td><strong>−0.03</strong></td><td class="ok"><strong>−0.04</strong></td><td>21.6%</td></tr>
+      <tr><td>等权市场(对照)</td><td>1.00</td><td>1.00</td><td>17.1%</td></tr>
+    </tbody>
+  </table>
+  <p class="caption"><code>python cross_section.py hedge</code>,2016-01 → 2026-08,2668 个交易日。<strong>beta = 市场每动 1%,你动几 %。</strong> 两条腿单独拿,都是 ±1.1 的市场敞口——赌的还是方向。<strong>相减之后:−0.04。</strong> 气候在两腿之间抵消掉了,而且不是"大致抵消",是抵到只剩零头。</p>
+
+  <p>再看它在最极端的日子里怎么表现——2020 年 3 月那几天,市场单日跌 12%:</p>
+
+  <table class="g">
+    <thead><tr><th>日期</th><th>市场</th><th>多头篮</th><th>空头篮</th><th>价差</th></tr></thead>
+    <tbody>
+      <tr><td>2020-03-16</td><td class="bad">−12.0%</td><td class="bad">−16.3%</td><td class="ok">+14.7%</td><td>−1.7%</td></tr>
+      <tr><td>2020-03-12</td><td class="bad">−9.8%</td><td class="bad">−9.1%</td><td class="ok">+10.6%</td><td class="ok">+1.5%</td></tr>
+      <tr><td>2020-03-09</td><td class="bad">−7.0%</td><td class="bad">−7.6%</td><td class="ok">+10.0%</td><td class="ok">+2.4%</td></tr>
+      <tr><td>2020-06-11</td><td class="bad">−6.4%</td><td class="bad">−4.9%</td><td class="ok">+9.2%</td><td class="ok">+4.4%</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">市场塌下去 12%,价差组合只丢 1.7%;另外三天市场大跌,它反而是<strong>正的</strong>。注意机制:空头篮那一列的 <strong>+14.7%</strong> 才是主角——它不是"预测对了崩盘",它只是<strong>结构上</strong>持有等额空头,市场砸下来时那一腿自动接住。<strong>这正是 L25 那台机器拼命想做、却做不到的事:</strong>它靠 SMA 扳机<em>预测</em>什么时候该空,预测错了十年;这里不预测,靠结构。</p>
+
+  <h2>四、别高兴太早:消掉的是气候,不是风险</h2>
+
+  <div class="callout warn">
+    <span class="label">看波动那一列</span>
+    价差组合年化波动 <strong>21.6%</strong>,比等权市场的 <strong>17.1%</strong> 还<strong>高</strong>。<span class="term">beta 中性</span> ≠ 低风险。你消掉的只是<strong>市场共同因子</strong>那一份;每只票自己的特质波动(财报、诉讼、CEO 发疯)不但没消,还因为每条腿只有 6 只票而被<strong>浓缩</strong>了。<br><br>
+    换句话说:你把风险<strong>换了个种类</strong>,不是减少了它。旧风险是"我赌错了方向",新风险是"我赌错了名次"。L18 的 vol 目标依然要装——而且更要装。
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">多空价差组合的 beta ≈ 0,准确的含义是什么?</div>
+    <button class="opt">市场下跌时这个组合不会亏钱,方向风险已经被完全消除掉了</button>
+    <button class="opt">市场涨跌不再决定它的盈亏,但它自己的波动一点也没变小</button>
+    <div class="fb right" data-for="right">对,而且第二句有硬数字撑着:价差波动 <strong>21.6% &gt; 市场 17.1%</strong>。beta 只描述"跟市场共同那部分的联动",它归零不代表总风险归零。2020-03-16 那天价差照样亏 1.7%——那 1.7% 就是名次赌错的部分,跟市场跌 12% 无关。<strong>中性是换赛道,不是买保险。</strong></div>
+    <div class="fb nope" data-for="nope">"不会亏钱"被同一张表反驳了两处:①价差年化波动 21.6%,<strong>高于</strong>市场的 17.1%;②2020-03-16 市场跌 12%,价差也亏了 1.7%。beta≈0 说的是"跟市场那部分共同变动没了",不是"没风险了"。剩下的风险有名字:<strong>特质风险</strong>——每条腿只有 6 只票,它反而被浓缩了。</div>
+  </div>
+
+  <h2>五、今天不许碰的三条红线</h2>
+
+  <p>你已经看到一个漂亮的结构。按 L22–L26 的教训,现在正是最该踩刹车的时刻:</p>
+
+  <table class="g">
+    <thead><tr><th>红线</th><th>为什么</th></tr></thead>
+    <tbody>
+      <tr><td><strong>不读收益</strong></td><td style="text-align:left">universe 是<strong>今天的</strong>道指 30 —— 掉出去的、死掉的全不在(L23 <code>dead</code> 那一课)。任何收益数字都被幸存者偏差向上污染</td></tr>
+      <tr><td><strong>不算成本</strong></td><td style="text-align:left">每天重排名次 = 每天换手。成本要在<strong>做收益宣称的时候</strong>才有意义,今天不宣称</td></tr>
+      <tr><td><strong>不下判决</strong></td><td style="text-align:left">这段数据我今天已经开过了。想宣布"横截面行得通",要走 L25 那套预注册,用<strong>没开过的</strong>数据</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">那今天这个 <strong>−0.04</strong> 凭什么算数?因为它是<strong>结构性</strong>的:beta 抵消来自"两腿等额相减"这个数学事实,换任何一篮子股票都成立,不依赖于我挑了哪 30 只。<strong>幸存者偏差污染收益,污染不了 beta。</strong> 这就是本课只交付一个数字的原因。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">为什么本课只允许你读 beta,不允许读收益?</div>
+    <button class="opt">收益被幸存者偏差污染,beta 来自结构不依赖挑了哪些票</button>
+    <button class="opt">收益需要更长样本才稳定,十年数据算收益统计上不够用</button>
+    <div class="fb right" data-for="right">对。这是两种数字的<strong>脆弱性</strong>不同:收益直接取决于"名单里有谁"——今天的道指成分是活到今天的赢家,GE、Exxon 被踢出去的那段没人记账。而 beta≈0 来自 <code>long − short</code> 等额相减这个<strong>代数事实</strong>,你换 30 只随机股票它照样成立。<strong>看一个数字之前先问:它靠什么撑着?</strong></div>
+    <div class="fb nope" data-for="nope">样本长度确实是个问题,但它<strong>不是这里的主要问题</strong>——而且它对 beta 和收益是<strong>同等</strong>作用的,解释不了"为什么偏偏收益不能读"。真正的不对称在<strong>幸存者偏差</strong>:名单是今天的道指成分,被踢出去和死掉的公司全不在里面,这只污染收益。beta 来自等额相减的代数,换任何一篮子都成立。</div>
+  </div>
+
+  <div class="callout tip">
+    <span class="label">动手挑战</span>
+    <strong>①</strong> 依次跑 <code>python cross_section.py panel / rank / hedge</code>,对照本课三张表(数字会略有出入——数据每天在长)。<br>
+    <strong>②</strong> 把 <code>BASKET</code> 从 6 改成 <strong>12</strong>(每腿一半标的)再跑 <code>hedge</code>。<strong>先预测再跑</strong>:beta 会怎么变?波动会怎么变?为什么?<br>
+    <strong>③</strong> 把 <code>SKIP</code> 从 21 改成 <strong>0</strong>(不跳过最近一个月),看 <code>rank</code> 的名单换了几只。用一句话说:这说明最近一个月的信息在名次里占多大分量?<br>
+    <strong>④</strong> <code>legs()</code> 里有三处 <code>.shift(1)</code>(L3 的防前视纪律)。把它们删掉再跑 <code>hedge</code>——你会发现 beta 和波动<strong>几乎一动不动</strong>。为什么这次删了没事?(提示:去看 <code>momentum()</code> 那一行,<code>mom</code> 在第 t 天用的是<strong>哪一天</strong>的收盘价。)这题要你交的是一句判据:<strong>判断前视偏差,该看什么,不该看什么。</strong><br>
+    <strong>⑤</strong> 承上一课:L26 挑战③那个三行检验(conditional vs unconditional 漂移)你还欠着。它现在有了新意义——如果扳机<strong>无信息</strong>,那说明单标的择时的问题不在信号而在赌注本身,横截面就更值得走下去。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读(首选来源)</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://onlinelibrary.wiley.com/doi/10.1111/j.1540-6261.1993.tb04702.x">Jegadeesh &amp; Titman (1993) · Returns to Buying Winners and Selling Losers</a></strong> —— 横截面动量的原始论文,也是"跳过最近一个月"这个细节的出处。读它是为了看清一件事:<strong>本课的排序方法不是我编的</strong>,它有三十年的复现史(以及三十年的批评史)。</p>
+    <p style="margin:0"><strong><a href="https://www.aqr.com/Insights/Research/Journal-Article/Fact-Fiction-and-Momentum-Investing">AQR · Fact, Fiction, and Momentum Investing (Asness et al.)</a></strong> —— 逐条拆解动量的十个流行误解,包括"它只是换手成本的幻觉""它在大盘股上不成立"。你迟早要面对这些质疑,不如现在就听最强的反方。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想聊 <code>rank(axis=1)</code> 在 pandas 里到底怎么算的、beta 和相关系数为什么不是一回事、或者"特质风险被浓缩"该怎么量——直接说。<br><br>
+      <strong>下一站:L28。</strong> 今天只测了敞口,没碰收益。下一课要做的是把这台机器<strong>装完整</strong>:换手与成本(每天重排名次的账单)、以及横截面版的诚实回测——然后才谈得上要不要为它走一遍 L25 的预注册。
+    </div>
+    <div class="nav">
+      <a href="0026-autopsy-of-a-refutation.html">← L26:尸检</a>
+      <a href="../reference/glossary.html">词汇表 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>
