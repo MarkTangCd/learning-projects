@@ -1,0 +1,91 @@
+<meta charset="utf-8">
+<title>第 1 课 · 分数运算：三条规则全搞定</title>
+<link rel="stylesheet" href="../assets/course.css">
+<main>
+  <div class="kicker">Lesson 0001 · 阶段 0 · 约 20 分钟</div>
+  <h1>分数运算：三条规则全搞定</h1>
+  <p class="subtitle">你自测里错的第 1 题，根源就在这一课。分数是收益率、仓位、赔率的语言——量化里到处都是它。</p>
+
+  <h2>规则一：加减 → 先通分</h2>
+  <div class="rule-card">
+    <div class="rule-name">分母相同才能加减</div>
+    <div class="formula">1⁄2 + 1⁄3 = 3⁄6 + 2⁄6 = 5⁄6</div>
+  </div>
+  <div class="why">
+    为什么？分母是"切成几块"，分子是"拿了几块"。半张饼和三分之一张饼没法直接加——
+    块的大小不一样。都切成 6 块（公分母），大小统一了才能数：3 块 + 2 块 = 5 块。
+  </div>
+
+  <h2>规则二：乘法 → 直接乘</h2>
+  <div class="rule-card">
+    <div class="rule-name">分子乘分子，分母乘分母</div>
+    <div class="formula">1⁄4 × 1⁄2 = 1⁄8</div>
+  </div>
+  <div class="why">
+    "×1⁄2" 就是"取一半"。四分之一的一半，自然是八分之一。
+    量化场景：剩余资金的 1⁄4，再拿其中一半买入某标的 → 占总资金 1⁄8。
+  </div>
+
+  <h2>规则三：除法 → 乘倒数</h2>
+  <div class="rule-card">
+    <div class="rule-name">除以分数 = 乘以它的倒数</div>
+    <div class="formula">1⁄2 ÷ 1⁄4 = 1⁄2 × 4⁄1 = 2</div>
+  </div>
+  <div class="why">
+    除法问的是"里面装得下几个"。半张饼里能装下几个四分之一张？2 个。
+    所以答案会比原数大——除以小于 1 的数，结果反而变大。这个直觉在算
+    "收益倍数"时天天用。
+  </div>
+
+  <h2>动手验证（可选，2 分钟）</h2>
+  <div class="tip">
+    打开 Python 直接验证：<code>from fractions import Fraction; Fraction(1,2) / Fraction(1,4)</code>
+    → 输出 <code>Fraction(2, 1)</code>。以后每道分数题都可以这样自查。
+  </div>
+
+  <h2>小测：5 题，即时反馈</h2>
+  <p>不许用草稿纸以外的工具。点选项立刻知道对错。</p>
+  <div class="quiz" id="quiz"></div>
+
+  <footer>
+    <p><strong>主推资源：</strong><a href="https://zh.khanacademy.org/math/arithmetic">可汗学院 · 算术（分数章节）</a> —— 本课的每条规则那里都有视频 + 大量练习。</p>
+    <p><strong>速查：</strong><a href="../reference/arithmetic-rules.html">算术规则速查卡</a></p>
+    <p>有任何一步没看懂，直接回到终端问你的 AI 老师——要求"只给提示，不给答案"。</p>
+    <nav>下一步：完成 practice/stage-0-review-1.md 里的第二组练习，把答案发给 AI 批改。</nav>
+  </footer>
+</main>
+<script src="../assets/quiz.js"></script>
+<script>
+  renderQuiz(document.getElementById('quiz'), [
+    {
+      q: '1⁄2 + 1⁄3 = ?',
+      options: ['5⁄6', '2⁄5', '3⁄6', '2⁄6'],
+      answer: 0,
+      explain: '通分到 6：3⁄6 + 2⁄6 = 5⁄6。选 2⁄5 的话，就是把分子分母分别相加了——分数加法不能这么干。',
+    },
+    {
+      q: '3⁄4 − 1⁄6 = ?',
+      options: ['7⁄12', '2⁄12', '5⁄12', '9⁄12'],
+      answer: 0,
+      explain: '公分母 12：9⁄12 − 2⁄12 = 7⁄12。',
+    },
+    {
+      q: '1⁄2 ÷ 1⁄4 = ?',
+      options: ['2', '4', '1⁄8', '1⁄2'],
+      answer: 0,
+      explain: '乘倒数：1⁄2 × 4⁄1 = 2。半张饼里装得下 2 个四分之一。选 1⁄8 说明做成乘法了。',
+    },
+    {
+      q: '3⁄5 ÷ 9⁄10 = ?',
+      options: ['2⁄3', '3⁄5', '5⁄6', '27⁄50'],
+      answer: 0,
+      explain: '3⁄5 × 10⁄9 = 30⁄45 = 2⁄3（上下同除以 15 约分）。选 27⁄50 说明忘了翻倒数。',
+    },
+    {
+      q: '资金的 3⁄4 已买入 A，剩余资金的一半买入 B。B 占总资金的几分之几？',
+      options: ['1⁄8', '1⁄4', '3⁄8', '1⁄2'],
+      answer: 0,
+      explain: '剩余 = 1 − 3⁄4 = 1⁄4；它的一半 = 1⁄4 × 1⁄2 = 1⁄8。仓位计算的本质就是分数乘法。',
+    },
+  ]);
+</script>

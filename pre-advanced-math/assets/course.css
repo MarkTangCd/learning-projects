@@ -1,0 +1,139 @@
+/* Shared stylesheet for all pre-advanced-math lessons & references. */
+:root {
+  --bg: #fffdf8;
+  --ink: #1a1a1a;
+  --muted: #6b6b6b;
+  --accent: #b0413e;
+  --rule-bg: #f5f1e8;
+  --ok: #2e7d32;
+  --bad: #b0413e;
+  --border: #ddd6c8;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14130f;
+    --ink: #e8e4da;
+    --muted: #9a958a;
+    --accent: #e0706c;
+    --rule-bg: #201e18;
+    --ok: #7bc47f;
+    --bad: #e0706c;
+    --border: #3a372e;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Georgia, "Songti SC", "Noto Serif CJK SC", serif;
+  font-size: 19px;
+  line-height: 1.75;
+}
+main {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 6rem;
+}
+h1 {
+  font-size: 1.9rem;
+  line-height: 1.3;
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+h2 {
+  font-size: 1.25rem;
+  margin: 2.5rem 0 0.75rem;
+  font-weight: 600;
+}
+.kicker {
+  color: var(--muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+.subtitle { color: var(--muted); margin-top: 0; }
+a { color: var(--accent); }
+.rule-card {
+  background: var(--rule-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 1.25rem 0;
+}
+.rule-card .rule-name {
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+.rule-card .formula {
+  font-size: 1.2rem;
+  font-family: Georgia, serif;
+}
+.why {
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin: 1rem 0;
+}
+.tip {
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin: 1.5rem 0;
+}
+frac, .frac { white-space: nowrap; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+th, td { border-bottom: 1px solid var(--border); padding: 0.4rem 0.6rem; text-align: left; }
+footer {
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+/* Quiz component styles (used by quiz.js) */
+.quiz-q { margin: 2rem 0; }
+.quiz-q .q-text { font-weight: 600; margin-bottom: 0.6rem; }
+.quiz-options { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.quiz-options button {
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.45rem 1.1rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.quiz-options button:hover:not(:disabled) { border-color: var(--accent); }
+.quiz-options button.correct { border-color: var(--ok); color: var(--ok); font-weight: 700; }
+.quiz-options button.wrong { border-color: var(--bad); color: var(--bad); opacity: 0.8; }
+.quiz-options button:disabled { cursor: default; }
+.quiz-explain {
+  display: none;
+  margin-top: 0.6rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+  border-left: 3px solid var(--border);
+  padding-left: 0.9rem;
+}
+.quiz-explain.show { display: block; }
+.quiz-score {
+  margin-top: 2rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: none;
+}
+.quiz-score.show { display: block; }
+@media print {
+  body { font-size: 12pt; background: #fff; color: #000; }
+  .quiz, footer nav { display: none; }
+}
