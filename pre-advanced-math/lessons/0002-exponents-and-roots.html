@@ -1,0 +1,121 @@
+<meta charset="utf-8">
+<title>第 2 课 · 指数、根号与复利公式</title>
+<link rel="stylesheet" href="../assets/course.css">
+<main>
+  <div class="kicker">Lesson 0002 · 阶段 0 · 约 25 分钟</div>
+  <h1>指数、根号与复利公式</h1>
+  <p class="subtitle">你算复利的"笨办法"其实是对的——这一课只做一件事：把"重复乘"写成一个符号。学会它，复利公式是白送的。</p>
+
+  <h2>指数：重复乘法的缩写</h2>
+  <div class="rule-card">
+    <div class="rule-name">定义</div>
+    <div class="formula">3⁴ = 3 × 3 × 3 × 3　（3 自乘 4 次）</div>
+  </div>
+  <div class="why">
+    指数不是新运算，只是懒人写法。3⁴ 读作"3 的 4 次方"，右上角的小数字叫指数，
+    意思就是"乘几次"。
+  </div>
+
+  <div class="rule-card">
+    <div class="rule-name">同底数相乘 → 指数相加</div>
+    <div class="formula">3⁴ × 3² = 3⁴⁺² = 3⁶</div>
+  </div>
+  <div class="why">
+    为什么是加不是乘？展开看：(3×3×3×3) × (3×3) —— 左边 4 个 3，右边 2 个 3，
+    一共 6 个 3 连乘。数一数就明白，不用背。
+  </div>
+
+  <div class="rule-card">
+    <div class="rule-name">同底数相除 → 指数相减</div>
+    <div class="formula">3⁶ ÷ 3² = 3⁶⁻² = 3⁴</div>
+  </div>
+  <div class="why">
+    展开：6 个 3 连乘，除掉 2 个，剩 4 个。乘法添 3，除法删 3——就这么直白。
+  </div>
+
+  <h2>复利公式：你已经发明了它</h2>
+  <p>你的算法：10000 元第一年赚 1000，第二年在 11000 上赚 1100。换个角度看每一年发生了什么：</p>
+  <div class="rule-card">
+    <div class="rule-name">每年 = 把钱 × 1.1 一次</div>
+    <div class="formula">
+      第 1 年后：10000 × 1.1 = 11000<br>
+      第 2 年后：10000 × 1.1 × 1.1 = 12100<br>
+      第 n 年后：10000 × 1.1ⁿ
+    </div>
+  </div>
+  <div class="why">
+    "× 1.1" 的意思是"本金全保留（×1）+ 利息 10%（×0.1）"。每年重复乘一次 1.1，
+    重复乘——正是指数。所以复利公式 本金 × (1 + r)ⁿ 不用背，
+    它就是你的手动算法的缩写。这也是第 7 题乘数法的同一招：涨 50% = ×1.5，跌 50% = ×0.5。
+  </div>
+
+  <h2>根号：指数的反向提问</h2>
+  <div class="rule-card">
+    <div class="rule-name">定义</div>
+    <div class="formula">√49 = 7，因为 7 × 7 = 49　（√n 问的是："谁自乘等于 n？"）</div>
+  </div>
+  <div class="why">
+    平方是"7 自乘得 49"，根号是反过来问"49 是谁自乘来的"。
+    像乘法与除法一样，它们互为逆运算。
+  </div>
+  <div class="rule-card">
+    <div class="rule-name">估算：用相邻的平方数夹逼</div>
+    <div class="formula">√30：5² = 25 &lt; 30 &lt; 36 = 6²　→ √30 在 5 和 6 之间，离 36 远、离 25 近，所以靠近 5.5 偏下（实际 ≈ 5.48）</div>
+  </div>
+  <div class="why">
+    先背熟 1–12 的平方数（1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144），
+    任何根号都能秒估范围。量化里根号无处不在——波动率就是按"√时间"缩放的，
+    以后你会天天见到它。
+  </div>
+
+  <h2>动手验证（可选，2 分钟）</h2>
+  <div class="tip">
+    Python 里：<code>3**4</code> 是幂，<code>30**0.5</code> 是根号。
+    验证复利：<code>10000 * 1.1**2</code> → <code>12100.0</code>，和你手算的一致。
+  </div>
+
+  <h2>小测：5 题，即时反馈</h2>
+  <div class="quiz" id="quiz"></div>
+
+  <footer>
+    <p><strong>主推资源：</strong><a href="https://zh.khanacademy.org/math/arithmetic">可汗学院 · 算术（指数与根式章节）</a> —— 视频讲解 + 大量练习。</p>
+    <p><strong>速查：</strong><a href="../reference/arithmetic-rules.html">算术规则速查卡</a> ｜ 上一课：<a href="0001-fraction-operations.html">分数运算</a></p>
+    <p>有任何一步没看懂，回到终端问你的 AI 老师——要求"只给提示，不给答案"。</p>
+    <nav>下一步：完成 practice/stage-0-review-2.md 的第三组练习，把答案发给 AI 批改。全过 = 阶段 0 毕业。</nav>
+  </footer>
+</main>
+<script src="../assets/quiz.js"></script>
+<script>
+  renderQuiz(document.getElementById('quiz'), [
+    {
+      q: '2⁵ × 2³ = 2 的几次方？',
+      options: ['2⁸', '2¹⁵', '2²', '4⁸'],
+      answer: 0,
+      explain: '同底数相乘，指数相加：5 + 3 = 8。展开数一数：5 个 2 加 3 个 2，共 8 个 2 连乘。选 2¹⁵ 说明把指数乘起来了。',
+    },
+    {
+      q: '5⁶ ÷ 5⁴ = ?',
+      options: ['5²', '5³', '5¹⁰', '5²⁴'],
+      answer: 0,
+      explain: '同底数相除，指数相减：6 − 4 = 2。6 个 5 连乘除掉 4 个，剩 2 个。',
+    },
+    {
+      q: '√81 = ?',
+      options: ['9', '8', '7', '6'],
+      answer: 0,
+      explain: '9 × 9 = 81。根号问的是"谁自乘等于 81"。',
+    },
+    {
+      q: '√40 在哪两个整数之间？更靠近哪个？',
+      options: ['6 和 7 之间，靠近 6', '6 和 7 之间，靠近 7', '5 和 6 之间，靠近 6', '7 和 8 之间，靠近 7'],
+      answer: 0,
+      explain: '6² = 36 < 40 < 49 = 7²，所以在 6 和 7 之间；40 离 36 只差 4，离 49 差 9，靠近 6（实际 ≈ 6.32）。',
+    },
+    {
+      q: '8000 元年化 5%，复利 3 年后的总额，公式是？',
+      options: ['8000 × 1.05³', '8000 × (1 + 0.05 × 3)', '8000 × 0.05³', '8000 × 3 × 1.05'],
+      answer: 0,
+      explain: '每年 ×1.05 一次，3 年就是 ×1.05³。第二个选项是单利（利息不滚入本金）。',
+    },
+  ]);
+</script>
