@@ -1,0 +1,99 @@
+<meta charset="utf-8">
+<title>第 3 课 · 用字母表示数：方程入门</title>
+<link rel="stylesheet" href="../assets/course.css">
+<main>
+  <div class="kicker">Lesson 0003 · 阶段 1 · 约 25 分钟</div>
+  <h1>用字母表示数：方程入门</h1>
+  <p class="subtitle">阶段 0 毕业，欢迎来到代数。你在补测第 4 题里其实已经无师自通地用过它了——这一课把那个直觉变成正式工具。</p>
+
+  <h2>字母 = 还不知道的数的名字</h2>
+  <div class="rule-card">
+    <div class="rule-name">变量</div>
+    <div class="formula">"某个数的 3 倍加 5" 写成：3x + 5　（3x 就是 3 × x，乘号省略）</div>
+  </div>
+  <div class="why">
+    你上一组练习的第 4 题："跌 50% 后要涨多少回本？"你列的式子是 1 ÷ 0.5 = 2。
+    换个写法：设回本乘数为 x，则 0.5 × x = 1 —— 这就是一个方程。
+    代数只是把"心里那个未知数"起个名字写出来，让复杂问题也能这样倒推。
+  </div>
+
+  <h2>方程 = 天平</h2>
+  <div class="rule-card">
+    <div class="rule-name">核心原则：两边同时做同一件事，天平保持平衡</div>
+    <div class="formula">
+      3x + 5 = 20<br>
+      两边同减 5：　3x = 15<br>
+      两边同除 3：　x = 5
+    </div>
+  </div>
+  <div class="why">
+    解方程没有任何新知识，只有一个动作：<strong>把 x 一步步孤立出来</strong>。
+    x 旁边有 "+5" 就两边减 5，有 "×3" 就两边除 3——每一步都是在"撤销"一个运算。
+    课本上说的"移项变号"就是"两边同加减"的快捷说法。
+  </div>
+
+  <h2>把文字翻译成方程（量化建模的起点）</h2>
+  <div class="rule-card">
+    <div class="rule-name">例：买股票</div>
+    <div class="formula">
+      每股 25 元的股票买 n 股，手续费 5 元，总共花了 255 元。买了几股？<br>
+      翻译：25n + 5 = 255　→　25n = 250　→　n = 10
+    </div>
+  </div>
+  <div class="why">
+    以后做策略研究，第一步永远是"把问题翻译成式子"。
+    "要多少年翻倍"就是解 (1+r)ⁿ = 2——现在解不了没关系，阶段 2 学完函数就可以。
+    翻译能力从今天这种小题练起。
+  </div>
+
+  <h2>动手验证（可选，2 分钟）</h2>
+  <div class="tip">
+    Python 验算你手解的方程：<code>from sympy import symbols, solve; x = symbols('x'); solve(3*x + 5 - 20, x)</code>
+    → <code>[5]</code>。规矩：<strong>手解为主，机器只做验算</strong>。
+  </div>
+
+  <h2>小测：5 题，即时反馈</h2>
+  <div class="quiz" id="quiz"></div>
+
+  <footer>
+    <p><strong>主推资源：</strong><a href="https://zh.khanacademy.org/math/algebra">可汗学院 · 代数 1</a>（「解方程」章节）—— 本课配套视频和大量练习。</p>
+    <p><strong>速查：</strong><a href="../reference/arithmetic-rules.html">算术规则速查卡</a> ｜ 上一课：<a href="0002-exponents-and-roots.html">指数、根号与复利公式</a></p>
+    <p>有任何一步没看懂，回到终端问你的 AI 老师——要求"只给提示，不给答案"。</p>
+    <nav>下一步：等 AI 布置阶段 1 第一组练习（含热身：绝对值、科学计数法）。</nav>
+  </footer>
+</main>
+<script src="../assets/quiz.js"></script>
+<script>
+  renderQuiz(document.getElementById('quiz'), [
+    {
+      q: '化简：2x + 3x = ?',
+      options: ['5x', '6x', '5x²', '6x²'],
+      answer: 0,
+      explain: '2 个 x 加 3 个 x 是 5 个 x。只有"同类项"（同一个字母、同一个次数）才能合并，x 的个数相加，x 本身不变。',
+    },
+    {
+      q: '解方程：x + 7 = 12',
+      options: ['x = 5', 'x = 7', 'x = 19', 'x = 84'],
+      answer: 0,
+      explain: '两边同减 7：x = 12 − 7 = 5。',
+    },
+    {
+      q: '解方程：3x − 4 = 14',
+      options: ['x = 6', 'x = 5', 'x = 10', 'x = 54'],
+      answer: 0,
+      explain: '两边同加 4：3x = 18；两边同除 3：x = 6。先撤销加减，再撤销乘除。',
+    },
+    {
+      q: '解方程：5x = 2x + 12',
+      options: ['x = 4', 'x = 6', 'x = 3', 'x = 12'],
+      answer: 0,
+      explain: '两边同减 2x：3x = 12 → x = 4。x 出现在两边时，先把它们收拢到同一边。',
+    },
+    {
+      q: '每股 8 元的股票买 n 股，手续费 4 元，共花 100 元。n = ?',
+      options: ['n = 12', 'n = 13', 'n = 8', 'n = 25'],
+      answer: 0,
+      explain: '翻译：8n + 4 = 100 → 8n = 96 → n = 12。选 13 的话是把手续费也当成了股价（100 ÷ 8 再取整）。',
+    },
+  ]);
+</script>
