@@ -241,6 +241,89 @@ th { font-weight: 700; border-bottom: 2px solid var(--ink-soft); }
   color: var(--accent); font-weight: 700; margin-bottom: 0.4rem;
 }
 
+/* ---- Triage scorecard (styling; behavior lives in checklist.js) ---- */
+.scorecard {
+  font-family: var(--sans);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 1.2rem 1.3rem;
+  margin: 1.5rem 0;
+  background: #fff;
+}
+.scorecard .sc-title {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.9rem;
+}
+.sc-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--rule);
+}
+.sc-row .sc-label { flex: 1 1 auto; font-size: 0.9rem; line-height: 1.45; }
+.sc-row .sc-label .sc-id {
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--accent);
+  margin-right: 0.4rem;
+}
+.sc-row .sc-label .sc-desc { color: var(--ink-soft); font-size: 0.82rem; display: block; }
+.sc-btns { display: flex; gap: 0.3rem; flex: 0 0 auto; }
+.sc-btns button {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-width: 2.2rem;
+  padding: 0.3rem 0.5rem;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.sc-btns button:hover { border-color: var(--ink-soft); }
+.sc-btns button.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.sc-notes {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  width: 100%;
+  min-height: 3.2rem;
+  margin-top: 0.8rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--ink);
+  resize: vertical;
+}
+.sc-verdict {
+  display: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-top: 0.9rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  background: var(--code-bg);
+}
+.sc-verdict.show { display: block; }
+.sc-verdict.go { background: #e9f5ee; color: var(--good); }
+.sc-verdict.hold { background: #fbf3dd; color: var(--warn); }
+.sc-verdict.kill { background: var(--accent-soft); color: var(--accent); }
+.sc-copy {
+  font: inherit;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.8rem;
+  padding: 0.45rem 0.9rem;
+  background: var(--bg);
+  border: 1px solid var(--ink-soft);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.sc-copy:hover { background: var(--code-bg); }
+
 /* ---- Dark mode ---- */
 @media (prefers-color-scheme: dark) {
   :root {
@@ -248,9 +331,10 @@ th { font-weight: 700; border-bottom: 2px solid var(--ink-soft); }
     --bg: #14130f; --rule: #33302a; --accent: #e8613f; --accent-soft: #2a1c17;
     --link: #6cb6e8; --code-bg: #201e18; --good: #4fb37e; --warn: #d6a63a;
   }
-  .stage, .quiz, .source-box { background: #1b1a15; }
-  .quiz .opt.correct, .callout.tip { background: #16281f; }
+  .stage, .quiz, .source-box, .scorecard { background: #1b1a15; }
+  .quiz .opt.correct, .callout.tip, .sc-verdict.go { background: #16281f; }
   .callout.warn { background: #2a2413; }
+  .sc-verdict.hold { background: #2a2413; }
 }
 
 /* ---- Print ---- */

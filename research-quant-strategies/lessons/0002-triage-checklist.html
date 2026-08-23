@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L2 · Triage 快筛：15 分钟决定一周花在哪</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">Research Quant Strategies · Lesson 2</p>
+  <h1>Triage 快筛：15 分钟决定一周花在哪</h1>
+  <p class="subtitle">发现层每天送来几十个想法，复现一个要一周。中间这道闸门是流水线杠杆最高的环节。</p>
+
+  <p>上一课的信源地图解决了"想法从哪来"。但打开 Quantocracy 你就会发现新问题：想法<em>太多了</em>。
+  复现是贵的——写代码、清数据、对结果，一个策略至少一周。如果每个亮眼的回测图都值得一周，
+  你一年只够处理五十个，而其中大部分注定是假阳性。</p>
+
+  <p>多假是"大部分"？这有实证数字。Harvey、Liu 和 Zhu 在
+  <a href="https://people.duke.edu/~charvey/Research/Published_Papers/P118_and_the_cross.PDF">RFS 2016 的盘点</a>里
+  收集了 1967–2012 年间发表的 <strong>316 个</strong>声称显著的选股因子，然后问了一个统计学问题：
+  几百个研究者在同一堆数据上挖了几十年，"显著"的门槛还能是单次检验的 t ≥ 2 吗？
+  用三种多重检验校正重算后，他们的结论：当代新因子应要求 <strong>t ≥ 3</strong>，
+  按此标准<strong>约一半已发表因子可能是假阳性</strong>——这还没算发表偏差（试过但不显著的因子根本不会见刊）。</p>
+
+  <p>把这个数字和上一课的 McLean-Pontiff 放在一起，triage 的世界观就完整了：</p>
+
+  <ul>
+    <li>桌上任何一个"显著"策略，<strong>先验一半概率是假的</strong>（Harvey-Liu-Zhu）</li>
+    <li>就算是真的，到你手里<strong>绩效预期打对折</strong>（McLean-Pontiff，发表后 −58%）</li>
+    <li>所以 triage 的任务不是"找到真理"，而是<strong>用 15 分钟把一周的赌注押到胜率最高的桌子上</strong></li>
+  </ul>
+
+  <div class="callout">
+    <span class="label">Triage 的第一原则</span>
+    错杀可以接受，错放才贵。杀掉一个好策略只损失一个想法——发现层明天还会送来十个；
+    放进一个烂策略损失一整周。所以清单里所有模糊情况一律<strong>从严</strong>。
+  </div>
+
+  <h2>清单：两道硬门 + 五个打分项</h2>
+
+  <p>先过硬门（顺序检查，任一失败立即淘汰、停止打分），再给五项各打 0/1/2 分：</p>
+
+  <table>
+    <tr><th style="width:8.5rem">项</th><th>一句话问题</th></tr>
+    <tr><td><strong>G1 规则完整</strong></td><td>入场 / 出场 / 仓位，我现在能写成伪代码吗？（缺口能从免费一手来源补齐也算过）</td></tr>
+    <tr><td><strong>G2 来源可追</strong></td><td>有独立于绩效声明的一手来源（论文 / 代码 / 方法页）可核对吗？只有资金曲线截图 → 死</td></tr>
+    <tr><td><strong>S1 经济逻辑</strong></td><td>收益从哪来，对手盘为什么持续送钱？（风险溢价 / 行为偏差 / 结构摩擦）</td></tr>
+    <tr><td><strong>S2 样本宽度</strong></td><td>穿越了几种市场环境、多少<em>独立</em>资产？——记住旧课教训：相关资产同一时段 ≠ 独立样本</td></tr>
+    <tr><td><strong>S3 打折生存</strong></td><td>绩效 × 0.5，再减我的真实成本（换手 × 费率），还活着吗？</td></tr>
+    <tr><td><strong>S4 可执行性</strong></td><td>数据拿得到、品种开得了、我的规模下容量够吗？</td></tr>
+    <tr><td><strong>S5 组合贡献</strong></td><td>相对我已有的系统是新的边，还是换皮的重复暴露？</td></tr>
+  </table>
+
+  <p><strong>判决</strong>：8–10 分复现，5–7 分观察池，0–4 分淘汰。全程计时 15 分钟，到点必须给判决。
+  完整评分锚点（每项 2/1/0 分各长什么样）见
+  <a href="../reference/triage-checklist.html">参考：Triage 快筛清单 v1</a>——以后每次快筛翻它，不用回来翻课。</p>
+
+  <p>注意 S5 直接继承了旧课的发现：你的趋势系统真实身份是回撤削减 overlay，不是 alpha 来源。
+  所以你找的不是"另一个高 Sharpe 数字"，而是<strong>能补全组合的新边</strong>——新资产类、新频率、或新逻辑。</p>
+
+  <h2>现场示范：TSMOM 过闸</h2>
+
+  <p>上节课布置你侦察了 <a href="https://quantpedia.com/strategies/time-series-momentum-effect">Quantpedia 的 TSMOM 页</a>。
+  拿出你的三条笔记（规则 / 样本 / 绩效），对照我跑一遍清单：</p>
+
+  <table>
+    <tr><th style="width:7.5rem">项</th><th style="width:3.5rem">结果</th><th>依据</th></tr>
+    <tr><td>G1 规则完整</td><td>✓</td><td>每月看各资产过去 12 个月超额收益的符号：正做多、负做空；仓位与波动率成反比。页面明说历史波动率可替代 GARCH——三要素齐了</td></tr>
+    <tr><td>G2 来源可追</td><td>✓</td><td>Moskowitz-Ooi-Pedersen 原文免费 PDF，回测区间与资产清单都能核对</td></tr>
+    <tr><td>S1 经济逻辑</td><td>2</td><td>行为性反应不足让信息缓慢进入价格，趋势因此延续；文献链条完整（L4 精读原文时核对）</td></tr>
+    <tr><td>S2 样本宽度</td><td>2</td><td>1965–2009，58 个品种横跨商品期货 / 外汇 / 股指 / 国债四大类，穿越多次危机——独立样本管够</td></tr>
+    <tr><td>S3 打折生存</td><td>2</td><td>Sharpe 1.31 × 0.5 ≈ 0.65，打折后仍可观；月度调仓换手极低，成本几乎不咬人</td></tr>
+    <tr><td>S4 可执行性</td><td>1</td><td>原文资产域是全球期货，你的管道是 crypto 永续——规则搬得动，资产域得换（见下方警告）</td></tr>
+    <tr><td>S5 组合贡献</td><td>1</td><td>与旧课趋势系统同族（都是趋势跟随），但频率（月 vs 日）与信号构造（12 月收益符号 vs SMA 交叉）不同；相关性是假设，待实测</td></tr>
+    <tr><td><strong>合计</strong></td><td><strong>8/10</strong></td><td><strong>判决：复现 ✅，带三个 flag 进 Stage 3</strong></td></tr>
+  </table>
+
+  <div class="callout warn">
+    <span class="label">Flag 1，也是本课最重要的区分：复现论文 ≠ 复现规则</span>
+    <strong>复现论文</strong>是在同资产域重跑，验证"他们说的是真的吗"；
+    <strong>复现规则</strong>是把规则搬进你的域（crypto）。你将做的是后者——而后者其实已经是改造：
+    样本换了，原文的 Sharpe 1.31 不再是你的基准，只是先验。这必须<strong>动手前写明</strong>，
+    否则"crypto 上跑差了"时，你会忍不住用"资产域不同"解释一切差异——旧课教过：
+    事后解释无限灵活，预注册才有约束力。Flag 2：GARCH → 历史波动率的简化（页面自己许可的）。
+    Flag 3：S5 那 1 分是假设，改造阶段实测相关性。
+  </div>
+
+  <h2>检验一下</h2>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">Q1 · YouTube 上一条爆款：三个指标叠出的"圣杯"，回测曲线漂亮，但参数与出场规则始终没露。它死在 triage 哪一步？</div>
+    <button class="opt">硬门 G1：写不出伪代码</button>
+    <button class="opt">硬门 G2：查不到一手来源</button>
+    <button class="opt">打分 S3：打折后不生存</button>
+    <button class="opt">打分 S5：与已有系统重复</button>
+    <div class="fb right">对。硬门按顺序查，G1 先失败——连伪代码都写不出的东西不配进打分环节，15 分钟里它只配花 2 分钟。</div>
+    <div class="fb nope">再想想顺序：硬门先于打分，而 G1 先于 G2。参数和出场规则缺失 = 写不出伪代码 = G1 直接淘汰，后面全部不用看。</div>
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <div class="q">Q2 · Quantpedia 报 TSMOM 的 Sharpe 是 1.31。按 S3 的打折规则，你复现前的合理预期最接近多少？</div>
+    <button class="opt">约 0.33</button>
+    <button class="opt">约 0.65</button>
+    <button class="opt">约 0.98</button>
+    <button class="opt">约 1.31</button>
+    <div class="fb right">对。1.31 × 0.5 ≈ 0.65——McLean-Pontiff 的发表后衰减近六成，取对折是校准而非悲观。复现结果如果远超 0.65，反而要先怀疑自己的回测有 bug。</div>
+    <div class="fb nope">S3 的规则：公开绩效 × 0.5（发表后平均衰减 −58%，取整为对折）。1.31 × 0.5 ≈ 0.65。原数字照单全收（1.31）是最常见的错，打太狠（0.33）则会错杀一切。</div>
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">Q3 · 某策略在 BTC、ETH、SOL 上 2021–2024 回测全部盈利，作者称"三重验证"。按 S2 的标准这算几个独立样本？</div>
+    <button class="opt">接近一个</button>
+    <button class="opt">恰好三个</button>
+    <button class="opt">至少三个</button>
+    <button class="opt">超过三个</button>
+    <div class="fb right">对。三个高相关资产 × 同一时段 ≈ 一个样本——共同时间段就是共同运气。这是你旧课用真金白银学到的（LR 0026），现在它成了 S2 的评分锚点。</div>
+    <div class="fb nope">旧课教训：换资产 ≠ 换样本。BTC/ETH/SOL 高度相关，2021–2024 是同一段行情，"三重验证"实际接近一个样本。S2 给 0 分。</div>
+  </div>
+
+  <h2>动手：你的第一份判决记录</h2>
+
+  <p>两个动作。第一个 10 分钟，第二个才是真正的实战：</p>
+
+  <ol>
+    <li><strong>亲手给 TSMOM 打一遍分。</strong>用下面的记分卡，按你自己的侦察笔记打——
+    允许和我的示范不一致（比如你认为 S5 该给 2），但备注里必须写出理由。
+    打完点"复制判决记录"，粘贴进工作区根目录的 <code>triage-log.md</code>（已建好）。
+    这是你策略知识库的第一条判决。</li>
+    <li><strong>独立跑一次真 triage。</strong>打开 <a href="https://quantocracy.com/">Quantocracy</a>，
+    从今天的信息流里挑一条看起来像策略的（不是方法论文章），<strong>手机计时 15 分钟</strong>，
+    对照<a href="../reference/triage-checklist.html">参考清单</a>跑完全程，判决也记进 log。
+    到点没查完的项按 0 分处理——超时本身就是信息（说明来源太模糊）。</li>
+  </ol>
+
+  <div class="scorecard" data-strategy="TSMOM（Quantpedia 页）">
+    <div class="sc-title">Triage 记分卡 · TSMOM</div>
+    <div class="sc-row sc-gate" data-id="G1" data-name="规则完整">
+      <div class="sc-label"><span class="sc-id">G1</span>规则完整
+        <span class="sc-desc">入场 / 出场 / 仓位能写成伪代码？</span></div>
+    </div>
+    <div class="sc-row sc-gate" data-id="G2" data-name="来源可追">
+      <div class="sc-label"><span class="sc-id">G2</span>来源可追
+        <span class="sc-desc">有一手来源可核对绩效与细节？</span></div>
+    </div>
+    <div class="sc-row sc-item" data-id="S1" data-name="经济逻辑">
+      <div class="sc-label"><span class="sc-id">S1</span>经济逻辑
+        <span class="sc-desc">收益从哪来，谁在持续送钱？</span></div>
+    </div>
+    <div class="sc-row sc-item" data-id="S2" data-name="样本宽度">
+      <div class="sc-label"><span class="sc-id">S2</span>样本宽度
+        <span class="sc-desc">几种环境、多少独立资产？</span></div>
+    </div>
+    <div class="sc-row sc-item" data-id="S3" data-name="打折生存">
+      <div class="sc-label"><span class="sc-id">S3</span>打折生存
+        <span class="sc-desc">绩效 × 0.5 − 成本，还活着吗？</span></div>
+    </div>
+    <div class="sc-row sc-item" data-id="S4" data-name="可执行性">
+      <div class="sc-label"><span class="sc-id">S4</span>可执行性
+        <span class="sc-desc">数据、品种、容量都拿得下？</span></div>
+    </div>
+    <div class="sc-row sc-item" data-id="S5" data-name="组合贡献">
+      <div class="sc-label"><span class="sc-id">S5</span>组合贡献
+        <span class="sc-desc">新的边，还是换皮重复？</span></div>
+    </div>
+    <textarea class="sc-notes" placeholder="备注：flag、与示范不一致的理由、淘汰原因……"></textarea>
+    <div class="sc-verdict"></div>
+    <button class="sc-copy" type="button">复制判决记录 (Markdown)</button>
+  </div>
+
+  <div class="source-box">
+    <span class="label">本课一手资料 · 中文导读</span>
+    <p style="margin:0.3rem 0 0.5rem"><strong>Harvey, Liu &amp; Zhu — <a href="https://people.duke.edu/~charvey/Research/Published_Papers/P118_and_the_cross.PDF">… and the Cross-Section of Expected Returns</a></strong>（Review of Financial Studies 2016，作者主页免费 PDF）</p>
+    <p style="margin:0 0 0.4rem"><strong>结论</strong>：盘点 1967–2012 年发表的 316 个显著因子；考虑多重检验后，单次检验的 t ≥ 2 门槛严重不足，当代新因子应要求 t ≥ 3；按此标准约一半已发表因子可能是假阳性。</p>
+    <p style="margin:0 0 0.4rem"><strong>方法</strong>：用三种多重检验校正（Bonferroni、Holm、BHY）重算随累计检验次数上升的 t 门槛——检验做得越多，碰巧显著的就越多，门槛必须水涨船高。这正是你旧课"多重检验衰减"的横截面版。</p>
+    <p style="margin:0"><strong>读原文时的陷阱</strong>：316 只是<em>发表出来的</em>幸存者，实际被尝试过的因子多得多，所以真实门槛比 3.0 还高（作者自己承认）；对象是美股横截面因子，数字不能直接套到时序策略上——但"先假设显著是挖出来的"这个姿态是通用的。建议只读 Introduction + Figure 2（t 门槛随年代上升图），约 15 分钟。</p>
+  </div>
+
+  <div class="lesson-foot">
+    <div class="ask">
+      <strong>有不清楚的？</strong>直接在终端问你的教师（我）。比如："S1 的经济逻辑我判断不了怎么办？"
+      "观察池里的策略什么时候该捞出来重看？"或者把你第二个动作里跑的那次 triage 发给我对答案。
+    </div>
+    <div class="nav">
+      <span><a href="0001-strategy-research-pipeline.html">← L1 信源地图</a> · <a href="../reference/triage-checklist.html">参考：快筛清单</a></span>
+      <span>下一课：第一次复现——TSMOM 规则进你的评估机器 →</span>
+    </div>
+  </div>
+</div>
+<script src="../assets/quiz.js"></script>
+<script src="../assets/checklist.js"></script>
+</body>
+</html>

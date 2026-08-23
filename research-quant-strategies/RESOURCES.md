@@ -29,6 +29,8 @@
   - [Moskowitz, Ooi & Pedersen — Time Series Momentum](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2089463)（免费 PDF）
   - [McLean & Pontiff — Does Academic Research Destroy Stock Return Predictability?](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2156623)（97 个学术预测变量：样本外收益 −26%，发表后 −58%——**信源信任分层的实证地基**）
   - [Jegadeesh & Titman 1993（横截面动量，早于 SSRN，免费 PDF）](https://www.bauer.uh.edu/rsusmel/phd/jegadeesh-titman93.pdf)
+  - [Harvey, Liu & Zhu — … and the Cross-Section of Expected Returns](https://people.duke.edu/~charvey/Research/Published_Papers/P118_and_the_cross.PDF)（RFS 2016，作者主页免费 PDF，2026-08-23 核实）
+    316 个已发表因子 + 多重检验校正 → 新因子门槛 t ≥ 3，约一半已发表因子疑似假阳性——**triage 默认怀疑姿态的实证地基**（L2 一手资料）。
 - [arXiv q-fin.TR](https://arxiv.org/list/q-fin.TR/recent) / [arXiv q-fin.PM](https://arxiv.org/list/q-fin.PM/recent)
   预印本，每周各 ~7 篇，免费 PDF 常带代码链接，含 crypto 永续/DeFi 论文。⚠ 无同行评审——先查有无真实回测与数据描述。Use for: 前沿想法，尤其 crypto 方向。
 

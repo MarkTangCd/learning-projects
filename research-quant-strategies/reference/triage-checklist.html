@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>参考 · Triage 快筛清单 v1</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">Research Quant Strategies · Reference</p>
+  <h1>Triage 快筛清单 v1</h1>
+  <p class="subtitle">15 分钟决定：这个公开策略值不值得花一周复现。</p>
+
+  <div class="callout">
+    <span class="label">使用规则</span>
+    计时 <strong>15 分钟</strong>，到点必须给判决。Triage 的产出是<strong>排序</strong>，不是真相——
+    错杀一个好策略只损失一个想法（想法源源不断），错放一个烂策略进复现损失一整周。
+    每次判决（含淘汰）都记入 <code>triage-log.md</code>，淘汰理由是防止未来重复劳动的资产。
+  </div>
+
+  <h2>硬门（任一失败 → 直接淘汰，停止打分）</h2>
+
+  <table>
+    <tr><th style="width:9rem">门</th><th>问题</th><th>过 / 不过</th></tr>
+    <tr>
+      <td><strong>G1 规则完整</strong></td>
+      <td>入场、出场、仓位三要素，我现在能写成伪代码吗？</td>
+      <td>缺的部分能从免费一手来源补齐 → 过；"细节私信 / 付费解锁 / 视频里没说" → 淘汰</td>
+    </tr>
+    <tr>
+      <td><strong>G2 来源可追</strong></td>
+      <td>有独立于绩效声明的一手来源（论文 PDF / 开源代码 / 详细方法页）可供核对吗？</td>
+      <td>能追到 → 过；只有资金曲线截图、无法核对回测区间与成本假设 → 淘汰</td>
+    </tr>
+  </table>
+
+  <h2>打分项（各 0 / 1 / 2 分，共 10 分）</h2>
+
+  <table>
+    <tr><th style="width:9rem">项</th><th>问题</th><th>2 分</th><th>1 分</th><th>0 分</th></tr>
+    <tr>
+      <td><strong>S1 经济逻辑</strong></td>
+      <td>收益从哪来？对手盘为什么持续送钱？（风险溢价 / 行为偏差 / 结构摩擦）</td>
+      <td>一句话说得清，有文献支撑</td>
+      <td>说得出但牵强</td>
+      <td>纯图形炼金术，讲不出谁在亏</td>
+    </tr>
+    <tr>
+      <td><strong>S2 样本宽度</strong></td>
+      <td>回测穿越了几种市场环境？多少<em>独立</em>资产？（相关资产同一时段 ≠ 独立样本）</td>
+      <td>多资产类、10 年+、跨危机</td>
+      <td>单资产类但 10 年+，或多资产短样本</td>
+      <td>单资产、单一环境、几年数据</td>
+    </tr>
+    <tr>
+      <td><strong>S3 打折生存</strong></td>
+      <td>绩效 × 0.5（发表后衰减，McLean-Pontiff），再减我的真实成本（换手 × 费率）后还剩多少？</td>
+      <td>打折后仍可观（如 Sharpe ≥ 0.5）</td>
+      <td>勉强为正，对成本敏感</td>
+      <td>打折即死，或高换手吃光</td>
+    </tr>
+    <tr>
+      <td><strong>S4 可执行性</strong></td>
+      <td>数据拿得到？品种开得了（做空 / 杠杆 / 最小单位）？我的资金规模下容量够？</td>
+      <td>现有管道直接跑</td>
+      <td>需要新数据源或换资产域</td>
+      <td>数据或品种根本拿不到</td>
+    </tr>
+    <tr>
+      <td><strong>S5 组合贡献</strong></td>
+      <td>相对我已有的系统，这是新的边，还是换皮的重复暴露？</td>
+      <td>新资产类 / 新频率 / 新逻辑</td>
+      <td>部分重叠，相关性待实测</td>
+      <td>同信号换参数，纯重复</td>
+    </tr>
+  </table>
+
+  <h2>判决</h2>
+
+  <table>
+    <tr><th>总分</th><th>判决</th><th>动作</th></tr>
+    <tr><td><strong>8–10</strong></td><td>复现 ✅</td><td>排进复现队列，带着 flag 进 Stage 3</td></tr>
+    <tr><td><strong>5–7</strong></td><td>观察池 ⏸</td><td>记下缺什么（数据？逻辑存疑？），等触发条件再看</td></tr>
+    <tr><td><strong>0–4</strong></td><td>淘汰 ✗</td><td>一句话记淘汰理由进 log，翻篇</td></tr>
+  </table>
+
+  <div class="callout warn">
+    <span class="label">复现论文 ≠ 复现规则</span>
+    <strong>复现论文</strong>：同资产域、同区间重跑，验证"他们说的是真的吗"。
+    <strong>复现规则</strong>：把规则搬到你自己的资产域（如 crypto），这实际上已经是 Stage 4 改造——
+    样本换了，结论独立，原文绩效不再是你的基准，只是你的先验。
+    两种都合法，但必须在动手前写明做的是哪种；事后才声明，等于给自己留了解释一切差异的后门。
+  </div>
+
+  <div class="callout tip">
+    <span class="label">为什么默认怀疑是数学正确的姿态</span>
+    Harvey, Liu &amp; Zhu（RFS 2016）盘点 316 个已发表的显著因子：考虑多重检验后，传统 t ≥ 2
+    的显著性门槛远远不够，新因子应要求 <strong>t ≥ 3</strong>——按此标准，文献中约一半已发表因子
+    可能是假阳性。你在 triage 桌上看到的每个"显著"策略，都要先假设它来自这一半。
+    （<a href="https://people.duke.edu/~charvey/Research/Published_Papers/P118_and_the_cross.PDF">免费 PDF</a>）
+  </div>
+
+  <div class="lesson-foot">
+    <div class="nav">
+      <span><a href="../lessons/0002-triage-checklist.html">出处：L2 课程</a> · <a href="source-map.html">信源地图</a></span>
+      <span>判决记录：<code>triage-log.md</code></span>
+    </div>
+  </div>
+</div>
+</body>
+</html>
