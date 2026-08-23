@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>误导性统计体检清单 — 量化交易五书精读</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  table.chk { font-size: 0.84rem; }
+  table.chk td, table.chk th { vertical-align: top; }
+  table.chk .n { font-family: var(--sans); font-weight: 700; white-space: nowrap; }
+  table.chk .lv { white-space: nowrap; font-weight: 700; }
+  table.chk .say { font-family: var(--sans); font-size: 0.82rem; }
+  .grp { font-family: var(--sans); font-size: 0.8rem; letter-spacing: 0.08em;
+         text-transform: uppercase; color: var(--ink-faint); background: var(--code-bg); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="kicker">参考卡 · B1.3 沉淀 ·《Naked Statistics》ch3</p>
+<h1>误导性统计体检清单</h1>
+<p class="subtitle">九个手法,九句可以直接问出口的话。用来对付那些<b>句句属实、整体误导</b>的数字。</p>
+
+<div class="callout tip">
+  <span class="label">使用方式</span>
+  拿到任何一条业绩宣传、研报标题、考核指标,<b>从上往下过一遍</b>。不需要每条都命中——命中一条就足以把对话拉回正轨。
+  <br>总纲(Wheelan ch3):<b>统计上的作恶跟数学差几乎没有关系;漂亮的计算能给不良动机打掩护。</b>
+  你把均值算得再对,也改变不了「中位数才是更准确的指标」这个事实。
+</div>
+
+<table class="chk">
+  <tr><th>#</th><th>手法</th><th>书里的例子</th><th>你要问的那句话</th></tr>
+
+  <tr><td colspan="4" class="grp">第一组 · 你到底在描述什么</td></tr>
+
+  <tr>
+    <td class="n">①</td>
+    <td class="lv">精确 ≠ 准确<span style="display:block;font-weight:400;font-size:0.78rem;color:var(--ink-faint)">precision vs accuracy</span></td>
+    <td>「往东 1.265 英里」——可加油站在西边。麦卡锡挥舞的「205 人名单」上一个名字没有。高尔夫测距仪<b>设成了米而不是码</b>,每个 147.2 全是错的。2008 年前的在险价值模型:数学精妙、答案精确、<b>假设根本是错的</b>。</td>
+    <td class="say">这个数很精确,但它算的是不是<b>我要问的那件事</b>?单位对吗?</td>
+  </tr>
+
+  <tr>
+    <td class="n">②</td>
+    <td class="lv">「好」是哪个「好」</td>
+    <td>美国制造业健不健康?按<b>产出</b>——全球第三大出口国,健康;按<b>就业</b>——十年丢了六百万岗位,惨。两条线都真,合起来才是「生产率大幅提高」。</td>
+    <td class="say">你说的这个词,具体用<b>哪个量</b>衡量?换一个量还成立吗?</td>
+  </tr>
+
+  <tr>
+    <td class="n">③</td>
+    <td class="lv">分析单位被换了<span style="display:block;font-weight:400;font-size:0.78rem;color:var(--ink-faint)">unit of analysis</span></td>
+    <td>「60% 的<b>学校</b>成绩下降」和「80% 的<b>学生</b>成绩上升」可以同时为真(提分的学生都在大校)。30 个<b>州</b>收入下降 / 70% 的<b>美国人</b>收入上升。全球化按<b>国家</b>看加剧不平等,按<b>人</b>看不平等在快速下降(穷人大多在中印)。Verizon 比<b>地理面积</b>,AT&amp;T 比「覆盖 97% 的<b>美国人</b>」。</td>
+    <td class="say">这句话在描述<b>谁</b>?对方描述的是同一个「谁」吗?</td>
+  </tr>
+
+  <tr><td colspan="4" class="grp">第二组 · 你拿什么跟什么比</td></tr>
+
+  <tr>
+    <td class="n">④</td>
+    <td class="lv">均值/中位数挑一个</td>
+    <td>布什减税:9,200 万人<b>平均</b>减税 $1,083,<b>中位数</b>减税不到 $100。反向:某药只让<b>中位数</b>生存期延长两周,但可能治愈了 30–40% 的人——中位数完全看不见。Gould 得的癌症中位数生存期八个月,他又活了二十年(分布<b>右偏</b>)。</td>
+    <td class="say">另一个中间值是多少?<b>为什么你只报了这一个?</b></td>
+  </tr>
+
+  <tr>
+    <td class="n">⑤</td>
+    <td class="lv">苹果比橘子<span style="display:block;font-weight:400;font-size:0.78rem;color:var(--ink-faint)">nominal vs real</span></td>
+    <td>1950 年的 $1 = 2011 年的 $9.37,<b>两个年份的美元之间的差距比欧元和英镑之间还大</b>。1970 年花 $1,000 万,2011 年花 $4,000 万,<b>实际是缩水</b>(需 $5,830 万才持平)。名义票房榜第一是 Avatar;调通胀后第一是《乱世佳人》,Avatar 掉到 14,Shrek 2 掉到 31。</td>
+    <td class="say">这两个数是<b>同一种单位</b>吗?跨年份的钱,调过通胀没有?</td>
+  </tr>
+
+  <tr>
+    <td class="n">⑥</td>
+    <td class="lv">百分比的基数</td>
+    <td><b>基数太低:</b>结核病疗养区税负「暴涨 527%」= 税单从 $1.15 涨到 $6。「利润增长 46%」= 从 27 美分到 39 美分。<b>基数太大:</b>国防开支「只涨 4%」= $280 亿,超过整个 NASA 预算。<b>比例相同金额悬殊:</b>「大家都涨 10%」= 老板 +$10 万、你 +$5,000。</td>
+    <td class="say">百分比我看到了,<b>绝对数字呢</b>?起点是多大?</td>
+  </tr>
+
+  <tr>
+    <td class="n">⑦</td>
+    <td class="lv">起止点是挑出来的</td>
+    <td>同一份国防开支数据:画 <b>1981–1988</b> 是「里根重建国防」;画 <b>1977–1988</b> 是「卡特开启了国防重建」。<b>数据一个没改,只把左边界挪了四年。</b></td>
+    <td class="say">为什么是<b>从这一年开始</b>?起点往前挪几年,线还长这样吗?</td>
+  </tr>
+
+  <tr><td colspan="4" class="grp">第三组 · 这个数被拿来管人吗</td></tr>
+
+  <tr>
+    <td class="n">⑧</td>
+    <td class="lv">测的不是想管的<span style="display:block;font-weight:400;font-size:0.78rem;color:var(--ink-faint)">缺 value-added</span></td>
+    <td>用考试成绩评价学校/老师:富裕社区的孩子入学第一天就会考得好。真正要的是<b>增值</b>——多少表现能归因于校内发生的事。芝加哥「最佳高中」榜首是<b>选拔性入学</b>的学校:因分数高而卓越,而想进去必须分数高——「等于给篮球队颁奖表彰它培养高个子学生」。USNWR 十六项指标绝大多数衡量<b>投入</b>而非<b>产出</b>。</td>
+    <td class="say">这个数里,多少是<b>他做出来的</b>,多少是他一开始就拿到的?</td>
+  </tr>
+
+  <tr>
+    <td class="n">⑨</td>
+    <td class="lv">指标挂了奖惩<span style="display:block;font-weight:400;font-size:0.78rem;color:var(--ink-faint)">Goodhart's law(书未命名)</span></td>
+    <td>休斯敦上报辍学率 <b>1.5%</b>,《60 分钟》算出真实为 <b>25–50%</b>:退学登记成「转学/回国/读 GED」;有学生在九年级读三年后<b>直接升十一年级</b>,以躲开十年级统考。纽约公布心内科医生死亡率后,<b>83%</b> 的医生说有本可获益的病人拿不到手术——改善死亡率最省事的办法不是少死人,是<b>不接重病人</b>。</td>
+    <td class="say">谁的饭碗挂在这个数上?<b>让它好看的最省事办法是什么?</b></td>
+  </tr>
+</table>
+
+<h2>量化版对照</h2>
+
+<p>同样九条,换成你以后真正会遇到的场景。</p>
+
+<table class="chk">
+  <tr><th>#</th><th>它在量化里长什么样</th></tr>
+  <tr><td class="n">①</td><td>业绩报到小数点后两位,但没说是<b>扣费前还是扣费后</b>、含不含滑点与冲击成本、用的什么无风险利率。精确度掩盖了口径。</td></tr>
+  <tr><td class="n">②</td><td>「这个策略很稳」——稳是指波动小、回撤浅、胜率高,还是收益曲线平滑?<b>换一个口径,排名就换人。</b></td></tr>
+  <tr><td class="n">③</td><td>「70% 的交易盈利」(按<b>笔数</b>)vs「盈利交易只占成交金额的 30%」(按<b>金额</b>)。同理:等权 vs 市值加权、按账户数 vs 按管理规模。</td></tr>
+  <tr><td class="n">④</td><td>「平均年化 26%」里可能有一年 +180%、其余贴地。<b>中位数年度收益 / 中位数月度收益是多少?</b></td></tr>
+  <tr><td class="n">⑤</td><td>名义收益 vs 扣通胀后的<b>实际</b>收益;跨市场比较时的货币与汇率;拿今天的美元跟 2010 年的美元比累计收益。</td></tr>
+  <tr><td class="n">⑥</td><td>「规模增长 340%」——从 100 万到 440 万也是 340%。以及回撤那条老账:<b>亏 50% 要赚 100% 才回本</b>,分母不同。</td></tr>
+  <tr><td class="n">⑦</td><td><b>回测起止日期。</b>最常见、最难自证清白的一条。「2016–2021 年化 34%」——2011–2015 呢?这与「从 3,000 个策略里挑第一名」是同一个病:<b>一个在时间窗里挑,一个在策略里挑。</b></td></tr>
+  <tr><td class="n">⑧</td><td>用绝对收益评价基金经理,而没扣掉<b>市场本来就给的那部分</b>(第 5 本书会把这件事变成公式:主动收益 = 总收益 − 基准)。</td></tr>
+  <tr><td class="n">⑨</td><td>考核季度收益 → 经理把风险挪到考核看不见的地方(尾部风险、流动性风险、季末粉饰持仓)。<b>先假设已经有人在冲着指标优化。</b></td></tr>
+</table>
+
+<div class="callout warn">
+  <span class="label">第 ⑦ 条是长线主线</span>
+  「在很多候选里挑最好看的那个」这件事,在本课程后面会以不同外壳反复出现:
+  彩票中奖者(B1.1)→ 20 种维生素 → 3,000 个策略排行榜 → 回测时间窗(本课)→ 幸存者偏差(B1.7)→ 回测过拟合与多重检验(第 4 本书)。
+  <b>看到一个漂亮结果,先问「你翻了多少张牌」。</b>
+</div>
+
+<div class="lesson-foot">
+  <div class="ask">这张卡不需要背,需要<b>用</b>。每看到一条业绩宣传就对着过一遍,过十条以后它就长在你脑子里了。有拿不准的案例,直接发给老师一起过。</div>
+  <div class="nav">
+    <span><a href="../lessons/0003-b1-3-deceptive-description.html">← B1.3 真实但严重误导</a></span>
+    <span><a href="glossary.html">词汇表 →</a></span>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
