@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>相关系数速查卡 — 量化交易五书精读</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  table.card { font-size: 0.86rem; }
+  table.card td:first-child { white-space: nowrap; font-weight: 700; }
+  .steps { counter-reset: st; margin: 1.2rem 0; }
+  .steps .s {
+    font-family: var(--sans); font-size: 0.9rem;
+    border-left: 3px solid var(--accent); padding: 0.1rem 0 0.1rem 0.9rem; margin: 0.9rem 0;
+  }
+  .steps .s::before {
+    counter-increment: st; content: "STEP " counter(st);
+    display: block; font-size: 0.68rem; letter-spacing: 0.12em; color: var(--accent); font-weight: 700;
+  }
+  .ruler {
+    font-family: var(--sans); font-size: 0.82rem;
+    display: grid; grid-template-columns: 5rem 1fr; gap: 0.3rem 0.9rem;
+    border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.2rem; background: #fff; margin: 1.3rem 0;
+  }
+  .ruler b { color: var(--accent); }
+  @media (prefers-color-scheme: dark) { .ruler { background: #1b1a15; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="kicker">参考卡 · 出自 B1.4</p>
+<h1>相关系数速查卡</h1>
+<p class="subtitle">r 在度量什么、不在度量什么,以及每次看到一个 r 该做的四个动作。</p>
+
+<div class="callout">
+  <span class="label">一句话</span>
+  <b>r 是散点图的摘要,不是散点图的替代品。</b>先画图,再看 r。
+</div>
+
+<h2>怎么算(三步)</h2>
+
+<div class="steps">
+  <div class="s">分别算出 x 和 y 的<b>均值</b>与<b>标准差</b>。</div>
+  <div class="s">把每个观测换成<b>标准单位</b>:(观测值 − 均值) ÷ 标准差。<b>单位在这一步消失。</b></div>
+  <div class="s">把每对标准单位<b>相乘</b>,n 个乘积<b>取平均</b>。得到的就是 r。</div>
+</div>
+
+<pre><code>r = (1/n) · Σ [ (xᵢ − x̄)/σₓ ] · [ (yᵢ − ȳ)/σᵧ ]</code></pre>
+
+<table class="card">
+  <tr><th>性质</th><th>含义</th></tr>
+  <tr><td>取值 −1 ~ 1</td><td>±1 = 完全(正/负)相关;0 = 无线性关联。越靠近 ±1 越整齐。</td></tr>
+  <tr><td>无单位</td><td>英寸 vs 磅、台数 vs 分数,照算。<b>推论:对任一列乘以正数,r 不变</b>——所以 r 看不见幅度。</td></tr>
+  <tr><td>对称</td><td>corr(x, y) = corr(y, x)。<b>它本身不含任何方向性,更不含因果。</b></td></tr>
+</table>
+
+<h2>量级参照(重要:不同问题的 r 量级完全不同)</h2>
+
+<div class="ruler">
+  <div><b>0.83</b></div><div>书中附录 15 个学生的身高 vs 体重(小样本)</div>
+  <div><b>0.64</b></div><div>SAT + 高中 GPA <b>合起来</b>预测大一 GPA(College Board)</div>
+  <div><b>0.56</b></div><div>高中 GPA 单独预测大一 GPA;SAT 单独预测也是 0.56</div>
+  <div><b>0.40</b></div><div>美国成年男性的身高 vs 体重 —— <b>肉眼可见的结实关系,只有 0.4</b></div>
+  <div><b>0.05</b></div><div><b>金融:</b>信号 vs 未来收益。做到 0.05 且稳定,就是值钱的信号(详见 B5.6)</div>
+  <div><b>0.00</b></div><div>鞋码 vs 高考分数;<b>以及任何非直线的强关系</b></div>
+</div>
+
+<div class="callout warn">
+  <span class="label">红旗</span>
+  有人告诉你他的<b>选股信号与未来收益的 r 是 0.5</b> —— 第一反应不是佩服,是<b>「哪里泄漏了未来数据?」</b>
+  同时存在的两个属性可以相关得很高;<b>预测未来</b>不行。
+</div>
+
+<h2>r 不告诉你的四件事(+ 对应动作)</h2>
+
+<table class="card">
+  <tr><th>看不见</th><th>症状</th><th>你要做的动作</th></tr>
+  <tr><td>① 幅度</td>
+      <td>两条 r 都是 0.95 的关系:一条从头到尾只差 1 个百分点,另一条差 22 个。r 只说「多整齐」,不说「多大」。</td>
+      <td>看<b>斜率</b>(回归,B1.11):信号从最低到最高,y 到底变了多少?<b>扣掉成本还剩多少?</b></td></tr>
+  <tr><td>② 非直线</td>
+      <td>倒 U 形(杠杆 vs 收益:低了赚不够,高了被打爆)r 可以是<b>精确的 0</b>。</td>
+      <td><b>先画散点图。</b>永远先画。</td></tr>
+  <tr><td>③ 离群值</td>
+      <td>9 个点毫无关系(r = −0.01),加上崩盘那 1 个点 → r = 0.97。金融数据肥尾,这是常态。</td>
+      <td><b>拿掉最极端的 1–2 个点重算一次</b>,看 r 塌不塌。塌了,你的信号就是那几天。</td></tr>
+  <tr><td>④ 因果</td>
+      <td>电视机数量与 SAT 分数正相关,真正的推手是<b>父母教育水平</b>(第三变量)。</td>
+      <td><b>先问机制。</b>说不出「为什么会这样」,就当它是巧合。参见
+          <a href="https://www.tylervigen.com/spurious-correlations">Spurious Correlations</a>。</td></tr>
+</table>
+
+<h2>量化场景速查</h2>
+
+<table class="card">
+  <tr><th>场景</th><th>要注意的</th></tr>
+  <tr><td>策略间分散</td>
+      <td><b>分散的度量单位是相关性,不是策略个数。</b>8 个两两相关 0.8 的策略 ≈ 一个策略的 8 个版本。
+          更要命的是 <b>r 不是常数:危机中相关性集体冲向 1</b>,平时的 0.8 在你最需要它低的那天可能是 0.98。</td></tr>
+  <tr><td>信号挖掘</td>
+      <td>试了 N 个候选后挑出最高的那个 r,<b>这个 r 本身已经不可信</b>——先问「分母是多少」。
+          经典案例:孟加拉国黄油产量能解释标普 500 收益的 75%
+          (<a href="https://nerdsontheruncom.files.wordpress.com/2014/01/stupid-data-miner-tricks.pdf">Leinweber, 1995</a>)。</td></tr>
+  <tr><td>特征工程</td>
+      <td>「换算成标准单位」这一步在 ML 里叫标准化 / 横截面打分,是 B4 和 B5 里反复出现的同一个动作。</td></tr>
+  <tr><td>报告 r 时</td>
+      <td>永远同时给出:<b>样本区间、样本量、散点图、去极值后的 r</b>。只给一个 r 值的报告不值得读。</td></tr>
+</table>
+
+<div class="lesson-foot">
+  <div class="ask">这张卡以后每次看到一个相关系数都可以对着过一遍。哪一条你觉得在实际用起来还是含糊的,直接问老师。</div>
+  <div class="nav">
+    <span><a href="../lessons/0004-b1-4-correlation.html">← B1.4 相关系数</a></span>
+    <span><a href="glossary.html">词汇表 →</a></span>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

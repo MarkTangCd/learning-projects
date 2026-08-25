@@ -210,13 +210,48 @@
     (Wheelan 书里讲了这件事但没用这个名字。)<b>动作:先假设已经有人在冲着指标优化。</b></td>
     <td>B1.3</td>
   </tr>
+
+  <tr>
+    <td>相关系数<span class="en">correlation coefficient (r)</span></td>
+    <td>把两个变量的关联程度压成<b>一个数</b>。取值 <b>−1 到 1</b>,±1 = 完全(正/负)相关,0 = 无<b>线性</b>关联;<b>没有单位</b>
+    (英寸 vs 磅照算)。推论:对任一列乘以正数 r 不变,<b>所以它看不见幅度</b>。
+    量级参照:身高与体重 0.4,高中 GPA 预测大一 GPA 0.56,SAT+GPA 合起来 0.64;
+    <b>金融里信号预测未来收益能稳定做到 0.05 就很值钱</b>。详见
+    <a href="correlation-card.html">相关系数速查卡</a>。</td>
+    <td>B1.4</td>
+  </tr>
+
+  <tr>
+    <td>标准单位<span class="en">standard units</span></td>
+    <td>(观测值 − 均值) ÷ 标准差,即「离均值几个标准差」。身高 72 英寸、均值 66、标准差 5 → <b>+1.2</b>。
+    <b>单位就是在这一步消失的</b>——换算之后剩下的只有「在自己那一列里排得多偏」。
+    相关系数的第 2 步就是它;ML 里的特征标准化、APM 里的横截面打分,都是同一个动作。</td>
+    <td>B1.4</td>
+  </tr>
+
+  <tr>
+    <td>相关 ≠ 因果<span class="en">correlation is not causation</span></td>
+    <td>两个变量相关,不必然意味着一个在引起另一个;常见的真凶是<b>第三变量</b>。
+    家里的电视机数量与 SAT 分数正相关,推手是<b>父母的教育水平</b>(收入 &gt;$20 万家庭的 SAT 数学均分 586,
+    &lt;$2 万的 460)。量化版:「放量与次日上涨相关」——是放量导致上涨,还是某条新闻同时导致了两者?
+    <b>动作:先问机制,再信数字。</b>说不出「为什么会这样」,就当它是巧合。</td>
+    <td>B1.4</td>
+  </tr>
+
+  <tr>
+    <td>分散化与相关性<span class="en">diversification / correlation</span></td>
+    <td><b>分散的度量单位是相关性,不是策略(或资产)的个数。</b>8 个两两相关 0.8 的策略,约等于一个策略的 8 个版本,坏日子会一起亏。
+    更要命的是 <b>相关系数不是常数</b>:危机中资产与策略的相关性会集体冲向 1——平时测出的 0.8,
+    在你最需要它低的那一天可能是 0.98。(这条是 B1.6 那场金融危机的核心。)</td>
+    <td>B1.4</td>
+  </tr>
 </table>
 
 <div class="lesson-foot">
   <div class="ask">词汇表里的说法如果和你在别处看到的不一致,直接问老师——我们以本表为准,但值得知道分歧在哪。</div>
   <div class="nav">
     <span><a href="curriculum.html">← 课程总纲</a></span>
-    <span><a href="../lessons/0003-b1-3-deceptive-description.html">最新一课 B1.3 →</a></span>
+    <span><a href="../lessons/0004-b1-4-correlation.html">最新一课 B1.4 →</a></span>
   </div>
 </div>
 

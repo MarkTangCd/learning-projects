@@ -243,6 +243,32 @@ th { font-weight: 700; border-bottom: 2px solid var(--ink-soft); }
 }
 .recall .reveal ol { margin-bottom: 0; }
 
+/* ---- Scatter plot component (rendering lives in scatter.js) ---- */
+.scatter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.scatter {
+  font-family: var(--sans);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: #fff;
+  padding: 0.7rem 0.8rem 0.5rem;
+}
+.scatter svg { display: block; width: 100%; height: auto; }
+.scatter .sc-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.2rem; }
+.scatter .sc-note { font-size: 0.78rem; color: var(--ink-soft); line-height: 1.45; margin-top: 0.3rem; }
+.scatter .ax { stroke: var(--ink-faint); stroke-width: 1; }
+.scatter .fit { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.scatter .pt { fill: var(--link); fill-opacity: 0.65; }
+.scatter text { font-family: var(--sans); fill: var(--ink-faint); }
+.scatter .tick { font-size: 9px; }
+.scatter .axlabel { font-size: 10px; }
+.scatter .end { text-anchor: end; }
+.scatter .mid { text-anchor: middle; }
+
 /* ---- Footer / navigation ---- */
 .lesson-foot {
   margin-top: 3.5rem;
@@ -281,7 +307,7 @@ th { font-weight: 700; border-bottom: 2px solid var(--ink-soft); }
     --bg: #14130f; --rule: #33302a; --accent: #e8613f; --accent-soft: #2a1c17;
     --link: #6cb6e8; --code-bg: #201e18; --good: #4fb37e; --warn: #d6a63a;
   }
-  .stage, .quiz, .source-box { background: #1b1a15; }
+  .stage, .quiz, .source-box, .scatter { background: #1b1a15; }
   .quiz .opt.correct, .callout.tip { background: #16281f; }
   .callout.warn { background: #2a2413; }
 }

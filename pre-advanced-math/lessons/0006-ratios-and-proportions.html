@@ -1,0 +1,108 @@
+<meta charset="utf-8">
+<title>第 6 课 · 比与比例</title>
+<link rel="stylesheet" href="../assets/course.css">
+<main>
+  <div class="kicker">Lesson 0006 · 阶段 1 · 约 12 分钟</div>
+  <h1>比与比例：按"份"思考</h1>
+  <p class="subtitle">set-2 的探路题"10 万按 3 : 2 分给股票和债券"没做出来，这一课就补它。比的本质只有一句话：把总量切成若干等份。经典的 60/40 股债组合、仓位再平衡，全是这一招。</p>
+
+  <h2>核心：比 = 份数</h2>
+  <div class="rule-card">
+    <div class="rule-name">a : b 的意思是"总共 a + b 份"</div>
+    <div class="formula">
+      每份 = 总量 ÷ (a + b)<br>
+      甲得 a 份 = 每份 × a　　乙得 b 份 = 每份 × b
+    </div>
+  </div>
+  <div class="why">
+    就是探路题的解法：10 万按 3 : 2 分，总共 3 + 2 = 5 份，
+    每份 100000 ÷ 5 = 20000 元。股票 3 份 = 6 万，债券 2 份 = 4 万。
+    验算：6 万 + 4 万 = 10 万，且 6 : 4 约分后正好是 3 : 2。
+  </div>
+
+  <h2>比可以约分，和分数一样</h2>
+  <div class="rule-card">
+    <div class="rule-name">两边同乘 / 同除一个非零数，比不变</div>
+    <div class="formula">
+      6 : 4 = 3 : 2　（同除 2）　　60 : 40 = 3 : 2　（同除 20）<br>
+      所以"60/40 组合"和"按 3 : 2 分"是同一句话
+    </div>
+  </div>
+
+  <h2>比例式：两个比相等</h2>
+  <div class="rule-card">
+    <div class="rule-name">a : b = c : d　⇔　a × d = b × c（交叉相乘）</div>
+    <div class="formula">
+      3 : 2 = x : 8　→　3 × 8 = 2x　→　x = 12
+    </div>
+  </div>
+  <div class="why">
+    为什么成立？a : b = c : d 就是分数式 a⁄b = c⁄d，两边同乘 bd
+    就得到 ad = bc。它不是新规则，是你已会的"两边同乘"换了个外衣。
+  </div>
+
+  <h2>交易例子：再平衡</h2>
+  <div class="rule-card">
+    <div class="rule-name">组合目标 3 : 2，涨完变成股票 7.2 万、债券 4 万，怎么调？</div>
+    <div class="formula">
+      总额 = 7.2 + 4 = 11.2 万，仍按 5 份切：每份 11.2 ÷ 5 = 2.24 万<br>
+      目标：股票 3 份 = 6.72 万，债券 2 份 = 4.48 万<br>
+      操作：卖出股票 7.2 − 6.72 = 0.48 万，买入债券
+    </div>
+  </div>
+  <div class="why">
+    再平衡 = "总量变了，份数规则不变，重算每份"。
+    机构组合每季度做一次的就是这个小学算术。
+  </div>
+
+  <h2>动手验证（可选，2 分钟）</h2>
+  <div class="tip">
+    Python 验算按份分配：<code>total = 100_000; parts = [3, 2]; unit = total / sum(parts); print([unit * p for p in parts])</code>
+    → <code>[60000.0, 40000.0]</code>。手算为主，机器只做验算。
+  </div>
+
+  <h2>小测：5 题，即时反馈</h2>
+  <div class="quiz" id="quiz"></div>
+
+  <footer>
+    <p><strong>主推资源：</strong><a href="https://zh.khanacademy.org/math/pre-algebra/pre-algebra-ratios-rates">可汗学院 · 比、比率与比例</a>（「比的入门」+「比例」两节）。</p>
+    <p><strong>速查：</strong><a href="../reference/arithmetic-rules.html">算术规则速查卡</a>（已补入"比与比例"卡）｜ 上一课：<a href="0005-simple-inequalities.html">简单不等式</a></p>
+    <p>有任何一步没看懂，回到终端问你的 AI 老师——要求"只给提示，不给答案"。</p>
+    <nav>下一步：先回终端补交 set-2 的三道小题（化简走完、重解翻方向、写指数规则），之后布置 set-3。</nav>
+  </footer>
+</main>
+<script src="../assets/quiz.js"></script>
+<script>
+  renderQuiz(document.getElementById('quiz'), [
+    {
+      q: '15 万按 2 : 1 分给股票和现金，股票分多少？',
+      options: ['10 万', '7.5 万', '5 万', '12 万'],
+      answer: 0,
+      explain: '2 + 1 = 3 份，每份 15 ÷ 3 = 5 万，股票 2 份 = 10 万。',
+    },
+    {
+      q: '下面哪个比和 3 : 2 不相等？',
+      options: ['9 : 4', '6 : 4', '30 : 20', '15 : 10'],
+      answer: 0,
+      explain: '9 : 4 是 3 : 2 两边各自平方或乱乘的结果，交叉相乘 9×2 ≠ 4×3。其余都是同乘一个数。',
+    },
+    {
+      q: '解比例：5 : 4 = x : 12，x = ?',
+      options: ['15', '10', '16', '9'],
+      answer: 0,
+      explain: '交叉相乘：5 × 12 = 4x → 60 = 4x → x = 15。',
+    },
+    {
+      q: '"60/40 股债组合"换成最简比是？',
+      options: ['3 : 2', '6 : 4', '4 : 3', '2 : 3'],
+      answer: 0,
+      explain: '60 : 40 同除 20 得 3 : 2。注意顺序：股在前、债在后，2 : 3 是反的。',
+    },
+    {
+      q: '总额 14 万按 4 : 3 分，每份是多少？',
+      options: ['2 万', '3.5 万', '4 万', '7 万'],
+      answer: 0,
+      explain: '4 + 3 = 7 份，每份 14 ÷ 7 = 2 万。先算总份数，再算每份——顺序别反。',
+    },
+  ]);
+</script>

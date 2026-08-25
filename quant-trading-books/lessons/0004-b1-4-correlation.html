@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B1.4 相关系数 — 量化交易五书精读</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  table.calc { font-size: 0.84rem; }
+  table.calc td, table.calc th { text-align: right; white-space: nowrap; }
+  table.calc td:first-child, table.calc th:first-child { text-align: left; }
+  table.calc tr.sum td { font-weight: 700; border-top: 2px solid var(--ink-soft); border-bottom: none; }
+  .scale {
+    font-family: var(--sans); font-size: 0.85rem;
+    border: 1px solid var(--rule); border-radius: 8px; background: #fff;
+    padding: 1rem 1.2rem; margin: 1.5rem 0;
+  }
+  .scale .bar {
+    position: relative; height: 6px; border-radius: 3px; margin: 2.4rem 0 0.4rem;
+    background: linear-gradient(90deg, var(--accent), var(--rule) 50%, var(--good));
+  }
+  .scale .tk { position: absolute; top: -1.9rem; transform: translateX(-50%); text-align: center; line-height: 1.25; }
+  .scale .tk b { display: block; font-size: 0.8rem; }
+  .scale .tk span { font-size: 0.68rem; color: var(--ink-soft); white-space: nowrap; }
+  .scale .tk::after {
+    content: ""; position: absolute; left: 50%; top: 100%; width: 1px; height: 0.5rem;
+    background: var(--ink-faint);
+  }
+  .scale .ends { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--ink-faint); }
+  @media (prefers-color-scheme: dark) { .scale { background: #1b1a15; } }
+  .miss { border-left: 3px solid var(--rule); padding-left: 1rem; margin: 1.8rem 0; }
+  .miss > h3 { margin-top: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="kicker">Book 1 ·《Naked Statistics》· 第 4 课(B1.4)</p>
+<h1>相关系数</h1>
+<p class="subtitle">第 4 章 Correlation:Netflix 怎么知道我喜欢什么电影?</p>
+
+<div class="callout">
+  <span class="label">本课核心问题</span>
+  上一课学的是「怎么拆穿一个数」。这一课学的是<b>量化交易里最常用的那个数</b>——相关系数。
+  <br>学完你要能做到三件事:<b>①</b> 手算一次相关系数,不查公式;<b>②</b> 看到一个 r 值,立刻说出它「不能」告诉你什么;
+  <b>③</b> 判断「我这两个策略算不算分散」。
+</div>
+
+<div class="callout warn">
+  <span class="label">先交作业</span>
+  上一课留了一项:<b>找一条真实的宣传语,用九条清单给它做一次体检。</b>
+  上课前先把它发给老师,我们花五分钟一起过一遍,再开始今天的内容。没做也直说,补做就行——但别跳过。
+</div>
+
+<h2>热身:30 秒回忆(不要往回翻)</h2>
+
+<details class="recall">
+  <summary>上一课:误导性统计的九条体检清单,分三组</summary>
+  <div class="prompt">先自己说,能说出六条就算过关,再展开对答案。</div>
+  <div class="reveal">
+    <p><b>① 你到底在描述什么?</b>精确≠准确 · 「好」是哪个好 · 分析单位被换了</p>
+    <p><b>② 你拿什么跟什么比?</b>均值/中位数挑一个 · 苹果比橘子(通胀)· 百分比的基数 · 起止点是挑出来的</p>
+    <p><b>③ 这个数被拿来管人吗?</b>测的不是想管的(增值)· 指标挂了奖惩就会被优化</p>
+    <p>总纲:<b>统计上的作恶跟数学差没关系;漂亮的计算能给不良动机打掩护。</b></p>
+    <p>今天要学的相关系数,就是一个「漂亮计算」的典型——所以这九条今天还要用。</p>
+  </div>
+</details>
+
+<div class="quiz" data-answer="2">
+  <div class="q">同一个形状,第四种外壳:你把标普 500 的月度收益,和手上 <b>800 个</b>宏观指标<b>逐一</b>算了相关系数。最高的那个是「某国的黄油产量」,r 高达 <b>0.87</b>。你的第一个问题是?</div>
+  <button class="opt">黄油产量的数据来源是否足够可靠呢</button>
+  <button class="opt">这个相关系数的样本区间有多少个月</button>
+  <button class="opt">你一共算了多少个指标才挑出这一个</button>
+  <button class="opt">黄油产量和股市之间会有什么机制吗</button>
+  <div class="fb right" data-for="right">
+    对,而且这题<b>不是我编的</b>。1995 年 David Leinweber 从一张联合国统计光盘里把指标一个个试过来,
+    发现<b>孟加拉国的黄油产量</b>能解释标普 500 年度收益的 75%(相当于 r ≈ 0.87);
+    再加上美国的奶酪产量和孟加拉国的绵羊数量,拟合度冲到 99%。他把这篇东西的标题起作
+    <a href="https://nerdsontheruncom.files.wordpress.com/2014/01/stupid-data-miner-tricks.pdf">《Stupid Data Miner Tricks》</a>。
+    <br><b>翻了 800 张牌,必然有一张漂亮的。相关系数不会告诉你它是第几张。</b>
+  </div>
+  <div class="fb nope" data-for="nope">
+    这些都该问,但排在后面。题面把分母写在脸上了:<b>800 个</b>指标逐一试。
+    这是你第四次见到同一个形状——彩票中奖者、20 种维生素、3,000 个策略、现在是 800 个指标。
+    <br>真实案例:1995 年 David Leinweber 发现<b>孟加拉国黄油产量</b>能解释标普 500 收益的 75%。论文标题就叫
+    <a href="https://nerdsontheruncom.files.wordpress.com/2014/01/stupid-data-miner-tricks.pdf">《Stupid Data Miner Tricks》</a>。
+  </div>
+</div>
+
+<h2>一、Netflix 在干什么</h2>
+
+<p>Wheelan 用自己的账号开场:Netflix 坚持说他会喜欢纪录片《Bhutto》(讲巴基斯坦前总理贝娜齐尔·布托的生平与遇刺)。
+他后来真的看了,给了五星——跟 Netflix 预测的几乎一样。</p>
+
+<p>Netflix 是怎么做到的?公司总部并没有一支实习生大军去 Google 你、采访你的家人朋友。它<b>根本不认识你</b>。
+它只知道一件事:<b>你给哪些片子打过几分。</b>然后:</p>
+
+<div class="pipeline">
+  <div class="stage"><div class="n">01</div><div class="t">你打分</div><div class="d">你给一批电影评了星级</div></div>
+  <div class="stage"><div class="n">02</div><div class="t">找同类</div><div class="d">找出评分模式和你<b>高度相关</b>的其他用户</div></div>
+  <div class="stage"><div class="n">03</div><div class="t">推荐</div><div class="d">推荐这些人打了高分、而你还没看过的片子</div></div>
+</div>
+
+<p>《Bhutto》被推荐,是因为他给另外两部纪录片(《Enron: The Smartest Guys in the Room》和《Fog of War》)打了五星。</p>
+
+<div class="callout tip">
+  <span class="label">Wheelan 的收尾</span>
+  真实算法复杂得多,但本质上「就是人类自电影诞生以来一直在做的事的超级豪华版:<b>找一个口味跟你像的人,问他推荐什么。</b>
+  你喜欢的我大概也喜欢,你讨厌的我大概也讨厌——那么,乔治·克鲁尼那部新片你觉得怎么样?」
+  <br>这就是相关的全部要义。
+</div>
+
+<h2>二、相关是什么</h2>
+
+<p><span class="term">相关</span>(correlation)度量的是<b>两个现象彼此关联的程度</b>。夏天气温和冰淇淋销量:一个涨,另一个也涨。</p>
+
+<ul>
+  <li><b>正相关</b>:一个变量朝某方向变,另一个<b>同方向</b>变。身高与体重——高的人平均更重。</li>
+  <li><b>负相关</b>:一个变量上升,另一个<b>反方向</b>下降。运动量与体重。</li>
+</ul>
+
+<p>关键在于那个「平均」。<b>不是每个观测都符合这个模式</b>:有的矮个子比高个子重,有的天天健身的人反而比不动的人胖。
+但身高与体重之间、运动与体重之间,依然存在<b>有意义的关系</b>。</p>
+
+<p>画出散点图能看到这个关系。但散点图不好用——如果 Netflix 要靠画图来给你推荐电影,
+它得把几百万用户对上万部电影的评分两两画出来,总部会被散点图埋掉。</p>
+
+<p>所以要把整张图<b>压成一个数</b>。这个数就是 <span class="term">相关系数</span>(correlation coefficient),通常写作 <b>r</b>。</p>
+
+<h3>它有两个漂亮到不像话的性质</h3>
+
+<table>
+  <tr><th>性质</th><th>含义</th></tr>
+  <tr><td><b>① 取值恒在 −1 到 1 之间</b></td>
+      <td><b>r = 1</b>(完全正相关):一个变量的每一点变化,都对应另一个变量同方向的等量变化。<br>
+          <b>r = −1</b>(完全负相关):同上,但方向相反。<br>
+          <b>r = 0</b>(或接近 0):两者没有有意义的关联,比如鞋码和高考分数。<br>
+          <b>越靠近 ±1,关联越强。</b></td></tr>
+  <tr><td><b>② 没有单位</b></td>
+      <td>身高按英寸量、体重按磅量,照样能算出它们的相关系数。<br>
+          你甚至能算「家里有几台电视」和「SAT 分数」的相关系数——<b>一个是台数,一个是分数,量纲完全不搭</b>,但 r 算得出来。</td></tr>
+</table>
+
+<p>这两条合起来,就是 Wheelan 说的那件「看似神奇的事」:
+<b>把一堆单位各异、乱七八糟的数据,坍缩成一个优雅的描述性统计量。</b></p>
+
+<h2>三、它是怎么算出来的</h2>
+
+<p>你不会手算它——Excel 一个函数就出来了。但<b>直觉必须建立</b>,因为后面所有的坑都藏在这三步里。</p>
+
+<h3>第 1 步:算出两个变量各自的均值和标准差</h3>
+<p>这是上一课(B1.2)的东西。假设样本里平均身高 66 英寸(标准差 5 英寸),平均体重 177 磅(标准差 10 磅)。</p>
+
+<h3>第 2 步:把每个观测换算成「离均值几个标准差」</h3>
+
+<p>这一步是整个魔法的所在。假设你身高 72 英寸、体重 168 磅:</p>
+
+<table>
+  <tr><th></th><th>原始值</th><th>均值</th><th>标准差</th><th>换算</th><th>结果</th></tr>
+  <tr><td>身高</td><td>72 英寸</td><td>66</td><td>5</td><td>(72 − 66) / 5</td><td><b>+1.2</b></td></tr>
+  <tr><td>体重</td><td>168 磅</td><td>177</td><td>10</td><td>(168 − 177) / 10</td><td><b>−0.9</b></td></tr>
+</table>
+
+<p>你的身高是「高于均值 1.2 个标准差」,体重是「低于均值 0.9 个标准差」。
+(Wheelan 在这里插了一句:又高又瘦确实不太常见,但既然你花钱买了这本书,我至少该把你写成个高瘦的人。)</p>
+
+<div class="callout tip">
+  <span class="label">单位是在这一步消失的</span>
+  原本的 <b>72 英寸</b>和 <b>168 磅</b>,变成了 <b>+1.2</b> 和 <b>−0.9</b>。<b>英寸没了,磅也没了。</b>
+  剩下的只有「在自己那一列里排得多偏」。这种换算后的数叫 <span class="term">标准单位</span>(standard units)。
+  <br>后面第 4 本书里的很多操作(特征标准化、横截面打分)本质上都是这一步,你现在就把它吃透。
+</div>
+
+<h3>第 3 步:看两列标准单位「合不合拍」</h3>
+
+<p>把每个人的(身高标准单位 × 体重标准单位)相乘,然后取平均。就这样。</p>
+
+<ul>
+  <li>如果一个变量偏得远时另一个也<b>同方向</b>偏得远 → 乘积多为<b>正的大数</b> → <b>强正相关</b></li>
+  <li>如果一个偏得远时另一个<b>反方向</b>偏得远 → 乘积多为<b>负的大数</b> → <b>强负相关</b></li>
+  <li>如果两者的偏离毫无规律 → 正负乘积互相抵消 → <b>接近 0</b></li>
+</ul>
+
+<h2>四、看得见的胜利:手算一次</h2>
+
+<p>五个交易日,两个策略的当日收益(%):</p>
+
+<table class="calc">
+  <tr><th>交易日</th><th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>D5</th></tr>
+  <tr><td><b>策略 A(%)</b></td><td>−3.0</td><td>−1.0</td><td>0.0</td><td>+1.0</td><td>+3.0</td></tr>
+  <tr><td><b>策略 B(%)</b></td><td>−1.5</td><td>+0.5</td><td>−0.5</td><td>0.0</td><td>+1.5</td></tr>
+</table>
+
+<p>两个策略的均值都是 <b>0</b>。标准差:</p>
+<ul>
+  <li>A:偏差平方 9 + 1 + 0 + 1 + 9 = 20,除以 5 得 4,开方 → <b>σ<sub>A</sub> = 2.0</b></li>
+  <li>B:偏差平方 2.25 + 0.25 + 0.25 + 0 + 2.25 = 5,除以 5 得 1,开方 → <b>σ<sub>B</sub> = 1.0</b></li>
+</ul>
+
+<p><b>注意:A 的波动是 B 的两倍。</b>先记住这件事,一会儿要用。</p>
+
+<details class="recall">
+  <summary>先自己把下面这张表填完,再展开核对</summary>
+  <div class="prompt">
+    每一列:A 的标准单位 = A ÷ 2,B 的标准单位 = B ÷ 1(因为均值都是 0,直接除标准差就行)。<br>
+    然后把两行相乘,五个乘积加起来,<b>除以 5</b>。
+  </div>
+  <div class="reveal">
+    <table class="calc">
+      <tr><th></th><th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>D5</th><th>合计</th></tr>
+      <tr><td>A 的标准单位</td><td>−1.5</td><td>−0.5</td><td>0.0</td><td>+0.5</td><td>+1.5</td><td></td></tr>
+      <tr><td>B 的标准单位</td><td>−1.5</td><td>+0.5</td><td>−0.5</td><td>0.0</td><td>+1.5</td><td></td></tr>
+      <tr class="sum"><td>两行相乘</td><td>2.25</td><td>−0.25</td><td>0.00</td><td>0.00</td><td>2.25</td><td>4.25</td></tr>
+    </table>
+    <p><b>r = 4.25 ÷ 5 = 0.85</b></p>
+    <p>你刚才用的,就是这一章附录里那个公式的全部内容:</p>
+    <pre><code>r = (1/n) · Σ [ (xᵢ − x̄)/σₓ ] · [ (yᵢ − ȳ)/σᵧ ]</code></pre>
+    <p>Σ(求和号)只是「把后面这一串加起来」的缩写。书里用 15 个学生的身高体重演示同一套步骤,
+    答案是 <b>r = 0.83</b>,和 Excel 算的完全一致。</p>
+  </div>
+</details>
+
+<div class="callout">
+  <span class="label">这个 0.85 意味着什么</span>
+  <b>A 的波动是 B 的两倍,但 r 完全不在乎——它只看「合不合拍」,不看「幅度差多少」。</b>
+  这就是「没有单位」的代价与好处:同一个 r,可能对应天差地别的实际影响。
+  <br>而 0.85 对两个策略来说是个坏消息:<b>你以为你有两个策略,实际上你有 1.x 个。</b>它们大部分时间在同涨同跌。
+</div>
+
+<h2>五、这个数有多大才算大?</h2>
+
+<p>光知道「越靠近 1 越强」没用,你需要<b>参照物</b>。Wheelan 给了一组,全部来自 College Board 公布的数据:</p>
+
+<div class="scale">
+  <div class="bar">
+    <div class="tk" style="left:70%"><b>0.40</b><span>身高与体重<br>(美国成年男性)</span></div>
+    <div class="tk" style="left:78%"><b>0.56</b><span>高中 GPA<br>预测大一 GPA</span></div>
+    <div class="tk" style="left:92%"><b>0.64</b><span>SAT + GPA<br>合起来预测</span></div>
+  </div>
+  <div class="ends"><span>−1 完全负相关</span><span>0 无关</span><span>+1 完全正相关</span></div>
+</div>
+
+<p>几个值得停下来想一想的点:</p>
+
+<ul>
+  <li><b>SAT 单独预测大一 GPA 也是 0.56</b>,和高中 GPA 一模一样。这似乎在说 SAT 可以取消了——但两者<b>合起来</b>是 0.64,比任何一个单用都强。所以它留了下来。</li>
+  <li><b>身高和体重只有 0.4。</b>这个数比你直觉中低得多——高的人确实更重,但例外多到能把 r 压到 0.4。
+      记住这个锚:<b>0.4 已经是一个你能亲眼看见的、很结实的关系了。</b></li>
+  <li>Wheelan 顺带回答了「为什么非要考 SAT」:高中成绩是个<b>不完美的描述性统计</b>(B1.1 的老朋友)——
+      在难课里拿中等分的学生,可能比在水课里拿高分的学生能力更强,跨学校更没法比。
+      至于「为什么不让所有人跑个 100 码算了,又便宜又标准」——因为<b>百米成绩和大学表现不相关</b>。
+      <b>数据好拿,但什么也说明不了。</b></li>
+</ul>
+
+<div class="callout warn">
+  <span class="label">给量化的校准(这一条不在书里,是老师补的)</span>
+  上面这些数字会毁掉你对金融数据的直觉。<b>预测股票未来收益时,信号与收益的相关系数能稳定做到 0.05,就已经是很值钱的信号了。</b>
+  <br>为什么差这么多?因为身高和体重是<b>同时</b>测的同一个人的两个属性;而你要用<b>今天</b>的信号预测<b>下个月</b>的收益,中间隔着整个世界的随机性。
+  <br>这个 0.05 在第 5 本书(Grinold &amp; Kahn)里有个正式名字和一整套理论——到 B5.6 你会看到,
+  <b>为什么 0.05 的微弱技能,配上足够多的独立下注,依然能变成一门好生意。</b>现在只需记住这个量级差。
+</div>
+
+<h2>六、r 不告诉你的四件事</h2>
+
+<p>下面四张图各是一份数据。<b>先别看答案:凭肉眼给它们的 r 从大到小排个序。</b></p>
+
+<div class="scatter-grid">
+  <div class="scatter"
+       data-title="甲 · 信号 X"
+       data-points="1,10.1 2,10.0 3,10.4 4,10.3 5,10.6 6,10.5 7,10.9 8,10.8 9,11.2 10,11.1"
+       data-x="信号取值" data-y="次日收益 (%)" data-fit="1"
+       data-note="信号从 1 走到 10,收益从 10.1% 爬到 11.1%"></div>
+  <div class="scatter"
+       data-title="乙 · 信号 Y"
+       data-points="1,4.3 2,2.0 3,11.0 4,8.8 5,15.5 6,13.2 7,22.3 8,20.0 9,29.0 10,26.8"
+       data-x="信号取值" data-y="次日收益 (%)" data-fit="1"
+       data-note="信号从 1 走到 10,收益从 4.3% 爬到 26.8%"></div>
+  <div class="scatter"
+       data-title="丙 · 杠杆"
+       data-points="1,0 2,7 3,12 4,15 5,16 6,15 7,12 8,7 9,0"
+       data-x="杠杆倍数" data-y="年化收益 (%)"
+       data-note="太低赚不到,太高被打爆,中间有个最优点"></div>
+  <div class="scatter"
+       data-title="丁 · 另类数据"
+       data-points="1,2 2,1 1.5,2.5 2.5,1.5 1.2,1.8 2.2,2.2 1.8,1.2 2.8,2.6 1.6,2.8 12,13"
+       data-x="信号取值" data-y="月度收益 (%)" data-fit="1"
+       data-note="十个月的数据,其中一个月是市场崩盘那个月"></div>
+</div>
+
+<details class="recall">
+  <summary>四个 r 值(排完序再展开)</summary>
+  <div class="prompt">你排的顺序是什么?现在对答案。</div>
+  <div class="reveal">
+    <table>
+      <tr><th>图</th><th>r</th><th>你的肉眼可能错在哪</th></tr>
+      <tr><td>甲</td><td><b>0.95</b></td><td>——</td></tr>
+      <tr><td>乙</td><td><b>0.95</b></td><td>和甲<b>一模一样</b>。但甲的收益差异只有 1 个百分点,乙有 22 个</td></tr>
+      <tr><td>丙</td><td><b>0.00</b></td><td>图上有一个再清楚不过的关系,r 却是精确的零</td></tr>
+      <tr><td>丁</td><td><b>0.97</b></td><td>四张图里 r <b>最高</b>。去掉那一个点后,r = <b>−0.01</b></td></tr>
+    </table>
+  </div>
+</details>
+
+<div class="miss">
+<h3>① r 不告诉你「变化有多大」</h3>
+<p>甲和乙的 r 都是 <b>0.95</b>,但作为交易信号,它们是两种东西:</p>
+<ul>
+  <li><b>甲</b>:信号从最低走到最高,收益只多了 <b>1 个百分点</b>——扣掉手续费和滑点就没了。</li>
+  <li><b>乙</b>:同样的信号跨度,收益差了 <b>22 个百分点</b>。</li>
+</ul>
+<p>相关系数只回答「<b>有多整齐</b>」,不回答「<b>有多大</b>」。整齐但幅度微小的关系,在真实交易里一文不值。
+「有多大」这个问题要用<b>回归的斜率</b>来回答——那是 B1.11 的内容。</p>
+</div>
+
+<div class="miss">
+<h3>② r 只看得见直线</h3>
+<p>丙图上的关系强到不能再强:杠杆低了赚不够,高了被打爆,中间有个甜点。<b>任何人看一眼图都能说出这个规律。</b>
+而 r = 0.00,精确的零。</p>
+<p>因为 r 问的是「x 偏离均值时,y 是不是<b>同向</b>偏离」。在丙图里,x 偏左时 y 往下,x 偏右时 y 也往下——正负乘积完美抵消。</p>
+<p><b>所以规矩是:算 r 之前先画散点图。</b>r 是散点图的摘要,不是散点图的替代品。</p>
+</div>
+
+<div class="miss">
+<h3>③ r 会被极少数点绑架</h3>
+<p>丁图里九个月挤成一团、毫无关系(那九个点的 r = <b>−0.01</b>),第十个月是崩盘月,信号和收益一起飞到右上角。
+<b>就这一个点,把 r 抬到了 0.97。</b></p>
+<p>这在金融数据里是常态而不是意外,因为收益的分布本来就有肥尾。
+你以为找到了一个 r = 0.97 的神级信号,其实你找到的是「2020 年 3 月那一个月」。</p>
+<p>这一条和上一课的「均值 vs 中位数」是同一个判断题:<b>这些离群值是在扭曲关系,还是它们本身就是讯息?</b>
+——分辨的办法是<b>把它们拿掉再算一次</b>,看 r 塌不塌。</p>
+</div>
+
+<div class="miss">
+<h3>④ r 不告诉你因果(书里唯一明写的一条)</h3>
+
+<div class="callout">
+  <span class="label">Wheelan 的原话</span>
+  <b>correlation does not imply causation</b> —— 两个变量之间的正相关或负相关,<b>不必然意味着一个的变化在引起另一个的变化。</b>
+</div>
+
+<p>书里的例子:<b>学生的 SAT 分数,和他家里有几台电视机,是正相关的。</b></p>
+
+<p>这不意味着焦虑的家长可以再买五台电视来提分,也不意味着看电视有益学业。最合理的解释是:
+<b>受教育程度高的父母买得起更多电视,而他们的孩子考得比平均水平好。</b>
+电视机数量和考试成绩,都是被<b>第三个变量</b>——父母的教育水平——推动的。</p>
+
+<p>电视那组数据 College Board 没公布,但收入这组公布了:</p>
+
+<table>
+  <tr><th>家庭年收入</th><th>SAT 数学平均分</th></tr>
+  <tr><td>超过 $200,000</td><td><b>586</b></td></tr>
+  <tr><td>低于 $20,000</td><td><b>460</b></td></tr>
+</table>
+
+<p>而年收入 20 万美元以上的家庭,在他们的(多套)房子里,电视机大概率也比年收入 2 万美元的家庭多。</p>
+
+<div class="callout warn">
+  <span class="label">量化版本:这条几乎每天都会撞见</span>
+  <b>「成交量放大与次日上涨正相关」</b>——是放量导致上涨,是上涨吸引放量,还是某条新闻同时导致了两者?
+  <br>如果是第三种,那么当你能<b>先看到那条新闻</b>时,成交量这个信号就一文不值了。
+  <br>这一条要配着上一课第 ⑧ 条(增值)一起用:<b>先问机制,再信数字。</b>
+  想看几百个荒唐但真实的相关例子,去 <a href="https://www.tylervigen.com/spurious-correlations">Tyler Vigen 的 Spurious Correlations</a> 玩十分钟。
+</div>
+</div>
+
+<h2>七、Netflix Prize:一百万美元买一点相关</h2>
+
+<p>2006 年,Netflix 悬赏 <b>100 万美元</b>,征求一个能把现有推荐系统的预测准确度<b>提高至少 10%</b> 的方法
+(即预测「用户看完后会打几分」时误差降低一成)。</p>
+
+<table>
+  <tr><td>训练数据</td><td>48 万名用户对 1.8 万部电影的<b>超过 1 亿条</b>评分</td></tr>
+  <tr><td>留出数据</td><td>另外 <b>280 万条</b>评分,Netflix 知道答案,参赛者不知道——用它来判胜负</td></tr>
+  <tr><td>参赛规模</td><td>三年,来自 <b>180 多个国家</b>的数千支队伍</td></tr>
+  <tr><td>参赛条件</td><td>① 获胜者须把算法授权给 Netflix;② 必须<b>向全世界公开你是怎么做到的、为什么它有效</b></td></tr>
+  <tr><td>结果</td><td>2009 年,一支由美国、奥地利、加拿大、以色列的<b>七名</b>统计学家与计算机科学家组成的队伍获胜</td></tr>
+</table>
+
+<p>Wheelan 说他没法在附录里解释获胜方案——<b>那篇说明文档有 92 页。</b></p>
+
+<div class="callout tip">
+  <span class="label">这个故事真正的用处</span>
+  一亿条数据、三年时间、全球数千支队伍、一百万美元奖金,换来的是<b>10% 的改进</b>。
+  <br>把这个换算率记住。下次你看到「我这个新特征让回测夏普从 1.2 提到 2.4」的时候,你会知道该有多惊讶。
+</div>
+
+<h2>检索练习</h2>
+
+<div class="quiz" data-answer="0">
+  <div class="q">1. 策略 A 日收益标准差 2%,策略 B 是 0.5%,两者相关系数 0.85。现在把 B 的仓位<b>放大四倍</b>(每天收益都乘以 4)。新的相关系数是?</div>
+  <button class="opt">还是 0.85,同乘一个正数不改变它</button>
+  <button class="opt">变成 3.40,收益被整体放大了四倍</button>
+  <button class="opt">变成 0.21,分母上的波动率变大了</button>
+  <button class="opt">无法确定,得把两组数据重新拿去算一遍</button>
+  <div class="fb right" data-for="right">
+    对。乘以 4 之后,B 的每一天收益变四倍,B 的<b>标准差也变四倍</b>——第 2 步里分子分母同时放大四倍,标准单位一个都没变。
+    这正是「相关系数没有单位」的本质:<b>它只看每个观测在自己那一列里排得多偏。</b>
+  </div>
+  <div class="fb nope" data-for="nope">
+    回到第 2 步:标准单位 =(观测值 − 均值)÷ 标准差。收益乘 4,均值和标准差<b>也都乘 4</b>,分子分母一起放大,商不变。
+    所以 <b>r 还是 0.85</b>。相关系数对「同乘一个正数」完全免疫——这就是它无单位的原因,也是它<b>看不见幅度</b>的原因。
+  </div>
+</div>
+
+<div class="quiz" data-answer="3">
+  <div class="q">2. 数据显示:办公室配了彭博终端的对冲基金,平均业绩明显更好。据此最该先考虑的是?</div>
+  <button class="opt">彭博终端提供的数据确实能改善投资决策</button>
+  <button class="opt">相关系数太低,这个结论其实完全不成立</button>
+  <button class="opt">应该给每一家小基金都配上一台彭博终端</button>
+  <button class="opt">基金规模同时决定了终端配置和业绩水平</button>
+  <div class="fb right" data-for="right">
+    对,这就是<b>电视机与 SAT 分数</b>换了身衣服。第三变量(基金规模/资金实力)同时推高了两边:有钱才配得起终端,
+    也才请得起好团队、拿得到好交易条件。给一家小基金塞台终端,不会让它变成大基金。
+  </div>
+  <div class="fb nope" data-for="nope">
+    这是<b>相关不蕴含因果</b>的标准形状:找第三个变量。<b>基金规模</b>同时决定了「配不配得起终端」和「业绩好不好」——
+    和「父母教育水平同时决定了家里几台电视和孩子的 SAT 分数」一模一样。
+  </div>
+</div>
+
+<div class="quiz" data-answer="1">
+  <div class="q">3. 某因子取值与次月收益的散点图是一个漂亮的<b>倒 U 形</b>:中间取值收益最高,两端都亏。算出的 r 接近 0。这说明?</div>
+  <button class="opt">这个因子和收益之间确实不存在任何关系</button>
+  <button class="opt">这个关系是真实存在的,只不过不是直线</button>
+  <button class="opt">多半是样本量太少导致相关系数不可靠了</button>
+  <button class="opt">应该把这个因子的取值取绝对值后重新算</button>
+  <div class="fb right" data-for="right">
+    对。r 只度量<b>直线</b>关系。倒 U 形里,因子偏左时收益往下、偏右时收益也往下,正负乘积互相抵消,r 被压成 0。
+    <b>规矩:算 r 之前先画散点图。</b>——这也是本课那张「杠杆倍数 vs 年化收益」的图。
+  </div>
+  <div class="fb nope" data-for="nope">
+    关系明明白白摆在图上,是 <b>r 看不见它</b>。相关系数问的是「x 偏离均值时 y 是不是同向偏离」,倒 U 形里两侧的偏离方向相反,
+    乘积正负抵消 → r ≈ 0。<b>r 只看得见直线。所以算 r 之前必须先画散点图。</b>
+  </div>
+</div>
+
+<div class="quiz" data-answer="3">
+  <div class="q">4. 参照:美国成年男性<b>身高与体重</b>的 r 约 0.4,<b>高中 GPA 预测大一 GPA</b> 约 0.56。现在一位量化研究员说,他的信号与次月股票收益的 r 是 <b>0.05</b>。合理的反应是?</div>
+  <button class="opt">这个信号几乎没有信息,应该直接放弃</button>
+  <button class="opt">这个数比身高体重还低,说明信号很差</button>
+  <button class="opt">继续调参数,把它优化到零点五以上去</button>
+  <button class="opt">对预测股票收益而言,这已经相当可观</button>
+  <div class="fb right" data-for="right">
+    对。<b>不同问题的 r 有完全不同的量级。</b>身高体重是同一个人同时测的两个属性;用今天的信号预测下个月的收益,
+    中间隔着整个世界的随机性。金融里 0.05 的稳定信号是值钱的。
+    <br>反过来更要警惕:<b>如果谁说他的选股信号 r = 0.5,第一反应应该是「哪里泄漏了未来数据」。</b>
+  </div>
+  <div class="fb nope" data-for="nope">
+    别拿身高体重的尺子量金融数据。<b>预测未来收益</b>比<b>描述同时存在的两个属性</b>难得多,金融里 0.05 就是好信号。
+    第 5 本书会告诉你为什么:微弱的技能配上足够多的独立下注,依然是一门好生意。
+    <br>而且反过来看:<b>选股信号做到 0.5,通常意味着数据里混进了未来信息。</b>
+  </div>
+</div>
+
+<div class="quiz" data-answer="2">
+  <div class="q">5. 你手上有 8 个策略,历史上两两相关系数平均 <b>0.8</b>。你据此认为自己「很分散」。最准确的判断是?</div>
+  <button class="opt">八个策略已经够多,分散程度是足够的</button>
+  <button class="opt">相关系数不能用来判断分不分散这件事</button>
+  <button class="opt">它们大体在同涨同跌,更像是一个策略</button>
+  <button class="opt">只要每个策略都能赚钱,相关多高都行</button>
+  <div class="fb right" data-for="right">
+    对。<b>分散靠的不是数量,是相关性。</b>两两相关 0.8 意味着它们大部分时间同涨同跌——真到坏日子,八个一起亏。
+    <br>还有更坏的一层:<b>相关系数不是常数。</b>危机中资产和策略的相关性会一起冲向 1,
+    也就是说你测出来的 0.8,在你最需要分散的那一天可能是 0.98。这条正是下下课(B1.6)那场金融危机的核心。
+  </div>
+  <div class="fb nope" data-for="nope">
+    数量不等于分散。两两相关 <b>0.8</b> 说明这八个策略基本在<b>同涨同跌</b>,坏日子里会一起亏——
+    你有的是「一个策略的八个版本」。<b>分散的度量单位是相关性,不是个数。</b>
+    <br>补一刀:危机中相关性会集体冲向 1,平时测的 0.8 在最需要它低的那天可能是 0.98。(B1.6 讲这件事。)
+  </div>
+</div>
+
+<details class="recall">
+  <summary>自由回忆:r 不告诉你的四件事</summary>
+  <div class="prompt">合上页面口头说,四条说出三条算过关。</div>
+  <div class="reveal">
+    <ol>
+      <li><b>幅度。</b>r 只说「有多整齐」,不说「有多大」。两条 r = 0.95 的线,一条差 1 个百分点,一条差 22 个。</li>
+      <li><b>非直线关系。</b>r 只看得见直线。倒 U 形的 r 可以是精确的 0。<b>算 r 之前先画散点图。</b></li>
+      <li><b>离群值。</b>一个点能把 r 从 −0.01 抬到 0.97。<b>拿掉极端值再算一次,看它塌不塌。</b></li>
+      <li><b>因果。</b>电视机数量与 SAT 分数正相关,真正的推手是父母的教育水平。<b>先问机制,再信数字。</b></li>
+    </ol>
+    <p>再加两条口诀:<b>不同问题的 r 有不同的量级</b>(身高体重 0.4,选股信号 0.05 就很好);
+    <b>分散的度量单位是相关性,不是策略个数</b>。</p>
+  </div>
+</details>
+
+<h2>课下温习范围</h2>
+
+<div class="source-box">
+  <div class="label">首要一手来源</div>
+  <b>《Naked Statistics》· Chapter 4: Correlation</b>(EPUB,在 <code>resources/</code>)
+  <ul>
+    <li><b>正文全章</b> —— Bhutto 与 Netflix、正/负相关、散点图、相关系数的两个性质、三步直觉、SAT 与 GPA 的那组数字、电视机与 SAT、Netflix Prize</li>
+    <li><b>Appendix to Chapter 4</b> —— 15 个学生身高体重的完整手算表(答案 r = 0.83)与公式。<b>请务必把这张表的前三行自己动手算一遍</b>,和课上五天那个例子是同一套动作。</li>
+  </ul>
+</div>
+
+<div class="callout tip">
+  <span class="label">课后作业(十五分钟)</span>
+  <b>把课上那四张图的教训用在一份真实数据上。</b>随便找两列你手边有的数据(两只股票的日收益、气温与用电量、你自己记录的任何东西),
+  用 Excel 或 Python 算出 r,<b>然后一定要把散点图画出来</b>。
+  回答两个问题:<b>①</b> 图的形状和这个 r 值配得上吗?<b>②</b> 拿掉最极端的那 1–2 个点,r 变了多少?
+  <br>下次上课带结论来。这一步不做,「先画图」永远只是一句你知道但不会做的话。
+</div>
+
+<h3>延伸(可选,不属于必读)</h3>
+<ul>
+  <li><a href="https://www.tylervigen.com/spurious-correlations">Tyler Vigen · Spurious Correlations</a> —— 上千条 r 高得离谱的荒唐相关(缅因州离婚率 vs 人造黄油消费量)。玩十分钟,「相关≠因果」就再也忘不掉了。</li>
+  <li>David Leinweber,<a href="https://nerdsontheruncom.files.wordpress.com/2014/01/stupid-data-miner-tricks.pdf">《Stupid Data Miner Tricks: Overfitting the S&amp;P 500》</a> —— 热身题里孟加拉国黄油产量的出处。<b>这是本课程最重要那条主线的经典文献,强烈建议读。</b></li>
+  <li>F. J. Anscombe,<a href="https://www.jstor.org/stable/2682899">《Graphs in Statistical Analysis》</a>(The American Statistician, 1973)—— 著名的「Anscombe 四重奏」:四份数据,均值、标准差、相关系数<b>全都一样</b>,画出来完全不同。本课第 ② ③ 条的学术原版。</li>
+  <li>Netflix Prize 获胜方案说明:<a href="https://web.archive.org/web/20100106185500/http://www.netflixprize.com/assets/GrandPrize2009_BPC_BellKor.pdf">BellKor's Pragmatic Chaos 报告</a>(存档件)—— 书里说的那份长文档,翻翻目录感受一下工程量即可。</li>
+</ul>
+
+<h2>本课沉淀</h2>
+
+<p><b>新参考卡:</b><a href="../reference/correlation-card.html">相关系数速查卡</a> —— 三步算法 + 量级参照表 + 「r 不告诉你的四件事」+ 每条的检查动作。以后每次看到一个 r,对着过一遍。</p>
+
+<p><b>词汇表</b>新增 4 条(<a href="../reference/glossary.html">reference/glossary.html</a>):相关系数、标准单位、相关不蕴含因果(第三变量)、分散化与相关性。</p>
+
+<p><b>新组件:</b><code>assets/scatter.js</code> —— 可复用的散点图,以后讲回归(B1.11)和因子(B5)还会用。</p>
+
+<div class="lesson-foot">
+  <div class="ask">
+    <b>随时问老师。</b>今天最容易含糊的两处:<b>①</b> 「标准单位」这一步为什么能把单位消掉——如果还有一点没通,直接说,我换个例子重讲;
+    <b>②</b> 「r = 0.05 也算好」这件事现在只需要接受,不需要理解,它的完整解释在 B5.6。
+    <br>另外,你手上如果有两个真实策略的日收益序列,发我,我们直接把它们的相关系数算出来当第二个案例——比虚构数据管用得多。
+    <br>下一课 B1.5 讲第 5 章 + 5½ 章:期望值与概率思维——为什么不要买 $99 打印机的延保,以及 Monty Hall 为什么一定要换门。
+  </div>
+  <div class="nav">
+    <span><a href="0003-b1-3-deceptive-description.html">← B1.3 真实但严重误导</a></span>
+    <span><a href="../reference/correlation-card.html">相关系数速查卡 →</a></span>
+  </div>
+</div>
+
+</div>
+<script src="../assets/quiz.js"></script>
+<script src="../assets/scatter.js"></script>
+</body>
+</html>
