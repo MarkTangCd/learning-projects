@@ -1,0 +1,117 @@
+<meta charset="utf-8">
+<title>第 9 课 · 因式分解</title>
+<link rel="stylesheet" href="../assets/course.css">
+<main>
+  <div class="kicker">Lesson 0009 · 阶段 1 · 约 18 分钟</div>
+  <h1>因式分解：把乘法倒着放</h1>
+  <p class="subtitle">上一课你把 (x+3)(x+6) 乘开成 x² + 9x + 18。这一课做反向工程：拿到 x² + 9x + 18，还原出它是谁乘谁。为什么值得学？因为"乘积 = 0 就意味着某个因子 = 0"——这是解二次方程的钥匙，也是下一课的全部剧情。而且它自带完美验算：分解完乘回去，必须一字不差还原。</p>
+
+  <h2>第一招：提公因式（永远先试这招）</h2>
+  <div class="rule-card">
+    <div class="rule-name">ab + ac = a(b + c)　（分配律从右往左读）</div>
+    <div class="formula">
+      6x² + 9x = 3x(2x + 3)　（每一项都含 3x，提出来）<br>
+      验算：乘回去 3x·2x + 3x·3 = 6x² + 9x ✓
+    </div>
+  </div>
+  <div class="why">
+    找"每一项都有的东西"：系数找最大公因数（6 和 9 → 3），
+    字母找最低次幂（x² 和 x → x）。提干净为止——提成 3(2x² + 3x)
+    就是没提干净，括号里还藏着 x。
+  </div>
+
+  <h2>第二招：公式逆用</h2>
+  <div class="rule-card">
+    <div class="rule-name">上一课的两个快捷键，反着读就是分解公式</div>
+    <div class="formula">
+      a² − b² = (a + b)(a − b)　　x² − 25 = (x + 5)(x − 5)<br>
+      a² ± 2ab + b² = (a ± b)²　　x² − 6x + 9 = (x − 3)²
+    </div>
+  </div>
+  <div class="why">
+    认脸口诀：**两项、中间是减号** → 先想平方差；
+    **三项、两头是平方、中间是 2ab** → 先想完全平方。
+    x² + 25（加号）分解不了——平方差只认减号。
+  </div>
+
+  <h2>第三招：十字相乘（x² + bx + c 专用）</h2>
+  <div class="rule-card">
+    <div class="rule-name">找两个数：相乘 = c，相加 = b</div>
+    <div class="formula">
+      x² + 9x + 18：找相乘 = 18、相加 = 9 的两个数 → 3 和 6<br>
+      所以 x² + 9x + 18 = (x + 3)(x + 6)<br>
+      x² − 5x + 6：相乘 = +6、相加 = −5 → −2 和 −3 → (x − 2)(x − 3)
+    </div>
+  </div>
+  <div class="why">
+    为什么找"乘 = c、加 = b"？因为上一课 (x + p)(x + q) 乘开就是
+    x² + (p+q)x + pq——中间系数是两数之和，常数项是两数之积。
+    十字相乘就是把这个展开过程倒着猜。<br>
+    **符号侦察**：c &gt; 0 → 两数同号（跟 b 走）；c &lt; 0 → 两数异号。
+    x² − x − 12：乘 = −12（异号）、加 = −1 → 3 和 −4 → (x + 3)(x − 4)。
+  </div>
+
+  <h2>组合拳：先提公因式，再套招</h2>
+  <div class="rule-card">
+    <div class="rule-name">2x² − 8 = ?</div>
+    <div class="formula">
+      先提 2：2(x² − 4)　→　括号里是平方差：2(x + 2)(x − 2)
+    </div>
+  </div>
+  <div class="why">
+    顺序固定：① 提公因式 → ② 看项数认脸（两项想平方差、三项想
+    完全平方或十字相乘）→ ③ 每个括号检查还能不能继续分 → ④ 乘回去验算。
+  </div>
+
+  <h2>动手验证（可选，2 分钟）</h2>
+  <div class="tip">
+    <code>from sympy import symbols, factor; x = symbols('x'); factor(x**2 + 9*x + 18)</code>
+    → <code>(x + 3)*(x + 6)</code>。手分为主，机器只做验算——
+    不过这课你有更好的验算：<strong>自己乘回去，和原式对照</strong>。
+  </div>
+
+  <h2>小测：5 题，即时反馈</h2>
+  <div class="quiz" id="quiz"></div>
+
+  <footer>
+    <p><strong>主推资源：</strong><a href="https://zh.khanacademy.org/math/algebra/x2f8bb11595b61c86:quadratics-multiplying-factoring">可汗学院 · 二次式的乘法与因式分解</a>（「因式分解入门」+「十字相乘」两节）。</p>
+    <p><strong>速查：</strong><a href="../reference/algebra-rules.html">代数规则速查卡</a>（已补入"因式分解"一节）｜ 上一课：<a href="0008-polynomial-multiplication.html">多项式乘法与平方公式</a></p>
+    <p>有任何一步没看懂，回到终端问你的 AI 老师——要求"只给提示，不给答案"。</p>
+    <nav>下一步：做 practice/stage-1-set-6.md（因式分解 ×4 + 不等式间隔抽查 ×1），每题分解完必须乘回去对照原式。</nav>
+  </footer>
+</main>
+<script src="../assets/quiz.js"></script>
+<script>
+  renderQuiz(document.getElementById('quiz'), [
+    {
+      q: '提公因式：8x² + 12x = ?',
+      options: ['4x(2x + 3)', '4(2x² + 3x)', '2x(4x + 6)', '8x(x + 12)'],
+      answer: 0,
+      explain: '系数公因数 4，字母最低次幂 x → 提 4x。另两个选项没提干净（括号里还有公因子）。',
+    },
+    {
+      q: 'x² − 49 = ?',
+      options: ['(x + 7)(x − 7)', '(x − 7)²', '(x + 7)²', '分解不了'],
+      answer: 0,
+      explain: '两项、中间减号 → 平方差：a² − b² = (a+b)(a−b)。(x−7)² 乘开是 x² − 14x + 49，多了中间项。',
+    },
+    {
+      q: 'x² + 7x + 12 = ?',
+      options: ['(x + 3)(x + 4)', '(x + 2)(x + 6)', '(x + 1)(x + 12)', '(x − 3)(x − 4)'],
+      answer: 0,
+      explain: '找相乘 = 12、相加 = 7 的两个数：3 和 4。选项 2、3 乘积对但和不对——两个条件缺一不可。',
+    },
+    {
+      q: 'x² − x − 6 = ?',
+      options: ['(x − 3)(x + 2)', '(x + 3)(x − 2)', '(x − 6)(x + 1)', '(x − 3)(x − 2)'],
+      answer: 0,
+      explain: '乘 = −6（异号）、加 = −1 → −3 和 +2。验算中间项：−3x + 2x = −x ✓。选项 2 的中间项是 +x，符号反了。',
+    },
+    {
+      q: '2x² − 18 = ?',
+      options: ['2(x + 3)(x − 3)', '(2x + 6)(x − 3)', '2(x − 3)²', '(x + 3)(x − 3)'],
+      answer: 0,
+      explain: '先提 2 → 2(x² − 9)，括号里是平方差 → 2(x+3)(x−3)。忘了先提公因式就会卡住或分错。',
+    },
+  ]);
+</script>

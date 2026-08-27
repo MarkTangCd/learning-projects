@@ -1,0 +1,103 @@
+<meta charset="utf-8">
+<title>第 8 课 · 多项式乘法与平方公式</title>
+<link rel="stylesheet" href="../assets/course.css">
+<main>
+  <div class="kicker">Lesson 0008 · 阶段 1 · 约 15 分钟</div>
+  <h1>多项式乘法：分配律的批量版</h1>
+  <p class="subtitle">你已经会 −2(3x − 5)——括号前一项，乘给里面每项。这一课只升级一步：括号前不止一项时怎么办。答案还是那条分配律，乘完之后会自然长出两个值得记住的"快捷键"：平方公式和平方差。复利里 (1+r)² 为什么不等于 1 + 2r，答案就在这。</p>
+
+  <h2>规则：每项 × 每项，一个不漏</h2>
+  <div class="rule-card">
+    <div class="rule-name">(a + b)(c + d) = ac + ad + bc + bd</div>
+    <div class="formula">
+      (x + 2)(x + 3) = x·x + x·3 + 2·x + 2·3<br>
+      = x² + 3x + 2x + 6 = x² + 5x + 6
+    </div>
+  </div>
+  <div class="why">
+    把 (a + b) 看成一个整体 M，那就是老朋友：M(c + d) = Mc + Md，
+    再把 M 拆开分配一次。两项 × 两项 = 4 个小积，**乘完必数一遍够不够 4 个**
+    ——漏项是这里的头号错误。最后照旧合并同类项、化到最简。
+  </div>
+
+  <h2>快捷键一：平方公式</h2>
+  <div class="rule-card">
+    <div class="rule-name">(a + b)² = a² + 2ab + b²　（中间那个 2ab 别丢）</div>
+    <div class="formula">
+      (x + 3)² = x² + 6x + 9<br>
+      (a − b)² = a² − 2ab + b²　（(x − 3)² = x² − 6x + 9）
+    </div>
+  </div>
+  <div class="why">
+    最常见的错：(a + b)² = a² + b² ❌。用数字立刻证伪：(3 + 4)² = 49，
+    而 3² + 4² = 25。少掉的 24 正好是 2ab = 2·3·4。
+    交易版：(1 + r)² = 1 + 2r + r²——两年复利比"单利 × 2"多出的
+    那块 r²，就是利滚利本身。
+  </div>
+
+  <h2>快捷键二：平方差</h2>
+  <div class="rule-card">
+    <div class="rule-name">(a + b)(a − b) = a² − b²　（中间项恰好抵消）</div>
+    <div class="formula">
+      (x + 5)(x − 5) = x² − 25<br>
+      速算：21 × 19 = (20 + 1)(20 − 1) = 400 − 1 = 399
+    </div>
+  </div>
+  <div class="why">
+    展开看为什么：ac − ad + bc − bd 里，−ab 和 +ab 对消，只剩两头。
+    交易版：先涨 x% 再跌 x%，总乘数 (1 + x)(1 − x) = 1 − x²——
+    永远小于 1。你在阶段 0 就发现的"涨跌不对称"，这就是它的代数证明。
+  </div>
+
+  <h2>动手验证（可选，2 分钟）</h2>
+  <div class="tip">
+    <code>from sympy import symbols, expand; x = symbols('x'); expand((x + 2)*(x + 3))</code>
+    → <code>x**2 + 5*x + 6</code>。手乘为主，机器只做验算——
+    验算完记得<strong>和你的答案对照一遍</strong>。
+  </div>
+
+  <h2>小测：5 题，即时反馈</h2>
+  <div class="quiz" id="quiz"></div>
+
+  <footer>
+    <p><strong>主推资源：</strong><a href="https://zh.khanacademy.org/math/algebra/x2f8bb11595b61c86:quadratics-multiplying-factoring">可汗学院 · 多项式乘法与特殊乘积</a>（「多项式相乘」+「特殊乘积」两节）。</p>
+    <p><strong>速查：</strong><a href="../reference/algebra-rules.html">代数规则速查卡</a>（已补入"多项式乘法与平方公式"一节）｜ 上一课：<a href="0007-exponent-laws.html">幂的运算律全套</a></p>
+    <p>有任何一步没看懂，回到终端问你的 AI 老师——要求"只给提示，不给答案"。</p>
+    <nav>下一步：做 practice/stage-1-set-5.md（多项式乘法 ×2 + 平方公式 ×1 + 平方差速算 ×1 + 负指数分数形式复验 ×1），验算完要和答案对照。</nav>
+  </footer>
+</main>
+<script src="../assets/quiz.js"></script>
+<script>
+  renderQuiz(document.getElementById('quiz'), [
+    {
+      q: '(x + 4)(x + 2) = ?',
+      options: ['x² + 6x + 8', 'x² + 8x + 6', 'x² + 8', 'x² + 6x + 6'],
+      answer: 0,
+      explain: '4 个小积：x² + 2x + 4x + 8，合并得 x² + 6x + 8。选 x² + 8 是漏了中间两项。',
+    },
+    {
+      q: '(x + 5)² = ?',
+      options: ['x² + 10x + 25', 'x² + 25', 'x² + 5x + 25', '2x + 10'],
+      answer: 0,
+      explain: '(a+b)² = a² + 2ab + b²，中间项 2·x·5 = 10x。选 x² + 25 就是最经典的丢 2ab。',
+    },
+    {
+      q: '(x − 3)(x + 3) = ?',
+      options: ['x² − 9', 'x² + 9', 'x² − 6x − 9', 'x² − 6x + 9'],
+      answer: 0,
+      explain: '平方差：中间项 +3x 和 −3x 对消，剩 x² − 9。选 x² − 6x + 9 是把它当成了 (x−3)²。',
+    },
+    {
+      q: '用平方差速算：32 × 28 = ?',
+      options: ['896', '900', '886', '960'],
+      answer: 0,
+      explain: '(30 + 2)(30 − 2) = 900 − 4 = 896。两数关于 30 对称，就能用 a² − b²。',
+    },
+    {
+      q: '先涨 10% 再跌 10%，总乘数是？',
+      options: ['0.99', '1', '1.01', '0.9'],
+      answer: 0,
+      explain: '(1 + 0.1)(1 − 0.1) = 1 − 0.1² = 0.99。平方差告诉你：来回波动一轮，必亏 x²。',
+    },
+  ]);
+</script>
