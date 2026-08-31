@@ -2,7 +2,7 @@
 <title>第 9 课 · 因式分解</title>
 <link rel="stylesheet" href="../assets/course.css">
 <main>
-  <div class="kicker">Lesson 0009 · 阶段 1 · 约 18 分钟</div>
+  <div class="kicker">Lesson 0009 · 阶段 1 · 约 25 分钟</div>
   <h1>因式分解：把乘法倒着放</h1>
   <p class="subtitle">上一课你把 (x+3)(x+6) 乘开成 x² + 9x + 18。这一课做反向工程：拿到 x² + 9x + 18，还原出它是谁乘谁。为什么值得学？因为"乘积 = 0 就意味着某个因子 = 0"——这是解二次方程的钥匙，也是下一课的全部剧情。而且它自带完美验算：分解完乘回去，必须一字不差还原。</p>
 
@@ -21,20 +21,130 @@
   </div>
 
   <h2>第二招：公式逆用</h2>
+  <p>这一招不需要"想"，只需要<strong>认</strong>。但要认得出来，先得知道公式是怎么来的——
+  下面这两个公式没有一条是新知识，全是上一课你亲手乘出来的结果，倒着抄一遍而已。</p>
+
+  <h3>先看它从哪来：上一课的结果，掉个头</h3>
+  <table>
+    <tr><th>上一课（乘开，从左往右）</th><th>这一课（分解，从右往左）</th></tr>
+    <tr><td>(x + 5)(x − 5) = x² − 25</td><td>x² − 25 = (x + 5)(x − 5)</td></tr>
+    <tr><td>(x − 3)² = x² − 6x + 9</td><td>x² − 6x + 9 = (x − 3)²</td></tr>
+  </table>
+  <div class="why">
+    等号是双向的。你上一课验算 (x−3)² 时，白纸黑字算出了 x² − 6x + 9；
+    那么看见 x² − 6x + 9，它<strong>只能</strong>是 (x−3)² 变来的。
+    所谓"公式逆用"，就是把上一课的答案当成这一课的题面。
+    不确定的时候，永远可以乘回去自证——这是本课唯一需要的验算。
+  </div>
+
+  <h3>公式 A · 平方差：a² − b² = (a + b)(a − b)</h3>
+
+  <p>先给这个公式一张图。把 a² 看成边长 a 的正方形，减去 b² 就是从角上抠掉一个边长 b 的小正方形：</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 450 205" role="img" aria-label="面积图：边长 a 的正方形挖去边长 b 的小正方形，剩下的 L 形拼成 (a+b) 乘 (a−b) 的长方形">
+      <g stroke="currentColor" fill="currentColor">
+        <!-- Panel A: square minus corner square -->
+        <g transform="translate(15,30)">
+          <rect x="0" y="0" width="140" height="85" fill-opacity="0.10" stroke-width="1.5"/>
+          <rect x="0" y="85" width="85" height="55" fill-opacity="0.22" stroke-width="1.5"/>
+          <rect x="85" y="85" width="55" height="55" fill="none" stroke-dasharray="5 4" stroke-opacity="0.55"/>
+          <text x="70" y="48" font-size="15" text-anchor="middle" stroke="none">P</text>
+          <text x="42" y="120" font-size="15" text-anchor="middle" stroke="none">Q</text>
+          <text x="112" y="118" font-size="13" text-anchor="middle" stroke="none" fill-opacity="0.6">挖掉 b²</text>
+          <text x="70" y="-10" font-size="14" text-anchor="middle" stroke="none">← a →</text>
+          <text x="70" y="163" font-size="13" text-anchor="middle" stroke="none" fill-opacity="0.75">剩下的面积 = a² − b²</text>
+        </g>
+        <text x="185" y="105" font-size="20" text-anchor="middle" stroke="none">=</text>
+        <!-- Panel B: rearranged rectangle -->
+        <g transform="translate(210,60)">
+          <rect x="0" y="0" width="140" height="85" fill-opacity="0.10" stroke-width="1.5"/>
+          <rect x="140" y="0" width="55" height="85" fill-opacity="0.22" stroke-width="1.5"/>
+          <text x="70" y="48" font-size="15" text-anchor="middle" stroke="none">P</text>
+          <text x="167" y="48" font-size="15" text-anchor="middle" stroke="none">Q</text>
+          <text x="97" y="-12" font-size="14" text-anchor="middle" stroke="none">← a + b →</text>
+          <text x="97" y="105" font-size="13" text-anchor="middle" stroke="none" fill-opacity="0.75">高 = a − b</text>
+          <text x="97" y="133" font-size="13" text-anchor="middle" stroke="none" fill-opacity="0.75">面积 = (a + b)(a − b)</text>
+        </g>
+      </g>
+    </svg>
+    <figcaption>把 Q 块搬到 P 块右边，L 形变成长方形。面积没变，所以 a² − b² = (a + b)(a − b)。</figcaption>
+  </figure>
+
+  <p><strong>怎么用</strong>——三步，全是机械动作：</p>
+  <ol class="steps">
+    <li><strong>数项数</strong>：只有两项，中间是减号 → 进入平方差流程。（三项就不是它，去看公式 B）</li>
+    <li><strong>各开一次平方根</strong>：问"第一项是谁的平方？"→ 那就是 a；"第二项是谁的平方？"→ 那就是 b。</li>
+    <li><strong>套模板</strong>：写成 (a + b)(a − b)，然后乘回去对照原式。</li>
+  </ol>
+
   <div class="rule-card">
-    <div class="rule-name">上一课的两个快捷键，反着读就是分解公式</div>
+    <div class="rule-name">同一套动作，三个难度</div>
     <div class="formula">
-      a² − b² = (a + b)(a − b)　　x² − 25 = (x + 5)(x − 5)<br>
-      a² ± 2ab + b² = (a ± b)²　　x² − 6x + 9 = (x − 3)²
+      x² − 25：a² = x² → a = x；b² = 25 → b = 5 　→　(x + 5)(x − 5)<br>
+      9x² − 4：a² = 9x² → a = <strong>3x</strong>；b² = 4 → b = 2 　→　(3x + 2)(3x − 2)<br>
+      x⁴ − 16：a² = x⁴ → a = <strong>x²</strong>；b = 4 　→　(x² + 4)(x² − 4)　⚠ 还没完
     </div>
   </div>
   <div class="why">
-    认脸口诀：**两项、中间是减号** → 先想平方差；
-    **三项、两头是平方、中间是 2ab** → 先想完全平方。
-    x² + 25（加号）分解不了——平方差只认减号。
+    第二例的关键：<strong>a 不一定是单个字母</strong>。9x² 是 (3x)²，所以 a = 3x，不是 x。
+    乘回去验：(3x)² − 2² = 9x² − 4 ✓<br>
+    第三例的关键：分解完<strong>每个括号都要再看一眼</strong>。x² − 4 又是一个平方差 →
+    最终 x⁴ − 16 = (x² + 4)(x + 2)(x − 2)。
   </div>
 
-  <h2>第三招：十字相乘（x² + bx + c 专用）</h2>
+  <div class="tip">
+    <strong>你的场景</strong>：涨 3% 再跌 3%，乘数是 1.03 × 0.97 = (1 + 0.03)(1 − 0.03) = 1 − 0.03² = 0.9991。
+    不用算乘法，直接看出<strong>亏 0.09%</strong>——而且立刻知道亏损值 = 波动幅度的平方。
+    上一课的"涨跌不对称"，本质就是这个公式在从右往左跑。
+  </div>
+
+  <h3>公式 B · 完全平方：a² ± 2ab + b² = (a ± b)²</h3>
+
+  <p>这个公式认起来比平方差难，因为三项里<strong>只有两项帮你找 a 和 b，第三项是用来验货的</strong>。
+  流程如下：</p>
+  <ol class="steps">
+    <li><strong>看两头</strong>：首项和尾项必须都是完全平方，且都是正的。开方拿到 a 和 b。</li>
+    <li><strong>算 2ab</strong>：用刚拿到的 a、b 自己算一遍 2 × a × b。</li>
+    <li><strong>对照中间项</strong>：算出来的 2ab 和原式中间项一致（可以差一个负号）才成立。
+      中间是 <strong>+</strong> → (a + b)²；中间是 <strong>−</strong> → (a − b)²。</li>
+  </ol>
+
+  <div class="rule-card">
+    <div class="rule-name">走一遍 x² − 6x + 9</div>
+    <div class="formula">
+      ① 两头：x² → a = x；9 → b = 3<br>
+      ② 算 2ab = 2 · x · 3 = 6x<br>
+      ③ 中间项确实是 6x，符号是减号 →　<strong>(x − 3)²</strong><br>
+      验算：(x − 3)² = x² − 6x + 9 ✓
+    </div>
+  </div>
+  <div class="why">
+    再走一个 a 不是单字母的：<strong>4x² − 12x + 9</strong>。
+    ① 4x² → a = 2x；9 → b = 3。② 2ab = 2 · 2x · 3 = 12x。
+    ③ 中间正好是 12x、减号 → (2x − 3)²。<br>
+    注意第 ② 步不能跳。跳了就只是"两头是平方"，那是<strong>凭感觉</strong>，
+    而第 ② 步是<strong>凭计算</strong>——这就是本节唯一一处需要动笔的地方。
+  </div>
+
+  <div class="trap">
+    <div class="trap-title">三个最常见的误判</div>
+    <p><strong>① x² + 25 —— 分解不了。</strong>
+    平方差只认减号。两个正数相加，无论如何拆不出 (x+5)(x+5)（那是 x² + 10x + 25）
+    也拆不出 (x+5)(x−5)（那是 x² − 25）。看见"平方 + 平方"，直接写"不能分解"。</p>
+    <p><strong>② x² − 6x + 8 —— 两头看着像，中间不对。</strong>
+    首项 x²、尾项 8……8 根本不是完全平方，第 ① 步就该出局。就算尾项换成 9 以外的完全平方，
+    比如 x² − 6x + 4：a = x、b = 2、2ab = 4x ≠ 6x，第 ③ 步出局。
+    这两种都不是完全平方，交给<a href="#cross">第三招十字相乘</a>处理。</p>
+    <p><strong>③ x² − 4x − 4 —— 尾项是负的。</strong>
+    完全平方展开后，b² 必然是正的（负数的平方也是正数）。尾项带负号 → 一定不是完全平方，别硬套。</p>
+  </div>
+
+  <h3>认脸 30 秒自测</h3>
+  <p>下面 4 题<strong>只判断该用哪一招</strong>，不用分解出结果——先把"认"练成条件反射，"算"才不会乱。</p>
+  <div class="quiz" id="quiz-shape"></div>
+
+  <h2 id="cross">第三招：十字相乘（x² + bx + c 专用）</h2>
   <div class="rule-card">
     <div class="rule-name">找两个数：相乘 = c，相加 = b</div>
     <div class="formula">
@@ -47,7 +157,7 @@
     为什么找"乘 = c、加 = b"？因为上一课 (x + p)(x + q) 乘开就是
     x² + (p+q)x + pq——中间系数是两数之和，常数项是两数之积。
     十字相乘就是把这个展开过程倒着猜。<br>
-    **符号侦察**：c &gt; 0 → 两数同号（跟 b 走）；c &lt; 0 → 两数异号。
+    <strong>符号侦察</strong>：c &gt; 0 → 两数同号（跟 b 走）；c &lt; 0 → 两数异号。
     x² − x − 12：乘 = −12（异号）、加 = −1 → 3 和 −4 → (x + 3)(x − 4)。
   </div>
 
@@ -82,6 +192,34 @@
 </main>
 <script src="../assets/quiz.js"></script>
 <script>
+  // Shape-recognition drill for the formula-reversal section: pick the tool, not the answer.
+  renderQuiz(document.getElementById('quiz-shape'), [
+    {
+      q: '16x² − 9　该用哪一招？',
+      options: ['平方差公式', '完全平方公式', '十字相乘法', '不能分解式'],
+      answer: 0,
+      explain: '两项、中间减号 → 平方差。16x² = (4x)²、9 = 3² → (4x + 3)(4x − 3)。注意 a = 4x 不是 x。',
+    },
+    {
+      q: 'x² + 10x + 25　该用哪一招？',
+      options: ['完全平方公式', '平方差公式', '不能分解式', '先提公因式'],
+      answer: 0,
+      explain: '两头 x² 和 25 都是平方 → a = x、b = 5；验 2ab = 2·x·5 = 10x，与中间项一致，中间是加号 → (x + 5)²。',
+    },
+    {
+      q: 'x² + 10x + 24　该用哪一招？',
+      options: ['十字相乘法', '完全平方公式', '平方差公式', '不能分解式'],
+      answer: 0,
+      explain: '两头看着像（24 不是完全平方，第 ① 步就出局）。退回十字相乘：乘 = 24、加 = 10 → 4 和 6 → (x + 4)(x + 6)。',
+    },
+    {
+      q: '4x² + 25　该用哪一招？',
+      options: ['不能分解式', '平方差公式', '完全平方公式', '十字相乘法'],
+      answer: 0,
+      explain: '两项都是完全平方，但中间是加号——平方差只认减号。"平方 + 平方"直接判不能分解。',
+    },
+  ]);
+
   renderQuiz(document.getElementById('quiz'), [
     {
       q: '提公因式：8x² + 12x = ?',

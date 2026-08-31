@@ -46,6 +46,12 @@ h2 {
   margin: 2.5rem 0 0.75rem;
   font-weight: 600;
 }
+h3 {
+  font-size: 1.05rem;
+  margin: 2rem 0 0.5rem;
+  font-weight: 600;
+  color: var(--accent);
+}
 .kicker {
   color: var(--muted);
   font-size: 0.85rem;
@@ -87,6 +93,58 @@ a { color: var(--accent); }
   font-size: 0.95rem;
   color: var(--muted);
   margin: 1.5rem 0;
+}
+/* Numbered procedure list — for step-by-step recognition/solving routines. */
+.steps {
+  counter-reset: step;
+  list-style: none;
+  padding-left: 0;
+  margin: 1.25rem 0;
+}
+.steps > li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 2.4rem;
+  margin-bottom: 0.9rem;
+}
+.steps > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0.15rem;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 0.85rem;
+  line-height: 1.6rem;
+  text-align: center;
+  font-family: Georgia, serif;
+}
+/* Counter-example / common-mistake card. */
+.trap {
+  border: 1px solid var(--bad);
+  border-left-width: 4px;
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+}
+.trap .trap-title {
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bad);
+  margin-bottom: 0.35rem;
+}
+/* Centred figure for inline SVG diagrams. */
+.diagram { margin: 1.75rem 0; text-align: center; }
+.diagram svg { max-width: 100%; height: auto; color: var(--ink); }
+.diagram figcaption {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
 }
 frac, .frac { white-space: nowrap; }
 table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
