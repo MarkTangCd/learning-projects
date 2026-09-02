@@ -1,0 +1,207 @@
+<meta charset="utf-8">
+<title>第 11 课 · 配方法</title>
+<link rel="stylesheet" href="../assets/course.css">
+<main>
+  <div class="kicker">Lesson 0011 · 阶段 1 · 约 25 分钟</div>
+  <h1>配方法：十字相乘凑不出来的时候</h1>
+  <p class="subtitle">试试解 x² + 6x + 4 = 0：十字相乘要找相乘 = 4、相加 = 6 的两个数——1 和 4 加起来是 5，2 和 2 是 4，凑不出来。不是你不会，是这个方程的根根本不是整数，十字相乘天生只会猜整数。这一课的新招对<strong>任何</strong>二次方程都好使，而且它是下一课"求根公式"的亲爹。</p>
+
+  <h2>先补一个零件：直接开平方，记得 ±</h2>
+  <div class="rule-card">
+    <div class="rule-name">(某东西)² = 数　→　某东西 = ±√数</div>
+    <div class="formula">
+      (x − 2)² = 16　→　x − 2 = 4 <strong>或</strong> x − 2 = −4　→　x = 6 或 x = −2
+    </div>
+  </div>
+  <div class="why">
+    为什么有 ±：4² = 16，(−4)² <strong>也</strong> = 16——平方把负号吃掉了，
+    开回去时两种可能都得还回来。只写 x − 2 = 4 就丢了一半的根，
+    和上一课"除以 x 丢掉 x = 0"是同一类罪。验：x = −2 代回
+    (−2 − 2)² = (−4)² = 16 ✓，它是货真价实的解。
+  </div>
+
+  <h2>核心动作：把 x² + bx 配成完全平方</h2>
+
+  <h3>先看它从哪来：完全平方公式倒着用</h3>
+  <div class="rule-card">
+    <div class="rule-name">(x + a)² = x² + 2ax + a²　→　中间系数是 2a，尾巴是 a²</div>
+    <div class="formula">
+      看见 x² + 6x + ▢：中间 6 = 2a → a = 3 → 尾巴该是 a² = 9<br>
+      规则：<strong>补的数 = (中间系数的一半)²</strong>
+    </div>
+  </div>
+
+  <h3>直观：字面意义上的"补一个角"</h3>
+  <figure class="diagram">
+    <svg viewBox="0 0 440 215" role="img" aria-label="面积图：x 方块加两条 3x 长条缺一个 3 乘 3 的角，补上 9 之后拼成边长 x+3 的完整正方形">
+      <g stroke="currentColor" fill="currentColor">
+        <!-- Panel A: x² + 6x = square + two strips, missing corner -->
+        <g transform="translate(20,35)">
+          <rect x="0" y="0" width="100" height="100" fill-opacity="0.10" stroke-width="1.5"/>
+          <rect x="100" y="0" width="30" height="100" fill-opacity="0.22" stroke-width="1.5"/>
+          <rect x="0" y="100" width="100" height="30" fill-opacity="0.22" stroke-width="1.5"/>
+          <rect x="100" y="100" width="30" height="30" fill="none" stroke-dasharray="5 4" stroke-opacity="0.55"/>
+          <text x="50" y="56" font-size="15" text-anchor="middle" stroke="none">x²</text>
+          <text x="115" y="56" font-size="13" text-anchor="middle" stroke="none">3x</text>
+          <text x="50" y="120" font-size="13" text-anchor="middle" stroke="none">3x</text>
+          <text x="115" y="120" font-size="11" text-anchor="middle" stroke="none" fill-opacity="0.6">缺 9</text>
+          <text x="50" y="-10" font-size="13" text-anchor="middle" stroke="none">← x →</text>
+          <text x="115" y="-10" font-size="13" text-anchor="middle" stroke="none">3</text>
+          <text x="65" y="155" font-size="13" text-anchor="middle" stroke="none" fill-opacity="0.75">x² + 6x（6x 劈成两条 3x）</text>
+        </g>
+        <text x="212" y="105" font-size="17" text-anchor="middle" stroke="none">+ 9 =</text>
+        <!-- Panel B: completed square -->
+        <g transform="translate(280,35)">
+          <rect x="0" y="0" width="130" height="130" fill-opacity="0.10" stroke-width="1.5"/>
+          <rect x="100" y="100" width="30" height="30" fill-opacity="0.22" stroke-width="1.5"/>
+          <line x1="100" y1="0" x2="100" y2="130" stroke-dasharray="4 4" stroke-opacity="0.4"/>
+          <line x1="0" y1="100" x2="130" y2="100" stroke-dasharray="4 4" stroke-opacity="0.4"/>
+          <text x="55" y="60" font-size="15" text-anchor="middle" stroke="none">(x + 3)²</text>
+          <text x="115" y="119" font-size="11" text-anchor="middle" stroke="none">9</text>
+          <text x="65" y="-10" font-size="13" text-anchor="middle" stroke="none">← x + 3 →</text>
+          <text x="65" y="155" font-size="13" text-anchor="middle" stroke="none" fill-opacity="0.75">完整正方形</text>
+        </g>
+      </g>
+    </svg>
+    <figcaption>x² + 6x 是一个缺角的正方形，补上 3 × 3 = 9 那块，就是边长 (x + 3) 的完整正方形。"配方"配的就是这个角。</figcaption>
+  </figure>
+
+  <h3>配平方 15 秒自测</h3>
+  <p>只填"该补几"，不用解方程——这个动作练熟，配方法就成功了一半。</p>
+  <div class="quiz" id="quiz-fill"></div>
+
+  <h2>流程：五步，走一遍 x² + 6x + 4 = 0</h2>
+  <ol class="steps">
+    <li><strong>常数搬去右边</strong>：x² + 6x = −4（+4 过河变 −4，给左边腾出配方的位置）。</li>
+    <li><strong>两边同加 (中间系数一半)²</strong>：(6 ÷ 2)² = 9 → x² + 6x + 9 = −4 + 9 = 5。天平原理：左边加 9，右边必须也加 9。</li>
+    <li><strong>左边认脸写成平方</strong>：(x + 3)² = 5。括号里的数就是"中间系数的一半"。</li>
+    <li><strong>两边开平方，写 ±</strong>：x + 3 = ±√5。</li>
+    <li><strong>解出两根，代回原式验算</strong>：x = −3 + √5 或 x = −3 − √5。</li>
+  </ol>
+
+  <div class="rule-card">
+    <div class="rule-name">无理根怎么验算：小数近似代回原式</div>
+    <div class="formula">
+      √5 ≈ 2.236 → x ≈ −0.764<br>
+      原式左边：(−0.764)² + 6(−0.764) + 4 ≈ 0.584 − 4.584 + 4 = <strong>0.000</strong> ✓
+    </div>
+  </div>
+  <div class="why">
+    带根号的根代回去硬算容易乱，就用小数近似：代回<strong>原式</strong>，
+    结果应该 ≈ 0（差个 0.001 级别的尾数是四舍五入造成的，正常）。
+    裁判照旧是原式——这条规矩不因为根变丑而打折。
+  </div>
+
+  <h2>同一套动作，四个难度</h2>
+  <div class="rule-card">
+    <div class="rule-name">阶梯：从"半成品"到"无解预告"</div>
+    <div class="formula">
+      ⓐ (x + 1)² = 9　已配好 → 直接第 ④ 步 → x + 1 = ±3 → x = 2 或 −4<br>
+      ⓑ x² − 6x + 5 = 0　→ (x − 3)² = 4 → x = 5 或 1（十字相乘也能做，两招互验）<br>
+      ⓒ x² + 6x + 4 = 0　→ (x + 3)² = 5 → x = −3 ± √5（十字凑不出，配方法专属）<br>
+      ⓓ x² + 2x + 5 = 0　→ (x + 1)² = <strong>−4</strong> → 无实数解
+    </div>
+  </div>
+  <div class="why">
+    ⓑ 注意中间是 −6x：一半是 −3，补的数是 (−3)² = <strong>+9</strong>——
+    补的数永远是正的（平方嘛），括号里跟着符号走：(x − 3)²。<br>
+    ⓓ 是新面孔：任何实数的平方都 ≥ 0，不可能等于 −4，所以这个方程
+    在实数里无解。对回抛物线图：曲线整条悬在横轴上方，压根不穿轴。
+    下一课的判别式就是把"到底穿不穿轴"做成一个公式。
+  </div>
+
+  <div class="trap">
+    <div class="trap-title">三个最常见的翻车点</div>
+    <p><strong>① 开平方不写 ±。</strong>
+    (x − 2)² = 16 只写 x − 2 = 4 → 只剩 x = 6，把 x = −2 扔了。
+    这是"丢根"的新形态（上一课是除以 x 丢根）。检验办法就是老规矩：
+    二次方程解完只有一个根，先怀疑自己。</p>
+    <p><strong>② 只给左边加数。</strong>
+    x² + 6x = −4 配方时左边 +9、右边忘了 +9，等式当场断掉。
+    天平原理没有例外：两边同时做同一件事。</p>
+    <p><strong>③ 右边是负数还硬开平方。</strong>
+    (x + 1)² = −4 写成 x + 1 = ±√(−4) 就越界了——实数平方不可能为负。
+    正确写法：此方程无实数解，收工。</p>
+  </div>
+
+  <div class="tip">
+    <strong>你的场景</strong>：两年翻倍要多少年化？解 (1 + r)² = 2 →
+    1 + r = ±√2 → r = √2 − 1 ≈ 41.4%（另一根 r = −√2 − 1 ≈ −241% 在
+    收益率场景直接舍去——数学负责给出全部根，业务负责筛掉没意义的）。
+    这就是配方法第 ④ 步"直接开平方"的日常版，复利年限倒推全靠它。
+  </div>
+
+  <h2>动手验证（可选，2 分钟）</h2>
+  <div class="tip">
+    <code>from sympy import symbols, solve; x = symbols('x'); solve(x**2 + 6*x + 4, x)</code>
+    → <code>[-3 - sqrt(5), -3 + sqrt(5)]</code>。机器也认这两个无理根——
+    十字相乘凑不出整数不代表方程没解，只是解不长成整数的样子。
+  </div>
+
+  <h2>小测：5 题，即时反馈</h2>
+  <div class="quiz" id="quiz"></div>
+
+  <footer>
+    <p><strong>主推资源：</strong><a href="https://zh.khanacademy.org/math/algebra/x2f8bb11595b61c86:quadratic-functions-equations">可汗学院 · 二次方程与函数</a>（「配方法」一节）。</p>
+    <p><strong>速查：</strong><a href="../reference/algebra-rules.html">代数规则速查卡</a>（已补入"配方法"一节）｜ 上一课：<a href="0010-quadratic-equations-by-factoring.html">一元二次方程 · 因式分解法</a></p>
+    <p>有任何一步没看懂，回到终端问你的 AI 老师——要求"只给提示，不给答案"。</p>
+    <nav>下一步：做 practice/stage-1-set-8.md（配平方填空 ×1 + 配方法 ×2 + 因式分解法复验 ×1 + 变号抽查 ×1）。验算新规矩：裁判是题目原式，左右分开算再对照。</nav>
+  </footer>
+</main>
+<script src="../assets/quiz.js"></script>
+<script>
+  // Fill-the-square drill: practice computing (b/2)^2 before running the full procedure.
+  renderQuiz(document.getElementById('quiz-fill'), [
+    {
+      q: 'x² + 10x + ▢　补几配成完全平方？',
+      options: ['25', '100', '10', '5'],
+      answer: 0,
+      explain: '中间系数的一半是 5，补 5² = 25 → (x + 5)²。选 100 的人平方了整个 10，没先取一半。',
+    },
+    {
+      q: 'x² − 8x + ▢　补几配成完全平方？',
+      options: ['16', '−16', '64', '8'],
+      answer: 0,
+      explain: '一半是 −4，补 (−4)² = +16 → (x − 4)²。补的数永远是正的，符号体现在括号里。',
+    },
+    {
+      q: 'x² + 12x + ▢　补几？配完括号里是？',
+      options: ['36，(x + 6)²', '36，(x + 12)²', '144，(x + 12)²', '24，(x + 6)²'],
+      answer: 0,
+      explain: '一半 = 6，补 6² = 36，括号里写的就是那个"一半"：(x + 6)²。乘回去验：x² + 12x + 36 ✓。',
+    },
+  ]);
+
+  renderQuiz(document.getElementById('quiz'), [
+    {
+      q: '(x − 2)² = 16　的解是？',
+      options: ['x = 6 或 x = −2', '只有 x = 6 一个', 'x = 4 或 x = −4', 'x = 18 或 x = −14'],
+      answer: 0,
+      explain: 'x − 2 = ±4 → x = 6 或 −2。只答 x = 6 的人开平方忘了 ±。验：(−2 − 2)² = 16 ✓。',
+    },
+    {
+      q: '配方：x² + 10x + 21 = 0 → (x + 5)² = ?',
+      options: ['4', '−4', '25', '46'],
+      answer: 0,
+      explain: '常数搬右：x² + 10x = −21；两边 +25 → 右边 −21 + 25 = 4。接着 x + 5 = ±2 → x = −3 或 −7。',
+    },
+    {
+      q: 'x² − 6x + 2 = 0　用配方法解，第 ③ 步的形态是？',
+      options: ['(x − 3)² = 7', '(x − 3)² = 11', '(x + 3)² = 7', '(x − 6)² = 34'],
+      answer: 0,
+      explain: 'x² − 6x = −2，两边 +9 → (x − 3)² = 7。中间是 −6x，括号里是 −3；右边 −2 + 9 = 7。',
+    },
+    {
+      q: 'x² + 4x + 1 = 0　的解是？',
+      options: ['x = −2 ± √3', 'x = 2 ± √3', 'x = −2 ± √5', 'x = −1 或 −3'],
+      answer: 0,
+      explain: 'x² + 4x = −1，两边 +4 → (x + 2)² = 3 → x = −2 ± √3。近似验：−2 + 1.732 = −0.268，代回 ≈ 0 ✓。',
+    },
+    {
+      q: 'x² + 2x + 5 = 0　的解是？',
+      options: ['无实数解，因为右边配出 −4', 'x = −1 ± 2，即 1 或 −3', 'x = −1 ± √4，即 1 或 −3', 'x = ±√5，约 ±2.24'],
+      answer: 0,
+      explain: 'x² + 2x = −5，两边 +1 → (x + 1)² = −4。实数的平方不可能是负数 → 无实数解。曲线不穿轴。',
+    },
+  ]);
+</script>

@@ -1,0 +1,199 @@
+<meta charset="utf-8">
+<title>第 10 课 · 一元二次方程：因式分解法</title>
+<link rel="stylesheet" href="../assets/course.css">
+<main>
+  <div class="kicker">Lesson 0010 · 阶段 1 · 约 25 分钟</div>
+  <h1>一元二次方程：让"乘积为零"替你干活</h1>
+  <p class="subtitle">上一课你把 x² + 8x + 15 拆成了 (x + 3)(x + 5)。这一课回答"学分解到底图什么"：图的就是解方程。x² + 8x + 15 = 0 看着无从下手，(x + 3)(x + 5) = 0 却一眼能读出答案。因式分解是钥匙，这一课是它开的锁。</p>
+
+  <h2>原理：为什么偏偏是 0</h2>
+
+  <h3>先看它从哪来：拿数字试</h3>
+  <div class="rule-card">
+    <div class="rule-name">两数相乘 = 0 ⟹ 至少有一个是 0</div>
+    <div class="formula">
+      a × b = 0　→　a = 0 或 b = 0（没有第三种可能）
+    </div>
+  </div>
+  <div class="why">
+    自己试着凑：找两个<strong>都不是 0</strong> 的数，乘出 0 来——凑不出来。
+    3 × 0.0001 = 0.0003，再小也不是 0；负数也一样，(−5) × 2 = −10。
+    只要两个因子都不为 0，乘积就绝不为 0。反过来说：乘积是 0，
+    就<strong>逼</strong>着其中至少一个是 0。这是 0 独有的霸道性质。
+  </div>
+
+  <div class="trap">
+    <div class="trap-title">对照：换成别的数就不灵</div>
+    <p>a × b = <strong>12</strong> 能推出 a = 12 或 b = 12 吗？不能——
+    3 × 4、2 × 6、24 × 0.5……无穷多种拆法，谁也逼不出来。
+    这就是为什么解方程第一步永远是<strong>把右边清成 0</strong>：
+    只有 0 才有"逼供"能力。</p>
+  </div>
+
+  <h3>直观：解就是曲线穿过 0 的地方</h3>
+  <p>把 y = (x − 2)(x − 6) 的值随 x 变化画出来，是一条 U 形曲线。
+  "解方程 (x − 2)(x − 6) = 0"翻译成图形语言就是：曲线在哪儿恰好碰到横轴？</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 440 200" role="img" aria-label="抛物线 y 等于 (x−2)(x−6)，在 x=2 和 x=6 两处穿过横轴">
+      <g stroke="currentColor" fill="currentColor">
+        <!-- axes -->
+        <line x1="30" y1="120" x2="410" y2="120" stroke-width="1.2"/>
+        <line x1="50" y1="15" x2="50" y2="185" stroke-width="1.2"/>
+        <!-- parabola y=(x-2)(x-6): sx=50+40x, sy=120-16y; exact quadratic Bezier, crosses axis at sx=130,290 -->
+        <path d="M 80 15 Q 210 353 340 15" fill="none" stroke-width="2"/>
+        <!-- roots -->
+        <circle cx="130" cy="120" r="4.5" fill="var(--accent)" stroke="none"/>
+        <circle cx="290" cy="120" r="4.5" fill="var(--accent)" stroke="none"/>
+        <text x="130" y="105" font-size="14" text-anchor="middle" stroke="none">x = 2</text>
+        <text x="290" y="105" font-size="14" text-anchor="middle" stroke="none">x = 6</text>
+        <text x="398" y="138" font-size="13" stroke="none" fill-opacity="0.7">x</text>
+        <text x="62" y="24" font-size="13" stroke="none" fill-opacity="0.7">y</text>
+      </g>
+    </svg>
+    <figcaption>x = 2 时因子 (x − 2) 归零，x = 6 时因子 (x − 6) 归零——曲线两次穿轴，方程两个根。</figcaption>
+  </figure>
+
+  <div class="why">
+    这也回答了"为什么二次方程常常有<strong>两个</strong>解"：
+    U 形曲线下去再上来，最多穿轴两次。阶段 2 讲函数图像时，
+    这张图会成为主角；现在先记住"根 = 穿轴点"这个画面。
+  </div>
+
+  <h2>流程：五步，全是机械动作</h2>
+  <ol class="steps">
+    <li><strong>移项</strong>：把所有东西搬到左边，右边清成 0。</li>
+    <li><strong>因式分解左边</strong>：完全用第 9 课的流程——先提公因式，再认脸。</li>
+    <li><strong>每个含 x 的因子分别 = 0</strong>：写成"___ = 0 或 ___ = 0"。</li>
+    <li><strong>解出全部根</strong>：几个因子几个根，一个都不许丢。</li>
+    <li><strong>两个根都代回原方程验算</strong>：验一个不算验完。</li>
+  </ol>
+
+  <div class="rule-card">
+    <div class="rule-name">走一遍 x² = 5x − 6</div>
+    <div class="formula">
+      ① 移项：x² − 5x + 6 = 0<br>
+      ② 分解：十字相乘，乘 = 6、加 = −5 → −2 和 −3 → (x − 2)(x − 3) = 0<br>
+      ③ 拆开：x − 2 = 0 或 x − 3 = 0<br>
+      ④ 两根：x = 2 或 x = 3<br>
+      ⑤ 验算：2² = 5·2 − 6 → 4 = 4 ✓；3² = 5·3 − 6 → 9 = 9 ✓
+    </div>
+  </div>
+
+  <h2>同一套动作，四个难度</h2>
+  <div class="rule-card">
+    <div class="rule-name">阶梯：从"白送"到"组合拳"</div>
+    <div class="formula">
+      ⓐ (x + 1)(x − 4) = 0　已经拆好 → 直接第 ③ 步 → x = −1 或 x = 4<br>
+      ⓑ x² + 8x + 15 = 0　十字相乘 → (x + 3)(x + 5) = 0 → x = −3 或 x = −5<br>
+      ⓒ x² = 4x　移项提公因式 → x(x − 4) = 0 → x = <strong>0</strong> 或 x = 4<br>
+      ⓓ 2x² − 50 = 0　先提 2 → 2(x + 5)(x − 5) = 0 → x = −5 或 x = 5
+    </div>
+  </div>
+  <div class="why">
+    ⓑ 用的正是你 set-6 亲手分解过的式子——分解结果一字不改，只是后面多走两步。<br>
+    ⓒ 是本课最大陷阱，看下面反例清单第 ② 条。<br>
+    ⓓ 里数字因子 2 永远不为 0，不产生根；含 x 的因子有两个，所以还是两个根。
+  </div>
+
+  <div class="trap">
+    <div class="trap-title">三个最常见的翻车点</div>
+    <p><strong>① 右边不是 0 就开拆。</strong>
+    (x − 3)(x + 2) = 14 不能写 x − 3 = 14 或 x + 2 = 14——
+    乘积等于 14 逼不出任何因子的值（2 × 7 也是 14）。
+    正确做法：乘开、移项、整理成 x² − x − 20 = 0，重新分解。</p>
+    <p><strong>② x² = 4x 两边除以 x。</strong>
+    除完得 x = 4，看着挺对——但 x = 0 代回原式：0 = 0 也成立！
+    除以 x 等于偷偷假设 x ≠ 0，把一个根扔了。
+    永远移项提公因式：x(x − 4) = 0，两个根一个不少。</p>
+    <p><strong>③ 只写一个根。</strong>
+    "x = 2 或 x = 3"里的"或"不是二选一走过场，两个都是货真价实的解。
+    第 ⑤ 步要求两个根分别代回，就是防这个。</p>
+  </div>
+
+  <div class="tip">
+    <strong>你的场景</strong>：某策略的日利润随下单手数 x 变化：利润 = −x² + 8x − 12（手数太少摊不平成本，太多冲击成本吃掉利润）。
+    问"下多少手保本"就是解 −x² + 8x − 12 = 0 → 两边乘 −1 → x² − 8x + 12 = 0 →
+    (x − 2)(x − 6) = 0 → <strong>x = 2 和 x = 6 之间是盈利区</strong>。
+    上面那张抛物线图上下翻个面（乘 −1 不改变根的位置）就是利润曲线——
+    两个根框出了你的生存区间。
+  </div>
+
+  <h2>第一步判断 15 秒自测</h2>
+  <p>下面 3 题<strong>只判断第一步该干什么</strong>，不用解出来——流程走对，后面全是搬运。</p>
+  <div class="quiz" id="quiz-first-move"></div>
+
+  <h2>动手验证（可选，2 分钟）</h2>
+  <div class="tip">
+    <code>from sympy import symbols, solve; x = symbols('x'); solve(x**2 - 5*x + 6, x)</code>
+    → <code>[2, 3]</code>。注意它一次给你<strong>两个</strong>根——
+    如果你手解只得一个，先怀疑自己丢根了。
+  </div>
+
+  <h2>小测：5 题，即时反馈</h2>
+  <div class="quiz" id="quiz"></div>
+
+  <footer>
+    <p><strong>主推资源：</strong><a href="https://zh.khanacademy.org/math/algebra/x2f8bb11595b61c86:quadratic-functions-equations">可汗学院 · 二次方程与函数</a>（「用因式分解解方程」一节）。</p>
+    <p><strong>速查：</strong><a href="../reference/algebra-rules.html">代数规则速查卡</a>（已补入"一元二次方程"一节）｜ 上一课：<a href="0009-factoring.html">因式分解</a></p>
+    <p>有任何一步没看懂，回到终端问你的 AI 老师——要求"只给提示，不给答案"。</p>
+    <nav>下一步：做 practice/stage-1-set-7.md（解二次方程 ×3 + 不等式两点验算 ×1 + 比例抽查 ×1），每题两个根都要代回验算。</nav>
+  </footer>
+</main>
+<script src="../assets/quiz.js"></script>
+<script>
+  // First-move drill: pick the correct first step, not the final answer.
+  renderQuiz(document.getElementById('quiz-first-move'), [
+    {
+      q: 'x² − 7x + 12 = 0　第一步干什么？',
+      options: ['直接因式分解左边', '两边同时除以 x', '两边同时加上 7x', '套用平方差公式'],
+      answer: 0,
+      explain: '右边已经是 0，第 ① 步免了。十字相乘：乘 = 12、加 = −7 → −3 和 −4。',
+    },
+    {
+      q: 'x² = 9x　第一步干什么？',
+      options: ['移项成 x² − 9x = 0', '两边同时除以 x', '两边同时开平方根', '直接写出 x = 9'],
+      answer: 0,
+      explain: '除以 x 会丢掉 x = 0 这个根。移项提公因式：x(x − 9) = 0 → x = 0 或 x = 9。',
+    },
+    {
+      q: '(x + 2)(x − 1) = 4　第一步干什么？',
+      options: ['乘开后移项整理成 = 0', '令每个因子分别等于 4', '令每个因子分别等于 0', '两边同时除以 x + 2'],
+      answer: 0,
+      explain: '右边是 4 不是 0，"乘积为零"用不上。乘开：x² + x − 2 = 4 → x² + x − 6 = 0 → (x + 3)(x − 2) = 0。',
+    },
+  ]);
+
+  renderQuiz(document.getElementById('quiz'), [
+    {
+      q: '(x + 4)(x − 9) = 0　的解是？',
+      options: ['x = −4 或 x = 9', 'x = 4 或 x = −9', 'x = 4 或 x = 9', 'x = −4 或 x = −9'],
+      answer: 0,
+      explain: 'x + 4 = 0 → x = −4；x − 9 = 0 → x = 9。因子里是 +4，根就是 −4——符号相反，代回去归零才对。',
+    },
+    {
+      q: 'x² − 5x + 6 = 0　的解是？',
+      options: ['x = 2 或 x = 3', 'x = −2 或 x = −3', 'x = 1 或 x = 6', 'x = −1 或 x = −6'],
+      answer: 0,
+      explain: '乘 = +6、加 = −5 → −2 和 −3 → (x − 2)(x − 3) = 0 → x = 2 或 3。验算：2² − 10 + 6 = 0 ✓。',
+    },
+    {
+      q: 'x² = 4x　的解是？',
+      options: ['x = 0 或 x = 4', '只有 x = 4 一个', '只有 x = 0 一个', 'x = 2 或 x = −2'],
+      answer: 0,
+      explain: '移项：x² − 4x = 0 → x(x − 4) = 0。选"只有 x = 4"的人就是两边除了 x，把 0 这个根扔了。',
+    },
+    {
+      q: '3x² − 27 = 0　的解是？',
+      options: ['x = 3 或 x = −3', '只有 x = 3 一个', 'x = 9 或 x = −9', 'x = 3 或 x = 9'],
+      answer: 0,
+      explain: '你 set-6 分解过它：3(x + 3)(x − 3) = 0。数字 3 不为 0 不产生根，两个含 x 的因子 → x = 3 或 −3。',
+    },
+    {
+      q: '(x − 3)(x + 2) = 14　正确的下一步是？',
+      options: ['整理成 x² − x − 20 = 0', '写 x − 3 = 14 或 x + 2 = 14', '写 x − 3 = 7 且 x + 2 = 2', '两边同时除以 x − 3'],
+      answer: 0,
+      explain: '乘积 = 14 逼不出因子的值。乘开 x² − x − 6 = 14 → x² − x − 20 = 0 → (x − 5)(x + 4) = 0 → x = 5 或 −4。',
+    },
+  ]);
+</script>

@@ -83,6 +83,24 @@
     交易场景：仓位管理就是不等式。单笔风险 ≤ 账户 2%、每股止损亏 a 元 →
     a·n ≤ 风险额 → n ≤ 风险额 ÷ a。"最多买几股"永远这么算。
   </div>
+  <table>
+    <tr><th>不等式验算：两点法</th><th>做法（以 4 − 5x &lt; 19 → x &gt; −3 为例）</th><th>它抓什么错</th></tr>
+    <tr>
+      <td>① 范围点</td>
+      <td>在解集里挑个好算的数（x = 0）代入<strong>原式</strong>：4 − 0 = 4 &lt; 19 ✓ 成立</td>
+      <td>方向翻错了，这一步立刻不成立</td>
+    </tr>
+    <tr>
+      <td>② 边界点</td>
+      <td>代边界 x = −3：4 + 15 = 19，19 &lt; 19 不成立 → 边界不算数，与 &gt;（不含等号）一致 ✓</td>
+      <td>边界数字算错、≤ 和 &lt; 混用</td>
+    </tr>
+  </table>
+  <div class="why">
+    方程验算代一个数，不等式的解是一段范围，所以代<strong>两个</strong>：
+    范围里一个（该成立）+ 边界一个（&lt;/&gt; 该恰好不成立；≤/≥ 该恰好取等号）。
+    两点都对，方向和边界就都验住了。
+  </div>
 
   <h2>幂的运算律（第 7 课）</h2>
   <table>
@@ -194,6 +212,76 @@
     </tr>
   </table>
 
+  <h2>一元二次方程 · 因式分解法（第 10 课）</h2>
+  <table>
+    <tr><th>步骤</th><th>例：x² = 5x − 6</th><th>易错点</th></tr>
+    <tr>
+      <td>① 移项，右边清成 0</td>
+      <td>x² − 5x + 6 = 0</td>
+      <td>不 = 0 时"乘积为零"不成立，(x−2)(x−3) = 6 推不出 x−2 = 6</td>
+    </tr>
+    <tr>
+      <td>② 因式分解左边</td>
+      <td>(x − 2)(x − 3) = 0</td>
+      <td>按第 9 课流程：先提公因式再认脸</td>
+    </tr>
+    <tr>
+      <td>③ 每个因子分别 = 0</td>
+      <td>x − 2 = 0 或 x − 3 = 0</td>
+      <td>是"或"不是"且"；有几个含 x 的因子就有几个方程</td>
+    </tr>
+    <tr>
+      <td>④ 解出全部根</td>
+      <td>x = 2 或 x = 3</td>
+      <td>二次方程通常两个根，只写一个 = 丢一半答案</td>
+    </tr>
+    <tr>
+      <td>⑤ 两个根都代回验算</td>
+      <td>2² = 10 − 6 ✓；3² = 15 − 6 ✓</td>
+      <td>验一个根不算验完</td>
+    </tr>
+  </table>
+  <div class="why">
+    核心原理只有一句：<strong>两数相乘 = 0，至少有一个是 0</strong>（0 以外任何目标值都没有这个性质）。
+    最大陷阱：x² = 4x 两边除以 x 会丢掉 x = 0 这个根——
+    永远移项提公因式 x(x − 4) = 0，不要除未知数。
+  </div>
+
+  <h2>一元二次方程 · 配方法（第 11 课）</h2>
+  <table>
+    <tr><th>步骤</th><th>例：x² + 6x + 4 = 0</th><th>易错点</th></tr>
+    <tr>
+      <td>① 常数搬右边</td>
+      <td>x² + 6x = −4</td>
+      <td>过河变号</td>
+    </tr>
+    <tr>
+      <td>② 两边同加 (b/2)²</td>
+      <td>(6÷2)² = 9 → x² + 6x + 9 = 5</td>
+      <td>两边都要加；补的数永远为正（是平方）</td>
+    </tr>
+    <tr>
+      <td>③ 左边写成平方</td>
+      <td>(x + 3)² = 5</td>
+      <td>括号里 = 中间系数的一半，符号跟着中间项走</td>
+    </tr>
+    <tr>
+      <td>④ 开平方写 ±</td>
+      <td>x + 3 = ±√5</td>
+      <td>忘 ± = 丢一半根；右边为负 → 无实数解</td>
+    </tr>
+    <tr>
+      <td>⑤ 两根双验（代原式）</td>
+      <td>x = −3 ± √5；近似 −0.764 代回 ≈ 0 ✓</td>
+      <td>无理根用小数近似验</td>
+    </tr>
+  </table>
+  <div class="why">
+    什么时候用它：十字相乘凑不出整数时（根是无理数）。
+    <strong>验算铁律：裁判是题目原式</strong>——代回自己分解 / 变形后的
+    式子是同义反复，永远通过，验不出错。
+  </div>
+
   <h2>文字 → 方程 翻译模板</h2>
   <table>
     <tr><th>文字</th><th>式子</th></tr>
@@ -212,6 +300,6 @@
 
   <footer>
     <p>相关：<a href="arithmetic-rules.html">算术规则速查卡</a>（阶段 0：分数、负数、指数、乘数法）</p>
-    <p>课程：<a href="../lessons/0003-variables-and-equations.html">第 3 课 · 方程入门</a> ｜ <a href="../lessons/0004-simplify-expressions.html">第 4 课 · 合并同类项与去括号</a> ｜ <a href="../lessons/0005-simple-inequalities.html">第 5 课 · 简单不等式</a> ｜ <a href="../lessons/0006-ratios-and-proportions.html">第 6 课 · 比与比例</a> ｜ <a href="../lessons/0007-exponent-laws.html">第 7 课 · 幂的运算律</a> ｜ <a href="../lessons/0008-polynomial-multiplication.html">第 8 课 · 多项式乘法与平方公式</a> ｜ <a href="../lessons/0009-factoring.html">第 9 课 · 因式分解</a></p>
+    <p>课程：<a href="../lessons/0003-variables-and-equations.html">第 3 课 · 方程入门</a> ｜ <a href="../lessons/0004-simplify-expressions.html">第 4 课 · 合并同类项与去括号</a> ｜ <a href="../lessons/0005-simple-inequalities.html">第 5 课 · 简单不等式</a> ｜ <a href="../lessons/0006-ratios-and-proportions.html">第 6 课 · 比与比例</a> ｜ <a href="../lessons/0007-exponent-laws.html">第 7 课 · 幂的运算律</a> ｜ <a href="../lessons/0008-polynomial-multiplication.html">第 8 课 · 多项式乘法与平方公式</a> ｜ <a href="../lessons/0009-factoring.html">第 9 课 · 因式分解</a> ｜ <a href="../lessons/0010-quadratic-equations-by-factoring.html">第 10 课 · 一元二次方程</a> ｜ <a href="../lessons/0011-completing-the-square.html">第 11 课 · 配方法</a></p>
   </footer>
 </main>
