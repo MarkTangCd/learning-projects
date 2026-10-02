@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>课程总规划 · 记忆/专注/反拖延</title>
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+  .mod { margin: 2rem 0; }
+  .mod h2 { margin-top: 0; }
+  .mod .goal { color: var(--muted); font-size: 0.95rem; margin: 0 0 0.75rem; }
+  td.n { white-space: nowrap; color: var(--muted); }
+  .done { color: var(--ok); font-weight: 600; }
+  .metric { display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin: 1rem 0; }
+  @media (min-width: 640px) { .metric { grid-template-columns: 1fr 1fr; } }
+  .metric div { border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.95rem; }
+  .metric strong { display: block; color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+<nav class="course"><a href="../MISSION.md">任务书</a><a href="glossary.html">术语表</a><a href="../RESOURCES.md">资料库</a><a href="../lessons/0001-retrieval-practice.html">第 1 课</a></nav>
+<p class="kicker">Reference · 课程总规划</p>
+<h1>12 周课程规划：先止血，再修硬件，再拆拖延，最后练记忆术</h1>
+<p class="subtitle">19 课，每课 15~20 分钟，每周 1~2 课。顺序是按"哪个先修收益最大"排的，不是按话题排的。每课都布置一个在你其他学习工作区里执行的真实任务，因为这门课的练习材料就是你正在学的数学、金融和营养。</p>
+
+<h2>先说诊断：为什么顺序是这样</h2>
+<p>你同时在跑 4 个学习工作区，每个都写着"每天 1 小时"。四条线的每一条都是"上一课 → 下一课"，中间没有任何提取和复习环节。按 <a href="https://pubmed.ncbi.nlm.nih.gov/16507066/">Roediger &amp; Karpicke 2006</a> 的数据，这种流程一周后只剩四成左右。所以：</p>
+<ol class="steps">
+<li><strong>先装复习系统（模块 0）。</strong>这是唯一能立刻止住"学了就忘"的事，而且它不需要你先解决拖延和专注。</li>
+<li><strong>再查硬件（模块 1）。</strong>睡眠不够，白天学的东西根本没机会巩固（<a href="https://pubmed.ncbi.nlm.nih.gov/23589831/">Rasch &amp; Born 2013</a>）。这一步最便宜。</li>
+<li><strong>然后拆拖延（模块 2）。</strong>拖延挡在所有练习前面。它的证据基础比"注意力训练"扎实得多，先做收益高的。</li>
+<li><strong>再建专注块（模块 3）。</strong>拖延缓解后，才谈得上"开始之后能不能坐住"。</li>
+<li><strong>最后才是记忆术（模块 4）。</strong>记忆宫殿很强，但要练 6 周左右才见效（<a href="https://pubmed.ncbi.nlm.nih.gov/28279356/">Dresler et al. 2017</a>），而且只对特定材料有用。没有前四步，它只是个花招。</li>
+</ol>
+<div class="callout warn"><strong>不在课程里的东西</strong>脑训练 App 和 n-back：只提高被训练任务本身，没有泛化证据（<a href="https://pubmed.ncbi.nlm.nih.gov/27697851/">Simons et al. 2016</a>；<a href="https://pubmed.ncbi.nlm.nih.gov/22612437/">Melby-Lervåg &amp; Hulme 2013</a>）。速读、聪明药、补剂同样不在。</div>
+
+<section class="mod">
+<h2>模块 0 · 止血：让学过的东西留下来（第 1~2 周）</h2>
+<p class="goal">目标：所有工作区都接上"提取 + 间隔"两个高效用环节（<a href="https://pubmed.ncbi.nlm.nih.gov/26173288/">Dunlosky et al. 2013</a>）。</p>
+<div class="table-wrap"><table>
+<tr><th>#</th><th>课</th><th>学完能做什么</th><th>真实任务</th></tr>
+<tr><td class="n">01</td><td><a href="../lessons/0001-retrieval-practice.html">学了就忘的真正原因：提取练习</a> <span class="done">已生成</span></td><td>说清存储强度 vs 提取强度；做 3 分钟闭卷回忆</td><td>每课后 + 次日早各一次，记入 recall-log.md</td></tr>
+<tr><td class="n">02</td><td>间隔复习与 Anki</td><td>装好 Anki（FSRS），知道间隔为什么是保持期的 5~40%（<a href="https://pubmed.ncbi.nlm.nih.gov/19076480/">Cepeda 2008</a>）</td><td>每天 10 分钟复习，连续 7 天</td></tr>
+<tr><td class="n">03</td><td>怎样写一张好卡片</td><td>用 Wozniak 20 条规则，把一节数学/金融课拆成 10 张卡</td><td>给本周每节课各做 5~10 张卡</td></tr>
+<tr><td class="n">04</td><td>并行学习线的节奏重排</td><td>区分"交错"和"碎片"；给 4 条线定一个可持续的周配额</td><td>改写各工作区的每日时间，砍掉做不到的</td></tr>
+</table></div>
+</section>
+
+<section class="mod">
+<h2>模块 1 · 硬件：睡眠、运动、手机（第 3 周）</h2>
+<p class="goal">目标：三条固定规则，每条能说出依据。你已经每周跑 4 次，这是现成的优势。</p>
+<div class="table-wrap"><table>
+<tr><th>#</th><th>课</th><th>学完能做什么</th><th>真实任务</th></tr>
+<tr><td class="n">05</td><td>睡眠是复习的下半场</td><td>解释慢波睡眠的重放（<a href="https://pubmed.ncbi.nlm.nih.gov/23589831/">Rasch &amp; Born 2013</a>）；定一个 7 小时以上的睡眠窗口（<a href="https://www.cdc.gov/sleep/about/index.html">CDC</a>）</td><td>7 天睡眠日志；17:00 跑步后的晚间安排</td></tr>
+<tr><td class="n">06</td><td>跑步是记忆投资，手机是记忆税</td><td>知道有氧运动对海马的作用（<a href="https://pubmed.ncbi.nlm.nih.gov/21282661/">Erickson 2011</a>）；手机在场就占用认知资源（<a href="https://doi.org/10.1086/691462">Ward 2017</a>）</td><td>学习时手机放另一个房间，连续 7 天</td></tr>
+</table></div>
+</section>
+
+<section class="mod">
+<h2>模块 2 · 拖延：它是情绪问题，不是时间问题（第 4~6 周）</h2>
+<p class="goal">目标："启动延迟"可测量、可下降；对拖了超过 3 天的任务能 2 分钟内启动。</p>
+<div class="table-wrap"><table>
+<tr><th>#</th><th>课</th><th>学完能做什么</th><th>真实任务</th></tr>
+<tr><td class="n">07</td><td>拖延方程</td><td>用动机 = 期望 × 价值 ÷（冲动性 × 延迟）给你最拖的一件事做四变量诊断（<a href="https://pubmed.ncbi.nlm.nih.gov/17201571/">Steel 2007</a>）</td><td>建立拖延日志：任务、启动延迟、卡在哪个变量</td></tr>
+<tr><td class="n">08</td><td>拖延是短期情绪修复</td><td>识别"任务厌恶"的身体信号；用两分钟启动绕过它（<a href="https://doi.org/10.1111/spc3.12011">Sirois &amp; Pychyl 2013</a>）</td><td>每天对一件厌恶的任务只承诺 2 分钟</td></tr>
+<tr><td class="n">09</td><td>if-then 计划</td><td>写出 3 条执行意图，知道效应量 d = 0.65 是什么意思（<a href="https://doi.org/10.1016/S0065-2601(06)38002-1">Gollwitzer &amp; Sheeran 2006</a>）</td><td>给 Anki、闭卷回忆、专注块各写一条 if-then</td></tr>
+<tr><td class="n">10</td><td>自我宽恕与习惯曲线</td><td>知道自责会加重下一次拖延（<a href="https://doi.org/10.1016/j.paid.2010.01.029">Wohl 2010</a>）；习惯形成 18~254 天、漏一次不算失败（<a href="https://doi.org/10.1002/ejsp.674">Lally 2010</a>）</td><td>第一次复盘拖延日志，只看趋势不看单日</td></tr>
+</table></div>
+</section>
+
+<section class="mod">
+<h2>模块 3 · 注意力：专注块与环境设计（第 7~9 周）</h2>
+<p class="goal">目标：每个工作日 2 个 50 分钟专注块，有记录。</p>
+<div class="table-wrap"><table>
+<tr><th>#</th><th>课</th><th>学完能做什么</th><th>真实任务</th></tr>
+<tr><td class="n">11</td><td>一次打断的真实代价</td><td>知道被打断后恢复平均约 25 分钟（<a href="https://ics.uci.edu/~gmark/CHI2005.pdf">Mark 2005</a>）和注意残留（<a href="https://doi.org/10.1016/j.obhdp.2009.04.002">Leroy 2009</a>）；从 25/5 番茄起步</td><td>每天 2 个番茄，记录被打断次数</td></tr>
+<tr><td class="n">12</td><td>环境设计与浅层工作批处理</td><td>把通知、消息、邮件压缩到固定时段（Newport《深度工作》）；专注块拉长到 50/10</td><td>通知全关 + 固定 2 个查消息时段，7 天</td></tr>
+<tr><td class="n">13</td><td>10 分钟正念：有效但别神化</td><td>做一次呼吸计数练习；知道 2 周训练能减少走神（<a href="https://pubmed.ncbi.nlm.nih.gov/23538911/">Mrazek 2013</a>）但机制未明（<a href="https://pubmed.ncbi.nlm.nih.gov/25783612/">Tang 2015</a>）</td><td>每天 10 分钟，连续 14 天</td></tr>
+<tr><td class="n">14</td><td>一天的日程模板</td><td>把 Anki、闭卷回忆、2 个专注块、跑步、睡眠窗口排进一张表</td><td>按模板跑 5 个工作日，记偏差</td></tr>
+</table></div>
+</section>
+
+<section class="mod">
+<h2>模块 4 · 记忆术：记忆宫殿与数字编码（第 10~12 周）</h2>
+<p class="goal">目标：用真实材料（期权希腊字母、膳食指南数字、数学公式）记住 ≥ 20 项，一周后复述 ≥ 80%。</p>
+<div class="table-wrap"><table>
+<tr><th>#</th><th>课</th><th>学完能做什么</th><th>真实任务</th></tr>
+<tr><td class="n">15</td><td>记忆力不是天生的</td><td>知道记忆冠军靠的是空间策略而非脑结构（<a href="https://www.nature.com/articles/nn988">Maguire 2003</a>）；练联结图像的基本动作</td><td>把 10 个抽象概念各变成一个画面</td></tr>
+<tr><td class="n">16</td><td>建第一座记忆宫殿</td><td>用家里的 10 个位置记 10 项，并走一遍</td><td>每天 10 分钟，用随机词表练</td></tr>
+<tr><td class="n">17</td><td>宫殿 II：装进真实材料</td><td>按 Dresler 的 40 天方案（每天 30 分钟）把 20 项学科材料放进去</td><td>一周后闭卷复述，记入 recall-log.md</td></tr>
+<tr><td class="n">18</td><td>数字、公式与理解的分工</td><td>简版数字编码；分清"该背的"和"该推的"</td><td>给一个公式做"背 + 推"两份卡</td></tr>
+</table></div>
+</section>
+
+<section class="mod">
+<h2>模块 5 · 整合与复盘（第 12 周起，持续）</h2>
+<div class="table-wrap"><table>
+<tr><th>#</th><th>课</th><th>学完能做什么</th><th>真实任务</th></tr>
+<tr><td class="n">19</td><td>每周复盘仪式</td><td>15 分钟看四个指标（下方），决定下周调什么</td><td>每周日固定时间，连续 4 周</td></tr>
+<tr><td class="n">—</td><td>延迟自测</td><td>每 4 周对 2 周前学过的内容做一次闭卷测试，这是整门课的真实成绩</td><td>由我出题</td></tr>
+</table></div>
+</section>
+
+<h2>四个指标：课程有没有用，看这些</h2>
+<div class="metric">
+<div><strong>延迟回忆率</strong>对 2 周前内容的闭卷自测正确率。目标 ≥ 70%。来源：recall-log.md + Anki 统计。</div>
+<div><strong>专注块数</strong>每个工作日不被打断的 50 分钟块。目标 ≥ 2。来源：第 11 课起的记录。</div>
+<div><strong>启动延迟</strong>从"打算做"到"开始做"的时间。目标：拖延日志里的趋势向下。来源：第 7 课起的拖延日志。</div>
+<div><strong>硬件达标天数</strong>睡眠 ≥ 7 小时、学习时手机不在房间的天数。目标：每周 ≥ 5 天。来源：第 5~6 课的日志。</div>
+</div>
+
+<h2>一天的样子（第 14 课前的草稿版）</h2>
+<div class="table-wrap"><table>
+<tr><th>时段</th><th>做什么</th><th>时长</th></tr>
+<tr><td>早</td><td>Anki 复习 + 对昨天那节课做闭卷回忆</td><td>10 + 3 分钟</td></tr>
+<tr><td>上午 / 下午</td><td>2 个专注块（工作或学习），手机在另一个房间</td><td>2 × 50 分钟</td></tr>
+<tr><td>17:00</td><td>跑步（已有习惯，不动）</td><td>70~90 分钟</td></tr>
+<tr><td>晚</td><td><strong>只学一个工作区</strong>的一课，课后立刻闭卷回忆</td><td>20~60 分钟 + 3 分钟</td></tr>
+<tr><td>睡前</td><td>固定的 7 小时以上睡眠窗口</td><td></td></tr>
+</table></div>
+<p class="why">注意"只学一个工作区"。四条线不是不能并行，而是不能在同一天并行。第 4 课会把它们排成周配额。</p>
+
+<h2>这份规划会变</h2>
+<p>每节课后的 recall-log 和各项日志决定下一课是什么。如果 Anki 一周后没跑起来，第 4 课会提前；如果拖延日志显示问题主要在睡眠，模块 1 会加课。规划是罗盘，不是合同。</p>
+
+<footer>
+<p>来源全部列在 <a href="../RESOURCES.md">RESOURCES.md</a>，每条都经过抓取核实。有疑问直接问我。</p>
+</footer>
+</main>
+</body>
+</html>

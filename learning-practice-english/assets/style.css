@@ -1,0 +1,118 @@
+/* Shared stylesheet for all lessons and reference docs. Tufte-inspired: wide margins, serif body, sidenotes. */
+:root {
+  --bg: #fffff8;
+  --fg: #111;
+  --muted: #666;
+  --accent: #a23b3b;
+  --accent-soft: #f6e9e9;
+  --rule: #ddd;
+  --ok: #2e7d32;
+  --ok-soft: #e8f5e9;
+  --bad: #b71c1c;
+  --bad-soft: #fdecea;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --serif: "Palatino Linotype", Palatino, "Songti SC", "Noto Serif CJK SC", Georgia, serif;
+  --sans: -apple-system, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151515; --fg: #e8e6df; --muted: #9a9a9a;
+    --accent: #e08c8c; --accent-soft: #2a1d1d; --rule: #333;
+    --ok: #81c784; --ok-soft: #1b2e1c; --bad: #ef9a9a; --bad-soft: #3a1b1b;
+  }
+}
+* { box-sizing: border-box; }
+html { font-size: 17px; }
+body {
+  margin: 0; padding: 2rem 1.25rem 5rem;
+  background: var(--bg); color: var(--fg);
+  font-family: var(--serif); line-height: 1.65;
+}
+main { max-width: 44rem; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--serif); font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; }
+h1 { font-size: 2.2rem; margin: 0 0 0.25rem; }
+h2 { font-size: 1.5rem; margin: 2.5rem 0 0.75rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+h3 { font-size: 1.15rem; margin: 1.75rem 0 0.5rem; }
+.subtitle { color: var(--muted); font-style: italic; margin: 0 0 2rem; }
+.meta { font-family: var(--sans); font-size: 0.8rem; color: var(--muted); margin-bottom: 2rem; }
+p { margin: 0 0 1rem; }
+a { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+em.en { font-style: normal; font-family: var(--sans); }
+.en { font-family: var(--sans); }
+blockquote { margin: 1rem 0; padding: 0.25rem 0 0.25rem 1rem; border-left: 3px solid var(--accent); color: var(--fg); }
+blockquote .src { display: block; font-family: var(--sans); font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+ul, ol { padding-left: 1.4rem; }
+li { margin-bottom: 0.35rem; }
+code, kbd { font-family: var(--mono); font-size: 0.9em; background: var(--accent-soft); padding: 0.1em 0.35em; border-radius: 3px; }
+table { border-collapse: collapse; width: 100%; font-family: var(--sans); font-size: 0.92rem; margin: 1rem 0 1.5rem; }
+th, td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.table-wrap { overflow-x: auto; }
+
+/* Callouts */
+.note, .win, .task, .ask {
+  font-family: var(--sans); font-size: 0.95rem; line-height: 1.55;
+  padding: 0.9rem 1.1rem; margin: 1.25rem 0; border-radius: 6px; border: 1px solid var(--rule);
+}
+.note { background: var(--accent-soft); }
+.win { background: var(--ok-soft); border-color: var(--ok); }
+.task { border-left: 4px solid var(--accent); }
+.ask { border-style: dashed; color: var(--muted); }
+.note strong, .win strong, .task strong { font-weight: 600; }
+
+/* Sidenote-ish small text */
+.small { font-family: var(--sans); font-size: 0.82rem; color: var(--muted); }
+
+/* Phonetic / listening blocks */
+.ipa { font-family: "Charis SIL", "Doulos SIL", "Gentium Plus", var(--sans); }
+.chunk { display: inline-block; font-family: var(--sans); background: var(--accent-soft); padding: 0.1em 0.45em; border-radius: 4px; margin: 0.1em; }
+.hidden-text { background: var(--fg); color: var(--fg); border-radius: 3px; cursor: pointer; transition: color 0.15s; }
+.hidden-text.revealed { background: transparent; color: var(--fg); }
+
+/* Quiz component (see quiz.js) */
+.quiz { font-family: var(--sans); border: 1px solid var(--rule); border-radius: 8px; padding: 1.1rem 1.25rem; margin: 1.5rem 0; }
+.quiz .q { font-weight: 600; margin-bottom: 0.75rem; }
+.quiz .opts { display: grid; gap: 0.5rem; }
+.quiz button.opt {
+  font: inherit; text-align: left; cursor: pointer;
+  background: transparent; color: var(--fg); border: 1px solid var(--rule); border-radius: 6px; padding: 0.55rem 0.8rem;
+}
+.quiz button.opt:hover { border-color: var(--accent); }
+.quiz button.opt.correct { background: var(--ok-soft); border-color: var(--ok); }
+.quiz button.opt.wrong { background: var(--bad-soft); border-color: var(--bad); }
+.quiz button.opt:disabled { cursor: default; }
+.quiz .fb { margin-top: 0.75rem; font-size: 0.92rem; }
+.quiz .fb.ok { color: var(--ok); }
+.quiz .fb.bad { color: var(--bad); }
+.quiz .score { margin-top: 1rem; font-size: 0.85rem; color: var(--muted); }
+
+/* Checklist with persistence */
+.checklist { font-family: var(--sans); list-style: none; padding: 0; }
+.checklist li { display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.4rem 0; border-bottom: 1px dashed var(--rule); }
+.checklist input { margin-top: 0.35rem; }
+
+/* Progress bar / plan grid */
+.phase { border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--sans); font-size: 0.95rem; }
+.phase h3 { margin-top: 0; }
+.phase .tag { display: inline-block; font-size: 0.75rem; background: var(--accent-soft); color: var(--accent); padding: 0.1em 0.5em; border-radius: 999px; margin-left: 0.4rem; vertical-align: middle; }
+
+nav.lesson-nav { font-family: var(--sans); font-size: 0.85rem; display: flex; justify-content: space-between; gap: 1rem; margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+footer { font-family: var(--sans); font-size: 0.8rem; color: var(--muted); margin-top: 3rem; }
+@media print {
+  body { background: #fff; color: #000; padding: 0; }
+  .quiz button.opt { border-color: #999; }
+  nav.lesson-nav, .ask { display: none; }
+}
+
+/* Dictation widget (see dictation.js) */
+.dictation { font-family: var(--sans); border: 1px solid var(--rule); border-radius: 8px; padding: 1rem 1.1rem; margin: 1.25rem 0; }
+.dictation .d-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+.dictation .d-num { display: inline-flex; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--accent); color: #fff; align-items: center; justify-content: center; font-size: 0.8rem; }
+.dictation button { font: inherit; font-size: 0.9rem; cursor: pointer; background: transparent; color: var(--fg); border: 1px solid var(--rule); border-radius: 6px; padding: 0.35rem 0.7rem; }
+.dictation button:hover { border-color: var(--accent); }
+.dictation .d-check { background: var(--accent); color: #fff; border-color: var(--accent); }
+.dictation textarea { width: 100%; font: inherit; font-size: 1rem; padding: 0.5rem 0.6rem; border: 1px solid var(--rule); border-radius: 6px; background: transparent; color: var(--fg); resize: vertical; }
+.dictation .d-actions { margin-top: 0.5rem; }
+.dictation .d-ref { font-size: 1.05rem; margin: 0.75rem 0 0.25rem; }
+.dictation .d-ok { color: var(--ok); }
+.dictation mark.d-miss { background: var(--bad-soft); color: var(--bad); padding: 0 0.15em; border-radius: 3px; }

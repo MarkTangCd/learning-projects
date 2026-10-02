@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 1 课 · 为什么你听不懂：解码诊断</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<main>
+<h1>为什么你听不懂</h1>
+<p class="subtitle">第 1 课 · 用 8 句听写找出你的听力卡在哪一层</p>
+<p class="meta">约 20 分钟 · 请用 Safari 或 Chrome 打开（需要浏览器语音合成） · <a href="../reference/roadmap.html">路线图</a> · <a href="../reference/glossary.html">术语表</a></p>
+
+<div class="win"><strong>这节课结束时你会得到：</strong>一个数字（解码准确率）和一张错因分类表。它决定接下来 4 周先练什么。</div>
+
+<h2>知识：听懂发生在两层</h2>
+<p>John Field 把听力拆成两层：<strong>解码</strong>（把声音流切成词并认出它们）和<strong>意义构建</strong>（用语境把词拼成意思）。学习者的失败绝大多数在解码层，而且语境救不回解码失败——你最多只能猜。<a href="https://tesl-ej.org/wordpress/issues/volume13/ej51/ej51r3/" class="small">[Field 2008 书评]</a></p>
+<p>你描述的症状——"只能听懂偶尔的单词"——是解码失败的典型表现。被你抓到的词几乎都是<strong>内容词</strong>（名词、动词、形容词），因为它们被重读。漏掉的是<strong>功能词</strong>（<span class="en">to, for, of, and, have, you, them</span>），它们在句中弱读成 <span class="ipa">/ə/</span>，还和前后词粘成一团。</p>
+<p>所以一个母语者说 <span class="en">I should have told them a lot of it was gone</span>，你听到的其实是：</p>
+<p style="text-align:center"><span class="chunk">I</span> <span class="chunk ipa">ʃʊɾəv</span> <span class="chunk">told</span> <span class="chunk ipa">əm</span> <span class="chunk ipa">əlɑːɾəv</span> <span class="chunk">it</span> <span class="chunk ipa">wəz</span> <span class="chunk">gone</span></p>
+<p>你认识每一个词。你不认识的是这几团<strong>声音</strong>。这就是为什么阅读还行、听力极差可以同时成立。</p>
+<div class="note"><strong>你的优势：</strong>你学过连读、弱读，还有肌肉记忆。这节课开始，把它反过来用：你知道自己怎么把 <span class="en">should have</span> 说成 <span class="ipa">/ʃʊɾəv/</span>，就能学会在别人嘴里把它还原回来。</div>
+
+<h2>技能：8 句听写诊断</h2>
+<p class="small">规则：每句最多播放 3 次（1.0x 优先，实在不行用慢速）。听到什么写什么，不确定也要写。写完点"核对"。8 句的词都在 Oxford 3000 里，所以错的地方不是词汇，是解码。</p>
+<p class="small">说明：浏览器语音合成比真人"干净"，真人更难。这里的分数是你的<strong>上限</strong>，不是实际水平。</p>
+
+<div class="dictation" data-dictation='{"text":"What are you going to do about it?","focus":"going to→gonna；are 弱读"}'></div>
+<div class="dictation" data-dictation='{"text":"I should have told him a lot of them were out of stock.","focus":"should have→/ʃʊɾəv/；a lot of→/əlɑːɾəv/；them→/əm/"}'></div>
+<div class="dictation" data-dictation='{"text":"Could you give me a hand with this for a minute?","focus":"could you→/kʊdʒə/；for a 弱读连读"}'></div>
+<div class="dictation" data-dictation='{"text":"There is an awful lot of work to get through before Friday.","focus":"an awful 连读；to 弱读；get through 省音"}'></div>
+<div class="dictation" data-dictation='{"text":"I do not know what he wants us to do.","focus":"do not know→/dəˈnoʊ/；he 的 /h/ 消失；us to 弱读"}'></div>
+<div class="dictation" data-dictation='{"text":"We had better get out of here before it starts raining.","focus":"had better→/wɪd ˈbeɾər/；get out of→/ɡeɾaʊɾə/ 闪音"}'></div>
+<div class="dictation" data-dictation='{"text":"Did you have a good time at the party last night?","focus":"did you→/dɪdʒə/；have a 连读；at the 弱读"}'></div>
+<div class="dictation" data-dictation='{"text":"It took me about an hour and a half to find a place to park.","focus":"an hour and a half 整团连读；to 弱读两次"}'></div>
+
+<p id="dictation-summary" class="small">完成所有句子后这里会显示平均准确率。</p>
+<div id="verdict" class="note" hidden></div>
+
+<h2>技能：给错因归类</h2>
+<p>看你每句标红的词，归到四类里。这比分数本身更重要——它告诉我们先练哪类。</p>
+<div class="table-wrap">
+<table>
+<tr><th>错因</th><th>典型表现</th><th>你的标红词中属于此类的数量</th></tr>
+<tr><td>弱读</td><td>漏掉 <span class="en">to / for / of / a / the / them / have</span></td><td><input type="number" min="0" style="width:4rem" data-cat="weak"></td></tr>
+<tr><td>连读 / 闪音</td><td>两个词听成一个，或 <span class="en">get out of</span> 的 /t/ 听成 /d/</td><td><input type="number" min="0" style="width:4rem" data-cat="link"></td></tr>
+<tr><td>省音 / 同化</td><td><span class="en">did you</span> 听成 "didja"；<span class="en">he</span> 的 /h/ 没了</td><td><input type="number" min="0" style="width:4rem" data-cat="elide"></td></tr>
+<tr><td>生词</td><td>真的不认识这个词</td><td><input type="number" min="0" style="width:4rem" data-cat="vocab"></td></tr>
+</table>
+</div>
+<p id="cat-verdict" class="small"></p>
+
+<h2>检验：三道题</h2>
+<div class="quiz" data-quiz='{"q":"母语者说话时，你最容易漏掉的是哪类词？","opts":["被重读的内容词","被弱读的功能词","句子末尾的词"],"answer":1,"why":"功能词弱读成 /ə/ 并与前后词粘连，是解码失败的主因。"}'></div>
+<div class="quiz" data-quiz='{"q":"阅读尚可但听力极差，最可能的原因是？","opts":["词汇量明显不够","解码层尚未自动","语法基础太薄弱"],"answer":1,"why":"词汇不够时阅读也会吃力。听力单独很差说明声音和词形之间还没挂钩。"}'></div>
+<div class="quiz" data-quiz='{"q":"按 Field 的观点，听不清时靠语境去猜，这个策略？","opts":["是最有效的补救","只能部分地补救","会让解码更熟练"],"answer":1,"why":"Field：语境应用于丰富理解，而不是填补解码失败。先把解码练扎实。"}'></div>
+<p id="quiz-score" class="small"></p>
+
+<h2>真实世界任务（今天或明天）</h2>
+<ul class="checklist">
+<li><input type="checkbox" id="t1"><label for="t1">在 YouTube 找一段你本来就想看、面向母语者的视频（技术类最好），从中取 10 秒。用 <kbd>J</kbd> <kbd>L</kbd> 定位，<kbd>&lt;</kbd> 调到 0.75x，做一次和上面一样的听写，然后开字幕核对。记下准确率。</label></li>
+<li><input type="checkbox" id="t2"><label for="t2">在 <a href="https://elllo.org/">ELLLO</a> 筛 B1，找一段对话，取 2 句做同样的听写。对比两个准确率。</label></li>
+<li><input type="checkbox" id="t3"><label for="t3">把这节课的平均准确率、两次真实听写的准确率、错因分类的数字告诉我。</label></li>
+</ul>
+
+<h2>主读物</h2>
+<p>Paul Nation（2014）<a href="https://www.wgtn.ac.nz/lals/resources/paul-nations-resources/paul-nations-publications/publications/documents/foreign-language_1125.pdf"><em>What Do You Need to Know to Learn a Foreign Language?</em></a>，免费 PDF。只读第 1 章（四条线）和"Listening"相关的活动。这本书是整个课程的骨架，后面每课都会引用它。</p>
+
+<div class="ask">我是你的老师。任何一句听不出来、任何一个术语不明白、或者觉得这节课太简单/太难，直接在对话里告诉我。下一课的内容取决于你今天的数字。</div>
+
+<nav class="lesson-nav"><span>第 1 课</span><a href="0002-weak-forms.html">第 2 课：弱读 →</a></nav>
+<footer>依据：Field (2008)；Nation (2007, 2014)；Renandya &amp; Farrell (2011)。全部来源见 <a href="../RESOURCES.md">RESOURCES.md</a>。</footer>
+</main>
+<script src="../assets/dictation.js"></script>
+<script src="../assets/quiz.js"></script>
+<script src="../assets/checklist.js"></script>
+<script>
+// Lesson-specific glue: interpret dictation average and error-category counts.
+(function () {
+  const summary = document.getElementById('dictation-summary');
+  const verdict = document.getElementById('verdict');
+  summary.addEventListener('dictation:update', (e) => {
+    const { avg, done } = e.detail;
+    if (done < 8) return;
+    let msg;
+    if (avg >= 90) msg = '合成语音下 90% 以上。你的解码在"干净"输入下基本成立，瓶颈更可能在真人语速和生词。真实世界任务的两个数字会更关键。';
+    else if (avg >= 70) msg = '70–90%。典型的"认识词但没挂上声音"。阶段 1 的四周解码训练正是为这个区间设计的。';
+    else msg = '70% 以下。先别碰母语者视频。接下来两周每天只做 ELLLO B1 的 2 句听写 + VOA 泛听，我们把弱读功能词一类一类过。';
+    verdict.textContent = msg;
+    verdict.hidden = false;
+  });
+
+  const inputs = document.querySelectorAll('input[data-cat]');
+  const catVerdict = document.getElementById('cat-verdict');
+  inputs.forEach((inp) => inp.addEventListener('input', () => {
+    const counts = {};
+    inputs.forEach((x) => { counts[x.dataset.cat] = Number(x.value) || 0; });
+    const total = Object.values(counts).reduce((a, b) => a + b, 0);
+    if (!total) { catVerdict.textContent = ''; return; }
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+    const names = { weak: '弱读', link: '连读/闪音', elide: '省音/同化', vocab: '生词' };
+    const vocabShare = Math.round((counts.vocab / total) * 100);
+    catVerdict.textContent = `错因最多的是「${names[top]}」；生词只占 ${vocabShare}%。` +
+      (vocabShare < 30 ? '确认：问题在解码，不在词汇量。第 2 课从' + names[top] + '开始。' : '生词比例偏高，第 2 课前先做 Oxford 3000 B1 段自查。');
+  }));
+})();
+</script>
+</body>
+</html>

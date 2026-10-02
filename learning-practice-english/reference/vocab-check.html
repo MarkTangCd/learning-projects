@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oxford 3000 词汇自查 · English Relearning</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+.vc-card { font-family: var(--sans); text-align: center; border: 1px solid var(--rule); border-radius: 10px; padding: 2rem 1rem; margin: 1rem 0; }
+.vc-word { font-size: 2.2rem; font-weight: 500; }
+.vc-pos { color: var(--muted); font-size: 0.9rem; margin-top: 0.25rem; }
+.vc-btns { display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.25rem; flex-wrap: wrap; }
+.vc-btns button { font: inherit; font-size: 1rem; cursor: pointer; padding: 0.6rem 1.4rem; border-radius: 8px; border: 1px solid var(--rule); background: transparent; color: var(--fg); }
+.vc-btns .know { border-color: var(--ok); color: var(--ok); }
+.vc-btns .dont { border-color: var(--bad); color: var(--bad); }
+.vc-ctl { font-family: var(--sans); display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+.vc-ctl select, .vc-ctl button { font: inherit; padding: 0.4rem 0.7rem; border-radius: 6px; border: 1px solid var(--rule); background: transparent; color: var(--fg); }
+textarea.vc-out { width: 100%; font-family: var(--mono); font-size: 0.85rem; min-height: 8rem; background: transparent; color: var(--fg); border: 1px solid var(--rule); border-radius: 6px; padding: 0.5rem; }
+</style>
+</head>
+<body>
+<main>
+<h1>Oxford 3000 词汇自查</h1>
+<p class="subtitle">随机抽 50 词，只判断"看到这个词，能不能在半秒内说出意思"。不要猜，不要想。</p>
+<p class="meta">词表来源：<a href="https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000">Oxford Learner's Dictionaries</a>（A1–B2 共 3,274 词，2026-10-02 提取） · <a href="roadmap.html">路线图</a></p>
+
+<div class="vc-ctl">
+  <label>级别 <select id="level"><option value="A2">A2</option><option value="B1" selected>B1</option><option value="B2">B2</option></select></label>
+  <label>抽样 <select id="n"><option>30</option><option selected>50</option><option>100</option></select></label>
+  <button id="start" type="button">开始</button>
+  <span id="progress" class="small"></span>
+</div>
+
+<div id="card" class="vc-card" hidden>
+  <div class="vc-word" id="word"></div>
+  <div class="vc-pos" id="pos"></div>
+  <div class="vc-btns">
+    <button class="know" id="know" type="button">认识 (→ 或 J)</button>
+    <button class="dont" id="dont" type="button">不认识 (← 或 F)</button>
+  </div>
+</div>
+
+<div id="result" hidden>
+  <div class="win"><strong id="summary"></strong><p class="small" id="estimate"></p></div>
+  <h3>不认识的词（可直接贴进 Anki，制表符分隔：词 / 词性）</h3>
+  <textarea class="vc-out" id="out" readonly></textarea>
+  <p class="small">历史：<span id="history"></span></p>
+</div>
+
+<div class="ask">自查之后，把结果数字告诉我。不认识的词<strong>不要</strong>全部做卡——先只做那些你在听力材料里真的再次遇到的。</div>
+<footer>数据文件 <code>assets/ox3000.js</code></footer>
+</main>
+<script src="../assets/ox3000.js"></script>
+<script>
+// Self-check: sample N words from a CEFR band, binary know/don't-know, estimate band coverage.
+(function () {
+  const $ = (id) => document.getElementById(id);
+  let queue = [], unknown = [], level = 'B1', idx = 0;
+
+  function sample(arr, n) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a.slice(0, n);
+  }
+  function show() {
+    if (idx >= queue.length) return finish();
+    $('word').textContent = queue[idx].w;
+    $('pos').textContent = queue[idx].pos;
+    $('progress').textContent = `${idx + 1} / ${queue.length}`;
+  }
+  function answer(known) {
+    if (!known) unknown.push(queue[idx]);
+    idx++; show();
+  }
+  function finish() {
+    $('card').hidden = true; $('result').hidden = false;
+    const total = queue.length, k = total - unknown.length, pct = Math.round((k / total) * 100);
+    const bandSize = window.OXFORD_3000[level].length;
+    $('summary').textContent = `${level} 段：${k}/${total} 认识，约 ${pct}%`;
+    $('estimate').textContent = `按比例估计，${level} 段 ${bandSize} 词里你大约不认识 ${Math.round(bandSize * (1 - pct / 100))} 个。路线图检查点：第 2 月末 B1 ≥ 90%，第 3 月末 B2 ≥ 70%。`;
+    $('out').value = unknown.map((x) => `${x.w}\t${x.pos}`).join('\n');
+    try {
+      const h = JSON.parse(localStorage.getItem('vc:history') || '[]');
+      h.push({ d: new Date().toISOString().slice(0, 10), level, pct, n: total });
+      localStorage.setItem('vc:history', JSON.stringify(h.slice(-20)));
+      $('history').textContent = h.map((x) => `${x.d} ${x.level} ${x.pct}%`).join(' · ');
+    } catch (e) {}
+  }
+  $('start').addEventListener('click', () => {
+    level = $('level').value;
+    queue = sample(window.OXFORD_3000[level], Number($('n').value));
+    unknown = []; idx = 0;
+    $('result').hidden = true; $('card').hidden = false; show();
+  });
+  $('know').addEventListener('click', () => answer(true));
+  $('dont').addEventListener('click', () => answer(false));
+  document.addEventListener('keydown', (e) => {
+    if ($('card').hidden) return;
+    if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'j') answer(true);
+    if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'f') answer(false);
+  });
+})();
+</script>
+</body>
+</html>
