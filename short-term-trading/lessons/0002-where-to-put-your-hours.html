@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L2 · 把 2–4 小时放在哪：用数据量出 BTC 一天的节律</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    pre.tbl { font-size: 0.72rem; line-height: 1.35; }
+    pre.tbl b { color: var(--good); }
+    pre.tbl i { color: var(--ink-faint); font-style: normal; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">短线交易 · 第 2 课 · 阶段 0 量尺</p>
+  <h1>把 2–4 小时放在哪：用数据量出 BTC 一天的节律</h1>
+  <p class="subtitle">手续费每笔固定，市场每小时能走多远却差三倍。本课单一胜利：一张 24 行的表，和一个<strong>写下来的</strong>盯盘窗口。开头先说你的日志判决——它决定了这张表为什么对你重要。</p>
+
+  <h2>零、挑战③的判决：你有计划，计划没被执行到底</h2>
+
+  <p>你填回来的 10 笔交易，<strong>10 笔都写得出止损和目标</strong>。L1 的工作假设"盈亏随机 = 无计划交易占多数"被你的数据推翻了。统计（手续费未记录，按 0 计，真实净值更低）：</p>
+
+  <pre><code>Win rate 30% | avg win +0.77R | avg loss -0.88R | expectancy -0.38R/trade | total -3.8R
+Planned R: avg 1.25R | min 0.86R | max 1.97R
+
+Execution (where trades actually ended):
+  profit taken early                      3   avg +0.77R
+  small loss, closed early                3   avg -0.56R
+  at stop                                 2   avg -1.03R
+  beyond stop (slippage or stop moved)    2   avg -1.21R</code></pre>
+
+  <p>三件事：</p>
+  <ul>
+    <li><strong>到目标 0 笔。</strong> 10 笔里没有一笔走完计划。6 笔是你自己提前平掉的（3 笔小赚、3 笔小亏），这比"止损太多"严重得多——止损是系统在亏，提前平仓是你在替系统亏。</li>
+    <li><strong>计划 R 平均 1.25。</strong> 盈亏比 1.25 要胜率 ≥ 44% 才打平（1 ÷ 2.25），你是 30%。要么目标放远，要么止损收窄。目标放得远，就要求市场<strong>在你持仓的那几个小时里走得够远</strong>——这正是本课。</li>
+    <li><strong>2 笔超出止损</strong>，平均 −1.21R。要么是心理止损没执行，要么是滑点。L3 处理它。</li>
+  </ul>
+
+  <div class="callout">
+    <span class="label">顺带一句</span>
+    你的数据抓出了我工具里的一个 bug：原版 <code>journal.py</code> 没填数量就判"无计划"。R 本质是价格比 <code>(出场 − 进场) / (进场 − 止损)</code>，数量只在算手续费时才需要。已修。<strong>日志工具是被你的真实数据逼着变好的</strong>——以后也会这样。
+  </div>
+
+  <h2>一、为什么"时段"是方法之前的第一个变量</h2>
+
+  <p>一笔交易的成本（手续费占 R）在 L1 已经算清：它只取决于止损距离，<strong>与时间无关</strong>。但一笔交易的机会——价格在你持仓期间能走多远——<strong>随小时剧烈变化</strong>。同一个 setup、同一个止损，放在不同小时，是在用同样的费买不同量的行程。所以挑时段不是"什么时候有空"，是把每笔固定的费花在行程最多的地方。</p>
+
+  <p>两个量，从 1 分钟 K 线算出来：</p>
+  <table class="g">
+    <thead><tr><th>量</th><th style="text-align:left">定义</th><th style="text-align:left">回答的问题</th></tr></thead>
+    <tbody>
+      <tr><td><span class="term">行程</span>（move）</td><td style="text-align:left">该小时内 1 分钟 |对数收益| 之和，bp</td><td style="text-align:left">价格一共<strong>走了多少路</strong>——有多少机会</td></tr>
+      <tr><td><span class="term">区间</span>（range）</td><td style="text-align:left">（小时最高 − 最低）÷ 开盘，bp</td><td style="text-align:left">价格最远<strong>到了哪</strong>——你的目标装不装得下</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">行程 ÷ 区间 是"来回程度"：等于 1 是一路单边，等于 4 是来回走了四趟。你在量化课 L14 用过它的倒数——Kaufman 效率比。</p>
+
+  <h2>二、数据：27 天，24 小时</h2>
+
+  <p>工具是 <code>practice/hour_profile.py</code>。数据来自 <a href="https://github.com/binance/binance-public-data">Binance 公共数据</a>的每日 1 分钟 K 线（免费、无需密钥，实测<strong>直连可达、不需代理</strong>），缓存到 <code>practice/data/</code>。每小时取 27 天的<strong>中位数</strong>——用中位数是因为单日极端事件会把平均数拖歪，而你要的是"典型的一天"。</p>
+
+  <pre class="tbl"><code>$ python practice/hour_profile.py
+BTCUSDT perp, 28 days ending 2026-10-11 (UTC).
+
+UTC local  move bp  range bp  vol $M  trades k  buy%  (medians over 27 days)
+  0     8      174        39     239        91  50.1  #############
+  1     9      224        54     326       126  49.1  #################
+  2    10      198        44     359       116  49.3  ###############
+  3    11      166        42     305        96  47.3  ############
+  4    12      148        33     252        75  48.7  ###########
+  5    13      164        43     278        79  52.4  ############
+  6    14      154        37     358       103  48.4  ###########
+  7    15      167        40     303        97  51.4  ############
+  8    16      183        45     480       121  49.6  ##############
+  9    17      166        43     433       107  50.9  ############
+ 10    18      165        38     365        94  49.2  ############
+ 11    19      165        38     311        99  49.9  ############
+ 12    20      197        43     399       128  47.9  ###############
+<b> 13    21      322        81     904       252  49.7  ########################
+ 14    22      378        94     957       302  49.0  ############################
+ 15    23      292        71     742       238  50.7  ######################</b>
+ 16     0      230        48     618       177  48.6  #################
+ 17     1      204        50     439       143  47.4  ###############
+ 18     2      182        38     301       103  50.4  #############
+ 19     3      170        37     330        91  48.1  #############
+ 20     4      138        34     208        70  50.3  ##########
+<i> 21     5      114        30     167        52  47.3  ########</i>
+ 22     6      145        35     203        66  49.9  ###########
+<i> 23     7      124        31     240        69  50.2  #########</i>
+
+Best 3h window by median move: UTC 13:00-16:00 (local 21:00-00:00), 991 bp vs 571 bp for an average 3h
+Quietest hour: UTC 21 with 114 bp (35% of the best hour)
+Whole-day travel: weekday median 5358 bp | weekend median 2239 bp</code></pre>
+
+  <p>读三遍，每遍读一个东西：</p>
+
+  <h3>第一遍：峰在哪</h3>
+  <p>UTC 13–16，本地 21:00–24:00。三小时行程 991 bp，是平均三小时的 1.7 倍、最静三小时（UTC 20–23）的 2.6 倍。成交额更夸张：UTC 14 的 $957M 是 UTC 21 的 5.7 倍。原因不神秘：<strong>美股 13:30 UTC 开盘</strong>，BTC 永续的边际买卖盘来自同一群人。亚洲早盘（UTC 01，本地 09）有一个小峰，欧洲开盘（UTC 07–08）几乎看不出来。</p>
+
+  <h3>第二遍：你的止损装不装得进区间</h3>
+  <p>你那 10 笔的止损距离是 40–240 bp，中位数约 100 bp。看区间那一列：<strong>最活跃的小时区间中位也只有 94 bp</strong>，安静时段 30 bp。这说明两件事：你做的不是剥头皮，是要持仓好几个小时的日内波段；而且在安静时段开仓，一笔止损 100 bp、目标 200 bp 的交易在那一小时内两头都到不了——你会被迫把它拿到美盘，等于用安静时段看到的信息去赌几小时后完全不同的市场。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">UTC 14 行程中位 378 bp，区间却只有 94 bp。这个小时里价格在怎么走？</div>
+    <button class="opt">来回震荡了约四趟，大部分行程不是单边方向而是往返</button>
+    <button class="opt">单边推进了约四段，大部分行程都是单边方向而非往返</button>
+    <div class="fb right" data-for="right">对：378 ÷ 94 ≈ 4。这是美盘开盘小时的典型性格——机会多、方向少。对持仓几小时的波段来说它是进场点（有流动性、有波动）；对想"抓一段就走"的人来说，它意味着止损很容易被来回扫到。<strong>行程多 ≠ 容易赚，行程多 = 容易被扫也容易被填</strong>。</div>
+    <div class="fb nope" data-for="nope">如果是单边推进，区间会接近行程（走多远就到多远）。378 对 94 的差距说明价格走了 378 bp 的路，净位移却只有 94 bp 以内——<strong>来回了约四趟</strong>。这个小时机会多，但方向少，止损容易被来回扫到。</div>
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">你的止损 100 bp、目标 2R = 200 bp。在 UTC 21（区间中位 30 bp）开仓，最可能发生什么？</div>
+    <button class="opt">一小时内两头都到不了，你其实在用安静时段的信息赌几小时后的美盘</button>
+    <button class="opt">一小时内两头都会到达，你其实在用安静时段的信息抢几小时后的美盘</button>
+    <div class="fb right" data-for="right">对。30 bp 的小时区间装不下 100 bp 的止损，更装不下 200 bp 的目标。这笔交易真正的结算时刻是 UTC 13 以后，而你在 UTC 21 看到的盘面到那时已经是 16 小时前的事。<strong>进场时段应该和"预期走完目标的时段"是同一个</strong>——这是你那 6 笔提前平仓的候选解释之一：等得太久，等不下去了。</div>
+    <div class="fb nope" data-for="nope">区间中位 30 bp 意味着一半的 UTC 21 小时连 30 bp 都没走出去，100 bp 的止损和 200 bp 的目标<strong>两头都到不了</strong>。你会持仓到几小时后的美盘，用一个早已过时的判断去面对完全不同的市场。进场时段要和预期走完目标的时段重合。</div>
+  </div>
+
+  <h3>第三遍：周末</h3>
+  <p>周末全日行程中位 2,239 bp，是工作日 5,358 bp 的 <strong>42%</strong>。费率不变，行程减半：周末同一笔交易，每单位手续费买到的机会只有一半，而且到目标要等两倍时间——时间越长，你提前平仓的概率越大（看看你那 6 笔）。这不是"周末别交易"的禁令，是一个要在日志里<strong>分开统计</strong>的变量。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">周末行程是工作日的 42%，手续费不变。这对一笔同样止损的周末交易意味着什么？</div>
+    <button class="opt">每单位手续费买到的行程减半，等待更久、更可能被时间磨成提前平仓</button>
+    <button class="opt">每单位手续费买到的行程减半，但到达目标的概率完全不变只是慢一点</button>
+    <div class="fb right" data-for="right">对。第二句是关键：持仓时间不是免费的。拿得越久，你改主意、资金费率结算、隔夜风险的暴露都越多——"概率不变只是慢一点"假设你是一台机器，但你的 10 笔里 6 笔是自己提前平的。<strong>等待本身是成本</strong>。</div>
+    <div class="fb nope" data-for="nope">前半句对，后半句把你当成了机器。持仓时间越长，你提前平仓的概率越高（你 10 笔里 6 笔是自己提前平的），资金费率结算经过的次数越多，隔夜暴露越大。<strong>"慢一点"本身就是成本</strong>，而且是在日志里能量出来的成本。</div>
+  </div>
+
+  <h2>三、把窗口写下来</h2>
+
+  <p>窗口 = 峰值 3 小时 + 前 30 分钟准备 + 后 30 分钟复盘 = 4 小时。只有 2 小时的日子，取峰的中心 UTC 13:30–15:30（本地 21:30–23:30）。两个注意事项：</p>
+  <ul>
+    <li><strong>2026-11-01 美国夏令时结束</strong>，美股开盘变 14:30 UTC，整个峰后移一小时（本地 22–01）。11 月初重跑一次，别靠记忆。</li>
+    <li>窗口之外的交易不是禁止，是<strong>贴标签</strong>：日志 mistake 字段写 <code>outside-session</code>，月底看它单独的期望值。禁令靠意志，标签靠数据。</li>
+  </ul>
+  <p>这张表的精简版和规则在 <a href="../reference/session-profile.html">时段卡</a>，打印贴在屏幕旁。</p>
+
+  <div class="callout tip">
+    <span class="label">动手挑战</span>
+    <strong>①</strong> 跑 <code>python practice/hour_profile.py</code>（首次下载约 28 个文件，几十秒）。然后 <code>--symbol ETHUSDT</code>：<strong>先预测</strong>峰是不是同一个时段、ETH 的小时区间比 BTC 大还是小、大多少。<br>
+    <strong>②</strong> <code>--days 56</code>。<strong>先预测</strong>：峰值窗口会不会变？行程数字会变多少？这是在问"27 天的中位数稳不稳"——你在量化课做过同样的事（样本外）。<br>
+    <strong>③</strong> 选定你的窗口，用一句话写进 <code>NOTES.md</code>（我也会记），格式："工作日 UTC __–__（本地 __–__），之外的交易贴 outside-session"。<strong>把它告诉我。</strong><br>
+    <strong>④</strong> 回到你那 10 笔：如果记得开仓时间，数一数几笔落在窗口内、几笔落在安静时段；如果不记得，这就是从今天起必须填 <code>openedAt</code> 的理由。<br>
+    <strong>⑤</strong> 回答一个关于你自己的问题：那 6 笔提前平仓，发生在你开仓后多久？大多数是在等待中放弃的，还是开仓后几分钟就反悔？这两种是完全不同的病，L3 要分开治。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读（首选来源）</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://github.com/binance/binance-public-data">Binance · binance-public-data</a></strong> —— 读 README 里 futures/um 那一节：你今天用的 klines 之外还有 aggTrades、bookDepth、metrics（OI、多空比）。L8–L10 全靠它。</p>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.babypips.com/learn/forex/forex-trading-sessions">Babypips · Forex Trading Sessions</a></strong> —— 外汇世界用了几十年的同一个思想：会话决定波动。读它是为了看到 BTC 的峰和伦敦 / 纽约重叠时段是同一群人。</p>
+    <p style="margin:0"><strong><a href="https://arxiv.org/abs/2607.09426">Kim &amp; Hansen · The Quarter-Hour Effect</a></strong> —— 把本课的分辨率从小时推到分钟：Binance 永续在每个整刻钟有可测的成交量脉冲。只读摘要和图 1，L8 回来细读。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想聊为什么用中位数不用均值、行程为什么用对数收益、或者怎么把表按星期几拆开——直接说。挑战③的窗口和挑战⑤的答案，贴给我。<br><br>
+      <strong>下一站：L3 风险与执行规则 v1。</strong> 你的日志给了它明确的靶子：2 笔超出止损（交易所挂真实止损单，不用心理止损）、0 笔到目标（出场规则：到目标前什么情况下允许平仓，什么情况下不允许）、日亏损上限与连亏停手（借 FTMO 的规则做模板）。
+    </div>
+    <div class="nav">
+      <a href="0001-measure-before-method.html">← L1：先量尺，后方法</a>
+      <a href="../reference/session-profile.html">时段卡 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>参考 · 短线交易知识地图</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    table.g td:not(:first-child) { text-align: left; }
+    table.g th:not(:first-child) { text-align: left; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">参考文档 · 全课程的地图</p>
+  <h1>短线交易知识地图：理论、数据、指标各回答什么问题</h1>
+  <p class="subtitle">短线、超短线、剥头皮用到的东西分六层。每一层只回答一类问题；把它们混在一起，就是"指标越加越多、越看越乱"的来源。</p>
+
+  <h2>六层</h2>
+  <table class="g">
+    <thead><tr><th>层</th><th>回答的问题</th><th>理论 / 指标 / 数据</th><th>首选来源</th><th>本课程</th></tr></thead>
+    <tbody>
+      <tr><td><strong>0 度量</strong></td><td>我到底有没有 edge？</td><td>R、期望值、手续费拖累、日志、错误标签</td><td><a href="https://vantharp.com/wp-content/uploads/2018/06/A_Short_Lesson_on_R_and_R-multiple.pdf">Tharp</a>；<a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3423101">Chague 2020</a></td><td>L1–L3</td></tr>
+      <tr><td><strong>1 结构</strong></td><td>市场现在在干什么？该站哪边？</td><td>趋势 / 区间 / 回调；多时间框架；支撑阻力、会话高低点；波动率（ATR）；VWAP；成交量 / 成交量分布（POC）</td><td><a href="https://www.marketlifetrading.com/courses/get_taas">Grimes 免费课</a>；<a href="https://www.brookstradingcourse.com/how-to-trade-price-action-manual/">Brooks</a></td><td>L4–L7</td></tr>
+      <tr><td><strong>2 流</strong></td><td>此刻谁在买、谁在卖、谁被迫？</td><td>盘口 / 成交流、吃单 vs 挂单、失衡、CVD / delta、足迹图、吸收、冰山、清算打印</td><td><a href="https://bookmap.com/learning-center">Bookmap 学习中心</a>；<a href="https://arxiv.org/abs/1012.0349">LOB 综述</a>；Harris</td><td>L8–L11</td></tr>
+      <tr><td><strong>3 Crypto 数据</strong></td><td>仓位拥挤在哪？哪里会被扫？</td><td>资金费率、未平仓量（OI）、多空比、清算热图、基差、标记价 vs 最新价</td><td><a href="https://www.binance.com/en/support/faq/detail/360033525031">Binance 资金费率</a>；<a href="https://www.coinglass.com/">Coinglass</a>；<a href="https://arxiv.org/abs/2212.06888">永续定价</a></td><td>L10</td></tr>
+      <tr><td><strong>4 风险</strong></td><td>怎样保证活到有 edge 的那天？</td><td>按止损距离定仓位、日 / 周亏损上限、连亏停手、杠杆只买容量不买收益</td><td><a href="https://ftmo.com/en/trading-objectives/">FTMO 规则</a>；<a href="https://www.binance.com/en/support/faq/detail/360033525271">Binance 强平</a></td><td>L3、L14</td></tr>
+      <tr><td><strong>5 过程</strong></td><td>怎样每天变好一点？</td><td>交易计划、刻意练习（回放）、每日 / 每周复盘、playbook、tilt 熔断</td><td><a href="https://traderfeed.blogspot.com/">Steenbarger</a>；<a href="https://doi.org/10.1037/0033-295X.100.3.363">Ericsson 1993</a>；Bellafiore</td><td>L7、L12–L13</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <span class="label">关于"指标"的诚实说明</span>
+    Grimes 在其书中用统计检验说明：脱离上下文的经典形态与指标信号大多<strong>没有可测的 edge</strong>；有 edge 的是"结构 + 位置 + 流"的组合判断。所以本课程把指标当作<strong>度量工具</strong>（ATR 量波动、VWAP 量均价、CVD 量净吃单），而不是买卖信号发生器。
+  </div>
+
+  <h2>常用指标速查：它量的是什么</h2>
+  <table class="g">
+    <thead><tr><th>指标</th><th>量的是什么</th><th>短线怎么用</th><th>别这样用</th></tr></thead>
+    <tbody>
+      <tr><td>EMA 9 / 20 / 50</td><td>不同时间尺度的平均成本</td><td>趋势方向与回调深度的参考线</td><td>金叉死叉当信号（量化工作区 L5–L7 已证明无 edge）</td></tr>
+      <tr><td>VWAP</td><td>当日成交量加权均价 = 多数人的持仓成本</td><td>日内"贵 / 便宜"的基准；机构执行的参照</td><td>隔夜 / 多日 VWAP 混用</td></tr>
+      <tr><td>ATR</td><td>平均每根 K 线的波动幅度</td><td>止损距离下限（&lt; 1 ATR 大概率被噪声扫掉）、目标是否现实</td><td>当方向指标</td></tr>
+      <tr><td>成交量 / 成交量分布</td><td>哪些价位换手多（POC、价值区）</td><td>找"有人在意"的价位与"真空区"</td><td>孤立看单根放量</td></tr>
+      <tr><td>CVD / delta</td><td>累计净吃单（买方吃单 − 卖方吃单）</td><td>价格没动但 delta 大 = 吸收；价格动但 delta 没跟 = 弱</td><td>跨交易所直接相加</td></tr>
+      <tr><td>RSI / 布林带</td><td>价格相对近期区间的位置</td><td>区间市里的"到边了"提示</td><td>趋势市里逆势接刀</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Crypto 永续特有数据</h2>
+  <table class="g">
+    <thead><tr><th>数据</th><th>回答的问题</th><th>哪里拿</th></tr></thead>
+    <tbody>
+      <tr><td>资金费率</td><td>多头还是空头在付钱持仓（拥挤方向）；00 / 08 / 16 UTC 结算是时间锚点</td><td><a href="https://www.binance.com/en/support/faq/detail/360033525031">Binance FAQ</a>、<code>@markPrice</code> 流</td></tr>
+      <tr><td>未平仓量 OI</td><td>新钱进场还是旧仓平掉（价涨 + OI 涨 = 新多；价涨 + OI 跌 = 空头回补）</td><td><a href="https://github.com/binance/binance-public-data">data.binance.vision metrics</a></td></tr>
+      <tr><td>清算 / 热图</td><td>强平单会在哪个价位被动成交（被扫的燃料在哪）</td><td><code>@forceOrder</code> 流、<a href="https://www.coinglass.com/pro/futures/LiquidationHeatMap">Coinglass</a></td></tr>
+      <tr><td>标记价 vs 最新价</td><td>止损与强平按哪个价触发（按标记价）</td><td><a href="https://www.binance.com/en/support/faq/detail/360033525071">Binance FAQ</a></td></tr>
+      <tr><td>基差 / carry</td><td>杠杆需求有多热；高 carry 预示崩盘</td><td><a href="https://www.bis.org/publ/work1087.htm">BIS Crypto Carry</a></td></tr>
+    </tbody>
+  </table>
+
+  <h2>时间结构</h2>
+  <ul>
+    <li><strong>美盘开盘 13:30 UTC</strong>前后与<strong>伦敦开盘 07:00–08:00 UTC</strong>是 Crypto 波动最集中的窗口（L2 用数据验证）。</li>
+    <li><strong>资金费率结算</strong> 00 / 08 / 16 UTC 前后常有仓位调整。</li>
+    <li><strong>整刻钟效应</strong>：Binance 永续在 :00 / :15 / :30 / :45 有可测的成交量 / 波动脉冲（<a href="https://arxiv.org/abs/2607.09426">Kim &amp; Hansen</a>）。</li>
+    <li><strong>周末</strong>流动性薄，同样的吃单造成更大滑点。</li>
+  </ul>
+
+  <h2>外汇对应物（后期）</h2>
+  <table class="g">
+    <thead><tr><th>Crypto</th><th>外汇</th><th>来源</th></tr></thead>
+    <tbody>
+      <tr><td>吃单 / 挂单费</td><td>点差 + 佣金（ECN）</td><td><a href="https://www.babypips.com/learn/forex/how-to-choose-forex-broker">Babypips</a></td></tr>
+      <tr><td>美盘开盘窗口</td><td>伦敦 / 纽约重叠 12:00–16:00 UTC</td><td><a href="https://www.babypips.com/learn/forex/forex-trading-sessions">Babypips Sessions</a></td></tr>
+      <tr><td>资金费率</td><td>隔夜利息（swap）</td><td>Babypips</td></tr>
+      <tr><td>清算热图</td><td>没有公开对应物（去中心化场外市场）</td><td><a href="https://www.bis.org/statistics/rpfx22.htm">BIS 调查</a></td></tr>
+      <tr><td>自定风险规则</td><td>prop firm 规则（日亏 5%、总亏 10%）</td><td><a href="https://ftmo.com/en/trading-objectives/">FTMO</a></td></tr>
+    </tbody>
+  </table>
+
+  <div class="lesson-foot">
+    <div class="nav">
+      <a href="../lessons/0001-measure-before-method.html">← L1</a>
+      <a href="glossary.html">词汇表 →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

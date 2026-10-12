@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>参考 · 交易日志字段与 R 公式</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">参考文档 · 打印贴在屏幕旁</p>
+  <h1>交易日志：字段、公式、每日复盘清单</h1>
+  <p class="subtitle"><code>practice/journal.py</code> 的 13 个字段，以及把它们变成 R 的四个公式。</p>
+
+  <h2>字段</h2>
+  <table class="g">
+    <thead><tr><th>字段</th><th style="text-align:left">含义</th><th style="text-align:left">何时填</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td style="text-align:left">自增编号</td><td style="text-align:left">自动</td></tr>
+      <tr><td>openedAt</td><td style="text-align:left">开仓时间（UTC）</td><td style="text-align:left">自动</td></tr>
+      <tr><td>symbol</td><td style="text-align:left">品种，如 <code>BTC/USDT:USDT</code>（ccxt 永续写法）</td><td style="text-align:left">进场前</td></tr>
+      <tr><td>side</td><td style="text-align:left">long / short</td><td style="text-align:left">进场前</td></tr>
+      <tr><td>setup</td><td style="text-align:left">剧本名字（pullback、breakout…）；没有名字的交易是无计划交易的近亲</td><td style="text-align:left">进场前</td></tr>
+      <tr><td>entry</td><td style="text-align:left">计划进场价（成交后改为实际成交价）</td><td style="text-align:left">进场前</td></tr>
+      <tr><td>stop</td><td style="text-align:left">止损价。<strong>空着 = 无计划交易，不参与统计</strong></td><td style="text-align:left">进场前</td></tr>
+      <tr><td>target</td><td style="text-align:left">目标价</td><td style="text-align:left">进场前</td></tr>
+      <tr><td>qty</td><td style="text-align:left">数量 = 1R ÷ 止损距离</td><td style="text-align:left">进场前</td></tr>
+      <tr><td>exit</td><td style="text-align:left">实际出场价（空着 = 持仓中）</td><td style="text-align:left">出场后</td></tr>
+      <tr><td>feeUsd</td><td style="text-align:left">来回手续费（Binance 从成交明细聚合，订单头里常为空）</td><td style="text-align:left">出场后</td></tr>
+      <tr><td>mistake</td><td style="text-align:left">错误标签（见下）；按计划执行则留空</td><td style="text-align:left">复盘时</td></tr>
+      <tr><td>note</td><td style="text-align:left">一句话：当时看到了什么</td><td style="text-align:left">随时</td></tr>
+    </tbody>
+  </table>
+
+  <h2>公式</h2>
+  <pre><code>dir       = +1 (long) | −1 (short)
+1R        = (entry − stop) × dir × qty          # 进场前的计划亏损，USD
+plannedR  = (target − entry) × dir / ((entry − stop) × dir)
+resultR   = ((exit − entry) × dir × qty − feeUsd) / 1R
+feeR      = feeUsd / 1R  ≈  2 × 单边费率 / 止损距离%
+expectancy = mean(resultR)                       # 只统计有 stop 且已平仓的交易</code></pre>
+
+  <h2>手续费占 R（Binance 永续普通档）</h2>
+  <table class="g">
+    <thead><tr><th>止损距离</th><th>吃单 0.05%/边</th><th>挂单 0.02%/边</th></tr></thead>
+    <tbody>
+      <tr><td>0.10%</td><td class="bad">1.00 R</td><td class="bad">0.40 R</td></tr>
+      <tr><td>0.20%</td><td class="bad">0.50 R</td><td>0.20 R</td></tr>
+      <tr><td>0.30%</td><td class="bad">0.33 R</td><td>0.13 R</td></tr>
+      <tr><td>0.50%</td><td>0.20 R</td><td class="ok">0.08 R</td></tr>
+      <tr><td>1.00%</td><td class="ok">0.10 R</td><td class="ok">0.04 R</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">红色 = 手续费吃掉 1/4 以上的 R。来源：<a href="https://www.binance.com/en/fee/schedule">Binance 费率表</a>；BNB 抵扣再降 10%，VIP 档更低。</p>
+
+  <h2>错误标签起始词汇</h2>
+  <table class="g">
+    <thead><tr><th>标签</th><th style="text-align:left">含义</th></tr></thead>
+    <tbody>
+      <tr><td>no-stop</td><td style="text-align:left">进场时没写止损（= 无计划交易）</td></tr>
+      <tr><td>chased</td><td style="text-align:left">价格已经走了才追进去，进场价离计划太远</td></tr>
+      <tr><td>moved-stop</td><td style="text-align:left">持仓中把止损往亏损方向挪</td></tr>
+      <tr><td>early-exit</td><td style="text-align:left">没到目标也没到止损就手动平掉</td></tr>
+      <tr><td>oversized</td><td style="text-align:left">数量超过 1R ÷ 止损距离</td></tr>
+      <tr><td>revenge</td><td style="text-align:left">上一笔亏损后 5 分钟内的非计划进场</td></tr>
+      <tr><td>outside-session</td><td style="text-align:left">在约定盯盘时段之外交易</td></tr>
+    </tbody>
+  </table>
+
+  <h2>每日复盘（10 分钟，收盘后）</h2>
+  <ol>
+    <li>跑 <code>python practice/journal.py stats</code>，先看<strong>无计划交易</strong>数。今天的目标是它等于 0。</li>
+    <li>今天最好的一笔和最差的一笔：各用一句话说<strong>过程</strong>对错，不说盈亏。</li>
+    <li>给每笔违反计划的交易贴一个错误标签。</li>
+    <li>写下明天只改一件事。</li>
+    <li>把所有数字留给周复盘；单日样本太小，不下结论。</li>
+  </ol>
+  <p class="caption">结构来自 Steenbarger 的自我教练法（<a href="https://traderfeed.blogspot.com/">TraderFeed</a>）与 Bellafiore 的 PlayBook 复盘；"过程目标优先于结果目标"是这两家的共同点。</p>
+
+  <div class="lesson-foot">
+    <div class="nav">
+      <a href="../lessons/0001-measure-before-method.html">← L1</a>
+      <a href="glossary.html">词汇表 →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

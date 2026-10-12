@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L1 · 先量尺，后方法：R、期望值与你的第一本交易日志</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">短线交易 · 第 1 课 · 阶段 0 量尺</p>
+  <h1>先量尺，后方法：R、期望值与你的第一本交易日志</h1>
+  <p class="subtitle">你说现在"没有固定方法，盈亏随机"。本课不教方法，先给你一把尺子——因为没有尺子，任何方法你都无法判断好坏。单一胜利：跑通 <code>journal.py demo</code>，读懂输出里的一个反转（毛期望 <strong>+0.06R</strong> → 净期望 <strong>−0.30R</strong>），然后给你的下一笔交易写出第一份含 R 的计划。</p>
+
+  <h2>零、诚实的起点</h2>
+
+  <p>两个数字先放在桌上。巴西股指期货日内交易者（2013–2015，全样本）：坚持超过 300 天的人里，<strong>97% 亏损</strong>，1.1% 的收入超过最低工资（<a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3423101">Chague, De-Losso &amp; Giovannetti 2020</a>）。台湾日内交易者：扣除手续费后能稳定盈利的<strong>不到 1%</strong>，但这一小撮的技能是<strong>可持续的</strong>——不是运气（<a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=529063">Barber, Lee, Liu &amp; Odean 2014</a>）。</p>
+
+  <p>这两篇论文合起来说的是：短线不是不可能，是<strong>极难</strong>，而那不到 1% 的人和其他人的区别，是技能而非彩票。技能能被练出来，但只有在能被<strong>测量</strong>时才能被练——你在量化工作区已经体会过这件事：没有诚实的回测，就不知道策略是真是假。主观交易的"诚实回测"叫做<span class="term">交易日志</span>。</p>
+
+  <div class="callout">
+    <span class="label">"随机"的技术定义</span>
+    一笔交易如果在进场前没有写下止损，它就没有"计划亏损额"，结果既不能和别的交易比，也不能归因。日志里这叫<span class="term">无计划交易</span>。<strong>"盈亏随机"的精确含义就是：无计划交易占了多数。</strong> 这不是心理问题，是度量问题——本课先解决它。
+  </div>
+
+  <h2>一、R：一笔交易的度量单位</h2>
+
+  <p>你在量化课里用的单位是收益率和夏普，因为那里仓位由系统定。主观交易每笔仓位都不同，美元和百分比都没法比较两笔交易。短线交易的通用单位是 <span class="term">R</span>（<a href="https://vantharp.com/wp-content/uploads/2018/06/A_Short_Lesson_on_R_and_R-multiple.pdf">Van Tharp</a> 推广）：</p>
+
+  <pre><code>1R      = |进场价 − 止损价| × 数量        # 进场前写下的计划亏损额（USD）
+计划 R  = |目标价 − 进场价| / |进场价 − 止损价|
+结果 R  = (毛盈亏 − 手续费) / 1R</code></pre>
+
+  <p>一个例子。做多 BTC 永续，进场 60,000，止损 59,700，目标 60,600，决定这笔交易最多亏 $10：</p>
+
+  <table class="g">
+    <thead><tr><th>项</th><th>算式</th><th>值</th></tr></thead>
+    <tbody>
+      <tr><td>止损距离</td><td>60,000 − 59,700</td><td>$300（0.50%）</td></tr>
+      <tr><td>数量</td><td>1R ÷ 止损距离 = 10 ÷ 300</td><td>0.0333 BTC</td></tr>
+      <tr><td>名义仓位</td><td>0.0333 × 60,000</td><td>$2,000</td></tr>
+      <tr><td>计划 R</td><td>600 ÷ 300</td><td>2.0 R</td></tr>
+      <tr><td>被止损</td><td>−300 × 0.0333</td><td>−$10 = −1.0 R</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">注意顺序：<strong>先定 1R（能亏多少），再由止损距离推出数量</strong>，而不是先决定买多少。这和量化课 L18 的 vol targeting 是同一个思想：仓位是风险的函数。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">一笔交易的 1R 由什么决定？</div>
+    <button class="opt">进场价到止损价的距离乘以数量，在进场前就确定</button>
+    <button class="opt">进场价到出场价的距离乘以数量，在出场后才确定</button>
+    <div class="fb right" data-for="right">对。R 是<strong>计划</strong>，不是结果——它在你点下单之前就存在。这正是它能当尺子的原因：尺子得先于被量的东西。出场后才知道的那个数叫"结果 R"，它是用 1R 去除出来的。</div>
+    <div class="fb nope" data-for="nope">那是结果，不是尺子。如果 R 要等出场后才知道，你就没法在进场前决定数量，也没法把这笔和别的交易比。1R = 进场到<strong>止损</strong>的距离 × 数量，进场前写下；没写下止损的交易根本没有 R。</div>
+  </div>
+
+  <h2>二、期望值 = 平均 R</h2>
+
+  <p>有了 R，"这套做法赚不赚钱"就变成一个数：</p>
+
+  <pre><code>期望值 E = 胜率 × 平均盈利R − 败率 × 平均亏损R   （= 所有结果 R 的均值）</code></pre>
+
+  <p>它一眼拆穿"胜率"这个最常见的幻觉：</p>
+
+  <table class="g">
+    <thead><tr><th>系统</th><th>胜率</th><th>平均盈利</th><th>平均亏损</th><th>期望值 / 笔</th></tr></thead>
+    <tbody>
+      <tr><td>甲</td><td>40%</td><td>+2.0 R</td><td>−1.0 R</td><td class="ok">+0.20 R</td></tr>
+      <tr><td>乙</td><td>60%</td><td>+0.5 R</td><td>−1.0 R</td><td class="bad">−0.10 R</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">乙六成胜率，稳定亏钱；甲输多赢少，稳定赚钱。短线新手几乎都在做乙：小赚就跑、亏了死扛——因为它<strong>感觉</strong>好。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">甲胜率 40%、盈 2R 亏 1R；乙胜率 60%、盈 0.5R 亏 1R。哪个该做？</div>
+    <button class="opt">甲，胜率虽低但每笔期望值为正，盈亏比托起了它</button>
+    <button class="opt">乙，胜率高达六成所以每笔期望为正，稳定性更好</button>
+    <div class="fb right" data-for="right">对。甲：0.4 × 2 − 0.6 × 1 = <strong>+0.2R</strong>；乙：0.6 × 0.5 − 0.4 × 1 = <strong>−0.1R</strong>。乙的"稳定"是稳定地亏。一个副作用：做甲意味着你要<strong>习惯 60% 的交易是亏的</strong>——这是心理课（L13）的入口，但先把数学钉死。</div>
+    <div class="fb nope" data-for="nope">算一下乙：0.6 × 0.5 − 0.4 × 1 = 0.3 − 0.4 = <strong>−0.1R</strong>，每笔亏一毛 R，胜率再高也是负的。甲：0.4 × 2 − 0.6 × 1 = <strong>+0.2R</strong>。胜率单独没有意义，<strong>只有和盈亏比相乘才有意义</strong>。</div>
+  </div>
+
+  <h2>三、剥头皮的税：手续费占 R</h2>
+
+  <p>你在量化课 L21 实测过：来回手续费 8 bp，分毫不差，是确定性成本。现在把它换算成 R。Binance 永续普通档吃单 0.05%/边（<a href="https://www.binance.com/en/fee/schedule">费率表</a>），来回 0.10%，<strong>按名义仓位收</strong>。而名义仓位 = 1R ÷ 止损距离%，所以：</p>
+
+  <pre><code>手续费占 R = 2 × 单边费率 / 止损距离%</code></pre>
+
+  <table class="g">
+    <thead><tr><th>止损距离</th><th>吃单 0.05%/边</th><th>挂单 0.02%/边</th><th>意味着</th></tr></thead>
+    <tbody>
+      <tr><td>0.10%</td><td class="bad">1.00 R</td><td class="bad">0.40 R</td><td style="text-align:left">还没开始就输掉整整一个 R</td></tr>
+      <tr><td>0.20%</td><td class="bad">0.50 R</td><td>0.20 R</td><td style="text-align:left">2R 的目标实际只剩 1.5R</td></tr>
+      <tr><td>0.50%</td><td>0.20 R</td><td class="ok">0.08 R</td><td style="text-align:left">上面例子的实际数字</td></tr>
+      <tr><td>1.00%</td><td class="ok">0.10 R</td><td class="ok">0.04 R</td><td style="text-align:left">日内波段的常见量级</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">这张表决定了本课程的顺序：<strong>先学止损距离 0.3%–1% 的日内 / 短线，剥头皮（&lt; 0.2%）放到你能用挂单成交之后</strong>。不是剥头皮不能做，是吃单剥头皮在数学上先输一半。</p>
+
+  <div class="rcalc" data-entry="60000" data-stop="59700" data-target="60600" data-fee="5" data-risk="10"></div>
+  <p class="caption">试三件事：①把止损改成 59,880（0.2%）看手续费占 R；②把 fee 改成 2（挂单）；③把 1R 改成 100——注意手续费占 R <strong>不变</strong>，因为名义仓位跟着 1R 等比放大。手续费是止损距离的函数，不是资金量的函数。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">止损距离 0.2%，吃单 0.05%/边。手续费占这笔交易的 R 多少？</div>
+    <button class="opt">0.5R，即每笔交易一半的风险额在还没开始前就交给了交易所</button>
+    <button class="opt">0.1R，即每笔交易一成的风险额在还没开始前就交给了交易所</button>
+    <div class="fb right" data-for="right">对：2 × 0.05% ÷ 0.2% = 0.5R。一笔计划 2R 的交易到目标只剩 1.5R，被止损则是 −1.5R。把它代回期望值公式：胜率 45%、盈 2R 亏 1R 本来是 +0.35R，扣费后变成 0.45 × 1.5 − 0.55 × 1.5 = <strong>−0.15R</strong>。手续费不是"成本项"，它能让正系统变负。</div>
+    <div class="fb nope" data-for="nope">0.1R 是止损距离 1% 时的数字。这里止损 0.2%，名义仓位是 1R 的 500 倍，来回费 0.10% × 500 = 0.5R。公式：2 × 0.05% ÷ 0.2% = <strong>0.5R</strong>。止损越近，同样的费率吃掉的 R 越多——分母在止损距离上。</div>
+  </div>
+
+  <h2>四、日志：把尺子装进文件</h2>
+
+  <p><code>practice/journal.py</code> 是你的第一个工具，纯标准库，一个 CSV，13 个字段（字段表见 <a href="../reference/trade-journal-schema.html">日志参考</a>）。先看它在一份合成样本上的输出：</p>
+
+  <pre><code>$ python practice/journal.py demo
+Trades: 60 closed | 0 open | 1 UNPLANNED (no stop -> cannot be measured, excluded)
+Win rate 42% | avg win +1.27R | avg loss -1.41R | expectancy -0.30R/trade | total -17.8R
+Fees: avg 0.36R per trade -> gross expectancy +0.06R, net -0.30R
+Max consecutive losses: 7 | best +2.43R | worst -1.74R
+
+By setup:
+  name             n   win%    E(R)   total
+  pullback        17    65%   +0.72   +12.3
+  fomo            18    33%   -0.80   -14.4
+  breakout        25    32%   -0.63   -15.7
+
+By mistake tag:
+  name             n   win%    E(R)   total
+  chased          18    33%   -0.80   -14.4</code></pre>
+
+  <p>四行里藏着三个本课的全部要点：</p>
+  <ul>
+    <li><strong>第 1 行</strong>：那笔没写止损的交易被单独点名并排除。日志的第一个功能不是记账，是<strong>拒绝给无计划交易打分</strong>。</li>
+    <li><strong>第 3 行是反转</strong>：毛期望 +0.06R（勉强打平）→ 扣费后 −0.30R。这个交易者的问题不是"看不准"，是止损太近、吃单太多，<strong>手续费把平局打成了败局</strong>。没有 R 记账，他只会觉得"运气不好"。</li>
+    <li><strong>By setup</strong>：pullback 一个 setup 赚了 +12.3R，被 fomo 和 breakout 全亏回去。日志先告诉你<strong>该停做什么</strong>，这比告诉你该做什么早得多、也便宜得多。</li>
+  </ul>
+
+  <div class="callout tip">
+    <span class="label">动手挑战</span>
+    <strong>①</strong> 跑 <code>python practice/journal.py demo</code>，对照上面四行。然后答：如果这个人把所有吃单换成挂单（费率 0.02%），净期望大约变成多少？（提示：手续费占 R 等比缩小到 0.4 倍。）<br>
+    <strong>②</strong> <code>python practice/journal.py init</code> 建你自己的日志。<strong>下一笔实盘交易，进场前</strong>先用上面的计算器算出止损距离、数量、计划 R，再 <code>add</code> 进去（exit 留空），出场后再补 exit 和 feeUsd。<br>
+    <strong>③</strong> 回忆你最近 10 笔交易，试着把它们填进日志。<strong>先预测</strong>：10 笔里有几笔你能写出"当时的止损价"？填完把实际数字告诉我——这个数就是你现在"随机"的程度。<br>
+    <strong>④</strong> 用计算器找出：按你习惯的止损距离，手续费占 R 多少？如果超过 0.25R，这是 L2 之前就该改的第一件事。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读（首选来源）</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://vantharp.com/wp-content/uploads/2018/06/A_Short_Lesson_on_R_and_R-multiple.pdf">Van Tharp · A Short Lesson on R and R-Multiples</a></strong>（免费 PDF，几页）—— R 与期望值的原始定义，本课公式的出处。</p>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3423101">Chague, De-Losso &amp; Giovannetti · Day Trading for a Living?</a></strong> —— 读摘要和表 1 就够：你要对抗的基础概率，以及为什么本课程把"活下来"放在"赚钱"前面。</p>
+    <p style="margin:0"><strong><a href="https://traderfeed.blogspot.com/">Brett Steenbarger · TraderFeed</a></strong> —— 每周读一篇。他是"过程目标优先于结果目标"这套复盘方法的来源。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想聊 R 和量化课里 vol targeting 的关系、为什么日志不用 pandas、或者你过去的交易该怎么补填——直接说。做完挑战③，把那个数字贴给我。<br><br>
+      <strong>下一站：L2。</strong> 你每天有 2–4 小时，但不知道该放在一天里的哪个时段。L2 用 data.binance.vision 的免费数据，量出 BTC 永续一天 24 小时里每小时的波动、成交量与清算分布，用数据而不是感觉选定你的盯盘窗口。
+    </div>
+    <div class="nav">
+      <a href="../reference/course-map.html">← 知识地图</a>
+      <a href="0002-where-to-put-your-hours.html">L2：把 2–4 小时放在哪 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+  <script src="../assets/r-calc.js"></script>
+</div>
+</body>
+</html>
