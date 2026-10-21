@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L4 · 市场结构：先判决，再挑 setup</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    figure { margin: 1.2rem 0 0.4rem; border: 1px solid var(--rule); border-radius: 6px; padding: 0.4rem; background: #fff; }
+    figcaption { font-family: var(--sans); font-size: 0.78rem; color: var(--ink-soft); padding: 0.3rem 0.4rem 0.2rem; line-height: 1.5; }
+    @media (prefers-color-scheme: dark) { figure { background: #fff; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">短线交易 · 第 4 课 · 阶段 1 结构</p>
+  <h1>市场结构：先判决，再挑 setup</h1>
+  <p class="subtitle">你日志里的五个 setup 名字——pullback、trading range reversal、channel reversal、breakout——不是五个独立的东西，它们是同一张地图上的四个格子，而且胜率取决于你站在地图的哪里。单一胜利：用一条规则给任意一段图下判决（趋势 / 区间），并把你的 setup 放进四个格子。</p>
+
+  <h2>零、为什么先结构，后 setup</h2>
+
+  <p>两位价格行为作者在同一件事上说了同一句话，只是数字不同。Grimes："Most breakouts fail"，而趋势延续"有可验证的统计优势"（<a href="https://www.adamhgrimes.com/technical-analysis-thinking-in-categories/">Thinking in Categories</a>）。Brooks：区间里 <strong>80% 的突破失败</strong>（<a href="https://www.brookstradingcourse.com/how-to-trade-manual/trading-ranges/">ch. 6</a>），趋势日里 <strong>80% 的反转失败</strong>（<a href="https://www.brookstradingcourse.com/ask-al/trading-range-days-price-action/">Ask Al</a>）。合起来：<strong>同一个 setup，在趋势里和在区间里，胜率是反的</strong>。所以"该做哪个 setup"不是第一个问题，"现在是趋势还是区间"才是。</p>
+
+  <p>你的 10 笔里，pullback 是唯一期望值不为负的 setup（+0.02R，n = 4），其余四个名字全部为负（n = 6）。样本小到不能下结论，但方向与上面的文献一致：<strong>顺势的那一类是唯一被两位作者都标为"有 edge"的</strong>。</p>
+
+  <h2>一、原子：摆动点，以及 HH / HL / LH / LL</h2>
+
+  <p>结构不是感觉，是四个字母的序列。<span class="term">摆动高点</span>：某根 K 线的最高价是左右各 N 根里最高的（本课 N = 3，5 分钟图上 = 左右各 15 分钟）；摆动低点镜像。每个新摆动高点与上一个比：更高叫 <strong>HH</strong>，更低叫 <strong>LH</strong>；低点同理 <strong>HL / LL</strong>。</p>
+
+  <p><strong>判决规则</strong>（Grimes："an uptrend is a series of both higher highs and higher lows"，<a href="https://www.adamhgrimes.com/market-structure/">Market Structure</a>）：</p>
+  <ul>
+    <li><strong>上升趋势</strong>：最近两个高点都是 HH，<strong>且</strong>最近两个低点都是 HL</li>
+    <li><strong>下降趋势</strong>：最近两个高点都是 LH，且最近两个低点都是 LL</li>
+    <li><strong>交易区间</strong>：其他一切</li>
+  </ul>
+
+  <p>这是 9 月 29 日你的窗口（UTC 12–16），工具 <code>structure.py</code> 自动标出的摆动点：</p>
+
+  <figure><svg style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 380" font-family="system-ui, sans-serif" font-size="12">
+<rect width="900" height="380" fill="white"/>
+<text x="40" y="22" font-size="14" fill="#333">BTCUSDT 5m 2026-09-29 UTC 12-16</text>
+<line x1="45.1" y1="69.5" x2="45.1" y2="91.8" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="40.0" y="71.1" width="10.2" height="12.7" fill="#2a7f5f"/>
+<line x1="62.2" y1="71.1" x2="62.2" y2="94.6" stroke="#b8341b" stroke-width="1"/>
+<rect x="57.1" y="71.1" width="10.2" height="16.2" fill="#b8341b"/>
+<line x1="79.3" y1="79.9" x2="79.3" y2="92.6" stroke="#b8341b" stroke-width="1"/>
+<rect x="74.2" y="87.3" width="10.2" height="1.0" fill="#b8341b"/>
+<line x1="96.4" y1="58.8" x2="96.4" y2="102.7" stroke="#b8341b" stroke-width="1"/>
+<rect x="91.2" y="88.3" width="10.2" height="9.6" fill="#b8341b"/>
+<line x1="113.5" y1="97.9" x2="113.5" y2="117.9" stroke="#b8341b" stroke-width="1"/>
+<rect x="108.3" y="97.9" width="10.2" height="19.0" fill="#b8341b"/>
+<line x1="130.5" y1="107.9" x2="130.5" y2="123.3" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="125.4" y="108.9" width="10.2" height="8.0" fill="#2a7f5f"/>
+<line x1="147.6" y1="93.1" x2="147.6" y2="110.8" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="142.5" y="94.4" width="10.2" height="14.5" fill="#2a7f5f"/>
+<line x1="164.7" y1="62.0" x2="164.7" y2="97.7" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="159.6" y="76.0" width="10.2" height="18.4" fill="#2a7f5f"/>
+<line x1="181.8" y1="69.7" x2="181.8" y2="87.1" stroke="#b8341b" stroke-width="1"/>
+<rect x="176.7" y="76.0" width="10.2" height="7.0" fill="#b8341b"/>
+<line x1="198.9" y1="82.0" x2="198.9" y2="102.7" stroke="#b8341b" stroke-width="1"/>
+<rect x="193.8" y="83.1" width="10.2" height="11.7" fill="#b8341b"/>
+<line x1="216.0" y1="83.7" x2="216.0" y2="101.5" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="210.8" y="85.2" width="10.2" height="9.6" fill="#2a7f5f"/>
+<line x1="233.0" y1="76.7" x2="233.0" y2="89.6" stroke="#b8341b" stroke-width="1"/>
+<rect x="227.9" y="85.2" width="10.2" height="4.0" fill="#b8341b"/>
+<line x1="250.1" y1="81.4" x2="250.1" y2="102.8" stroke="#b8341b" stroke-width="1"/>
+<rect x="245.0" y="89.1" width="10.2" height="4.2" fill="#b8341b"/>
+<line x1="267.2" y1="68.1" x2="267.2" y2="93.3" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="262.1" y="68.1" width="10.2" height="25.2" fill="#2a7f5f"/>
+<line x1="284.3" y1="65.6" x2="284.3" y2="80.1" stroke="#b8341b" stroke-width="1"/>
+<rect x="279.2" y="68.1" width="10.2" height="6.8" fill="#b8341b"/>
+<line x1="301.4" y1="67.2" x2="301.4" y2="86.6" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="296.2" y="67.3" width="10.2" height="7.7" fill="#2a7f5f"/>
+<line x1="318.5" y1="59.9" x2="318.5" y2="71.0" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="313.3" y="59.9" width="10.2" height="7.4" fill="#2a7f5f"/>
+<line x1="335.5" y1="40.0" x2="335.5" y2="85.2" stroke="#b8341b" stroke-width="1"/>
+<rect x="330.4" y="59.9" width="10.2" height="23.8" fill="#b8341b"/>
+<line x1="352.6" y1="82.6" x2="352.6" y2="139.2" stroke="#b8341b" stroke-width="1"/>
+<rect x="347.5" y="83.7" width="10.2" height="41.4" fill="#b8341b"/>
+<line x1="369.7" y1="103.0" x2="369.7" y2="144.6" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="364.6" y="107.9" width="10.2" height="17.3" fill="#2a7f5f"/>
+<line x1="386.8" y1="86.8" x2="386.8" y2="122.3" stroke="#b8341b" stroke-width="1"/>
+<rect x="381.7" y="107.9" width="10.2" height="5.1" fill="#b8341b"/>
+<line x1="403.9" y1="104.5" x2="403.9" y2="133.4" stroke="#b8341b" stroke-width="1"/>
+<rect x="398.8" y="113.0" width="10.2" height="1.5" fill="#b8341b"/>
+<line x1="421.0" y1="75.2" x2="421.0" y2="122.6" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="415.8" y="75.2" width="10.2" height="39.3" fill="#2a7f5f"/>
+<line x1="438.0" y1="64.1" x2="438.0" y2="112.4" stroke="#b8341b" stroke-width="1"/>
+<rect x="432.9" y="75.2" width="10.2" height="36.0" fill="#b8341b"/>
+<line x1="455.1" y1="94.7" x2="455.1" y2="150.6" stroke="#b8341b" stroke-width="1"/>
+<rect x="450.0" y="111.2" width="10.2" height="33.1" fill="#b8341b"/>
+<line x1="472.2" y1="142.4" x2="472.2" y2="167.8" stroke="#b8341b" stroke-width="1"/>
+<rect x="467.1" y="144.4" width="10.2" height="21.9" fill="#b8341b"/>
+<line x1="489.3" y1="151.3" x2="489.3" y2="169.7" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="484.2" y="161.7" width="10.2" height="4.6" fill="#2a7f5f"/>
+<line x1="506.4" y1="135.3" x2="506.4" y2="173.3" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="501.2" y="136.3" width="10.2" height="25.4" fill="#2a7f5f"/>
+<line x1="523.5" y1="134.1" x2="523.5" y2="172.2" stroke="#b8341b" stroke-width="1"/>
+<rect x="518.3" y="136.2" width="10.2" height="24.4" fill="#b8341b"/>
+<line x1="540.5" y1="132.3" x2="540.5" y2="164.6" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="535.4" y="158.1" width="10.2" height="2.6" fill="#2a7f5f"/>
+<line x1="557.6" y1="143.0" x2="557.6" y2="164.9" stroke="#b8341b" stroke-width="1"/>
+<rect x="552.5" y="158.1" width="10.2" height="3.3" fill="#b8341b"/>
+<line x1="574.7" y1="161.3" x2="574.7" y2="192.9" stroke="#b8341b" stroke-width="1"/>
+<rect x="569.6" y="161.3" width="10.2" height="2.5" fill="#b8341b"/>
+<line x1="591.8" y1="143.4" x2="591.8" y2="175.0" stroke="#b8341b" stroke-width="1"/>
+<rect x="586.7" y="163.9" width="10.2" height="1.5" fill="#b8341b"/>
+<line x1="608.9" y1="144.1" x2="608.9" y2="184.2" stroke="#b8341b" stroke-width="1"/>
+<rect x="603.8" y="165.4" width="10.2" height="18.0" fill="#b8341b"/>
+<line x1="626.0" y1="167.4" x2="626.0" y2="204.0" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="620.8" y="178.3" width="10.2" height="5.1" fill="#2a7f5f"/>
+<line x1="643.0" y1="166.5" x2="643.0" y2="191.8" stroke="#b8341b" stroke-width="1"/>
+<rect x="637.9" y="178.3" width="10.2" height="13.2" fill="#b8341b"/>
+<line x1="660.1" y1="189.3" x2="660.1" y2="219.1" stroke="#b8341b" stroke-width="1"/>
+<rect x="655.0" y="191.4" width="10.2" height="27.6" fill="#b8341b"/>
+<line x1="677.2" y1="211.0" x2="677.2" y2="242.8" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="672.1" y="213.9" width="10.2" height="5.2" fill="#2a7f5f"/>
+<line x1="694.3" y1="203.9" x2="694.3" y2="262.2" stroke="#b8341b" stroke-width="1"/>
+<rect x="689.2" y="213.9" width="10.2" height="34.5" fill="#b8341b"/>
+<line x1="711.4" y1="236.3" x2="711.4" y2="275.1" stroke="#b8341b" stroke-width="1"/>
+<rect x="706.2" y="248.4" width="10.2" height="25.0" fill="#b8341b"/>
+<line x1="728.5" y1="263.2" x2="728.5" y2="321.3" stroke="#b8341b" stroke-width="1"/>
+<rect x="723.3" y="273.3" width="10.2" height="44.7" fill="#b8341b"/>
+<line x1="745.5" y1="309.1" x2="745.5" y2="340.0" stroke="#b8341b" stroke-width="1"/>
+<rect x="740.4" y="318.1" width="10.2" height="8.0" fill="#b8341b"/>
+<line x1="762.6" y1="288.2" x2="762.6" y2="329.3" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="757.5" y="294.7" width="10.2" height="31.4" fill="#2a7f5f"/>
+<line x1="779.7" y1="287.9" x2="779.7" y2="300.5" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="774.6" y="287.9" width="10.2" height="6.7" fill="#2a7f5f"/>
+<line x1="796.8" y1="281.6" x2="796.8" y2="302.5" stroke="#b8341b" stroke-width="1"/>
+<rect x="791.7" y="287.9" width="10.2" height="4.4" fill="#b8341b"/>
+<line x1="813.9" y1="264.9" x2="813.9" y2="310.8" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="808.8" y="279.8" width="10.2" height="12.6" fill="#2a7f5f"/>
+<line x1="831.0" y1="276.2" x2="831.0" y2="338.2" stroke="#b8341b" stroke-width="1"/>
+<rect x="825.8" y="279.8" width="10.2" height="46.5" fill="#b8341b"/>
+<line x1="848.0" y1="309.7" x2="848.0" y2="331.3" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="842.9" y="311.6" width="10.2" height="14.7" fill="#2a7f5f"/>
+<polyline points="96.4,58.8 130.5,123.3 164.7,62.0 250.1,102.8 335.5,40.0 369.7,144.6 438.0,64.1 506.4,173.3 540.5,132.3 745.5,340.0" fill="none" stroke="#1f5f8b" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="96.4" y="50.8" text-anchor="middle" fill="#1f5f8b" font-weight="700">H</text>
+<text x="130.5" y="139.3" text-anchor="middle" fill="#1f5f8b" font-weight="700">L</text>
+<text x="164.7" y="54.0" text-anchor="middle" fill="#1f5f8b" font-weight="700">LH</text>
+<text x="250.1" y="118.8" text-anchor="middle" fill="#1f5f8b" font-weight="700">HL</text>
+<text x="335.5" y="32.0" text-anchor="middle" fill="#1f5f8b" font-weight="700">HH</text>
+<text x="369.7" y="160.6" text-anchor="middle" fill="#1f5f8b" font-weight="700">LL</text>
+<text x="438.0" y="56.1" text-anchor="middle" fill="#1f5f8b" font-weight="700">LH</text>
+<text x="506.4" y="189.3" text-anchor="middle" fill="#1f5f8b" font-weight="700">LL</text>
+<text x="540.5" y="124.3" text-anchor="middle" fill="#1f5f8b" font-weight="700">LH</text>
+<text x="745.5" y="356.0" text-anchor="middle" fill="#1f5f8b" font-weight="700">LL</text>
+<text x="860" y="368" text-anchor="end" fill="#777">82881 – 84555</text>
+</svg>
+  <figcaption>BTCUSDT 5m · 2026-09-29 · UTC 12–16。序列：H L LH HL HH LL LH LL LH LL。最后两个高点 LH LH、最后两个低点 LL LL → <strong>下降趋势</strong>。注意 13:25 那个 HH：单独一个 HH 没有改变判决，因为低点序列没有跟上（LL 紧接着来了）。</figcaption></figure>
+
+  <pre><code>$ python practice/structure.py --date 2026-09-29
+48 bars, 10 swings  | verdict: DOWNTREND
+ time UTC  swing      price  tag   leg bp  bars  bp/bar
+    13:25      H    84554.9   HH      +42     5    +8.3
+    13:35      L    83971.0   LL      -69     2   -34.5
+    13:55      H    84420.2   LH      +53     4   +13.4
+    14:15      L    83811.0   LL      -72     4   -18.0
+    14:25      H    84040.0   LH      +27     2   +13.7
+    15:25      L    82880.6   LL     -138    12   -11.5</code></pre>
+
+  <p>现在你来判。下面是 9 月 24 日 UTC 13–17：</p>
+
+  <figure><svg style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 380" font-family="system-ui, sans-serif" font-size="12">
+<rect width="900" height="380" fill="white"/>
+<text x="40" y="22" font-size="14" fill="#333">BTCUSDT 5m 2026-09-24 UTC 13-17</text>
+<line x1="45.1" y1="266.3" x2="45.1" y2="296.7" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="40.0" y="267.9" width="10.2" height="27.7" fill="#2a7f5f"/>
+<line x1="62.2" y1="264.9" x2="62.2" y2="280.5" stroke="#b8341b" stroke-width="1"/>
+<rect x="57.1" y="267.8" width="10.2" height="8.6" fill="#b8341b"/>
+<line x1="79.3" y1="263.7" x2="79.3" y2="282.6" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="74.2" y="265.5" width="10.2" height="10.9" fill="#2a7f5f"/>
+<line x1="96.4" y1="237.6" x2="96.4" y2="271.9" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="91.2" y="238.6" width="10.2" height="26.9" fill="#2a7f5f"/>
+<line x1="113.5" y1="226.7" x2="113.5" y2="264.3" stroke="#b8341b" stroke-width="1"/>
+<rect x="108.3" y="238.6" width="10.2" height="17.9" fill="#b8341b"/>
+<line x1="130.5" y1="246.0" x2="130.5" y2="263.3" stroke="#b8341b" stroke-width="1"/>
+<rect x="125.4" y="256.5" width="10.2" height="4.3" fill="#b8341b"/>
+<line x1="147.6" y1="160.2" x2="147.6" y2="265.3" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="142.5" y="193.0" width="10.2" height="67.7" fill="#2a7f5f"/>
+<line x1="164.7" y1="154.1" x2="164.7" y2="224.8" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="159.6" y="171.9" width="10.2" height="21.1" fill="#2a7f5f"/>
+<line x1="181.8" y1="168.0" x2="181.8" y2="241.5" stroke="#b8341b" stroke-width="1"/>
+<rect x="176.7" y="171.9" width="10.2" height="57.7" fill="#b8341b"/>
+<line x1="198.9" y1="204.9" x2="198.9" y2="240.5" stroke="#b8341b" stroke-width="1"/>
+<rect x="193.8" y="229.6" width="10.2" height="10.8" fill="#b8341b"/>
+<line x1="216.0" y1="212.4" x2="216.0" y2="247.6" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="210.8" y="213.6" width="10.2" height="26.9" fill="#2a7f5f"/>
+<line x1="233.0" y1="170.3" x2="233.0" y2="214.1" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="227.9" y="170.5" width="10.2" height="43.2" fill="#2a7f5f"/>
+<line x1="250.1" y1="157.0" x2="250.1" y2="194.6" stroke="#b8341b" stroke-width="1"/>
+<rect x="245.0" y="170.5" width="10.2" height="10.5" fill="#b8341b"/>
+<line x1="267.2" y1="148.4" x2="267.2" y2="189.4" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="262.1" y="169.3" width="10.2" height="11.7" fill="#2a7f5f"/>
+<line x1="284.3" y1="161.7" x2="284.3" y2="190.8" stroke="#b8341b" stroke-width="1"/>
+<rect x="279.2" y="169.3" width="10.2" height="6.8" fill="#b8341b"/>
+<line x1="301.4" y1="154.7" x2="301.4" y2="193.5" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="296.2" y="161.2" width="10.2" height="15.0" fill="#2a7f5f"/>
+<line x1="318.5" y1="145.9" x2="318.5" y2="173.0" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="313.3" y="146.2" width="10.2" height="14.9" fill="#2a7f5f"/>
+<line x1="335.5" y1="40.0" x2="335.5" y2="147.0" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="330.4" y="53.1" width="10.2" height="93.1" fill="#2a7f5f"/>
+<line x1="352.6" y1="53.1" x2="352.6" y2="90.9" stroke="#b8341b" stroke-width="1"/>
+<rect x="347.5" y="53.1" width="10.2" height="18.6" fill="#b8341b"/>
+<line x1="369.7" y1="71.7" x2="369.7" y2="137.9" stroke="#b8341b" stroke-width="1"/>
+<rect x="364.6" y="71.7" width="10.2" height="49.9" fill="#b8341b"/>
+<line x1="386.8" y1="110.0" x2="386.8" y2="146.9" stroke="#b8341b" stroke-width="1"/>
+<rect x="381.7" y="121.6" width="10.2" height="20.2" fill="#b8341b"/>
+<line x1="403.9" y1="141.1" x2="403.9" y2="259.1" stroke="#b8341b" stroke-width="1"/>
+<rect x="398.8" y="141.7" width="10.2" height="114.1" fill="#b8341b"/>
+<line x1="421.0" y1="232.5" x2="421.0" y2="340.0" stroke="#b8341b" stroke-width="1"/>
+<rect x="415.8" y="255.8" width="10.2" height="7.3" fill="#b8341b"/>
+<line x1="438.0" y1="255.8" x2="438.0" y2="302.6" stroke="#b8341b" stroke-width="1"/>
+<rect x="432.9" y="263.1" width="10.2" height="19.7" fill="#b8341b"/>
+<line x1="455.1" y1="257.0" x2="455.1" y2="318.5" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="450.0" y="265.0" width="10.2" height="17.7" fill="#2a7f5f"/>
+<line x1="472.2" y1="236.6" x2="472.2" y2="266.9" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="467.1" y="248.8" width="10.2" height="16.2" fill="#2a7f5f"/>
+<line x1="489.3" y1="233.5" x2="489.3" y2="262.7" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="484.2" y="239.3" width="10.2" height="9.6" fill="#2a7f5f"/>
+<line x1="506.4" y1="198.5" x2="506.4" y2="242.5" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="501.2" y="215.4" width="10.2" height="23.8" fill="#2a7f5f"/>
+<line x1="523.5" y1="172.3" x2="523.5" y2="219.1" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="518.3" y="176.1" width="10.2" height="39.3" fill="#2a7f5f"/>
+<line x1="540.5" y1="170.9" x2="540.5" y2="203.7" stroke="#b8341b" stroke-width="1"/>
+<rect x="535.4" y="176.1" width="10.2" height="20.3" fill="#b8341b"/>
+<line x1="557.6" y1="174.3" x2="557.6" y2="201.0" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="552.5" y="176.6" width="10.2" height="19.8" fill="#2a7f5f"/>
+<line x1="574.7" y1="131.7" x2="574.7" y2="177.7" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="569.6" y="158.2" width="10.2" height="18.4" fill="#2a7f5f"/>
+<line x1="591.8" y1="139.4" x2="591.8" y2="163.5" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="586.7" y="139.4" width="10.2" height="18.8" fill="#2a7f5f"/>
+<line x1="608.9" y1="136.7" x2="608.9" y2="166.0" stroke="#b8341b" stroke-width="1"/>
+<rect x="603.8" y="139.4" width="10.2" height="14.2" fill="#b8341b"/>
+<line x1="626.0" y1="138.9" x2="626.0" y2="164.0" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="620.8" y="138.9" width="10.2" height="14.7" fill="#2a7f5f"/>
+<line x1="643.0" y1="130.1" x2="643.0" y2="150.2" stroke="#b8341b" stroke-width="1"/>
+<rect x="637.9" y="138.9" width="10.2" height="1.6" fill="#b8341b"/>
+<line x1="660.1" y1="137.5" x2="660.1" y2="181.7" stroke="#b8341b" stroke-width="1"/>
+<rect x="655.0" y="140.5" width="10.2" height="34.5" fill="#b8341b"/>
+<line x1="677.2" y1="164.8" x2="677.2" y2="196.3" stroke="#b8341b" stroke-width="1"/>
+<rect x="672.1" y="175.0" width="10.2" height="4.1" fill="#b8341b"/>
+<line x1="694.3" y1="171.2" x2="694.3" y2="213.5" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="689.2" y="171.7" width="10.2" height="7.4" fill="#2a7f5f"/>
+<line x1="711.4" y1="59.6" x2="711.4" y2="171.7" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="706.2" y="115.0" width="10.2" height="56.7" fill="#2a7f5f"/>
+<line x1="728.5" y1="83.2" x2="728.5" y2="118.4" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="723.3" y="107.4" width="10.2" height="7.6" fill="#2a7f5f"/>
+<line x1="745.5" y1="80.0" x2="745.5" y2="119.6" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="740.4" y="83.7" width="10.2" height="23.7" fill="#2a7f5f"/>
+<line x1="762.6" y1="82.0" x2="762.6" y2="126.6" stroke="#b8341b" stroke-width="1"/>
+<rect x="757.5" y="83.7" width="10.2" height="42.1" fill="#b8341b"/>
+<line x1="779.7" y1="88.0" x2="779.7" y2="137.2" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="774.6" y="88.0" width="10.2" height="37.8" fill="#2a7f5f"/>
+<line x1="796.8" y1="43.4" x2="796.8" y2="115.9" stroke="#b8341b" stroke-width="1"/>
+<rect x="791.7" y="88.0" width="10.2" height="27.9" fill="#b8341b"/>
+<line x1="813.9" y1="85.1" x2="813.9" y2="127.7" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="808.8" y="97.5" width="10.2" height="18.4" fill="#2a7f5f"/>
+<line x1="831.0" y1="94.4" x2="831.0" y2="131.1" stroke="#b8341b" stroke-width="1"/>
+<rect x="825.8" y="97.5" width="10.2" height="20.7" fill="#b8341b"/>
+<line x1="848.0" y1="114.7" x2="848.0" y2="140.2" stroke="#b8341b" stroke-width="1"/>
+<rect x="842.9" y="118.1" width="10.2" height="7.8" fill="#b8341b"/>
+<polyline points="164.7,154.1 216.0,247.6 335.5,40.0 421.0,340.0 643.0,130.1 694.3,213.5 711.4,59.6 779.7,137.2 796.8,43.4" fill="none" stroke="#1f5f8b" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="164.7" y="146.1" text-anchor="middle" fill="#1f5f8b" font-weight="700">H</text>
+<text x="216.0" y="263.6" text-anchor="middle" fill="#1f5f8b" font-weight="700">L</text>
+<text x="335.5" y="32.0" text-anchor="middle" fill="#1f5f8b" font-weight="700">HH</text>
+<text x="421.0" y="356.0" text-anchor="middle" fill="#1f5f8b" font-weight="700">LL</text>
+<text x="643.0" y="122.1" text-anchor="middle" fill="#1f5f8b" font-weight="700">LH</text>
+<text x="694.3" y="229.5" text-anchor="middle" fill="#1f5f8b" font-weight="700">HL</text>
+<text x="711.4" y="51.6" text-anchor="middle" fill="#1f5f8b" font-weight="700">HH</text>
+<text x="779.7" y="153.2" text-anchor="middle" fill="#1f5f8b" font-weight="700">HL</text>
+<text x="796.8" y="35.4" text-anchor="middle" fill="#1f5f8b" font-weight="700">HH</text>
+<text x="860" y="368" text-anchor="end" fill="#777">83328 – 84902</text>
+</svg>
+  <figcaption>BTCUSDT 5m · 2026-09-24 · UTC 13–17。标签已标出，判决请你按规则下。</figcaption></figure>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">按本课规则，这段的判决是什么？</div>
+    <button class="opt">上升趋势：高点与低点都在抬高</button>
+    <button class="opt">下降趋势：高点与低点都在压低</button>
+    <button class="opt">交易区间：高点与低点互相重叠</button>
+    <div class="fb right" data-for="right">对。最后两个高点 HH HH（16:15、16:40），最后两个低点 HL HL（16:10、16:35）。但看前半段：HH 之后是 LL 再 LH——那时候规则说的是"区间"。<strong>趋势是在 16:10 的 HL 出现时才被确认的</strong>，不是在 14:25 那个漂亮的 HH。规则总是晚一腿，这是故意的：晚一腿确认，比早一腿猜便宜。</div>
+    <div class="fb nope" data-for="nope">数字母：最后两个高点是 HH、HH（16:15、16:40），最后两个低点是 HL、HL（16:10、16:35）。两个条件都满足 → <strong>上升趋势</strong>。容易看错的地方在前半段：HH 之后来了 LL 和 LH，那时确实是区间——但判决只看<strong>最近</strong>两对。</div>
+  </div>
+
+  <h2>二、推动与回调</h2>
+
+  <p>趋势是由两种腿交替组成的：顺方向的<span class="term">推动</span>（impulse）和逆方向的<span class="term">回调</span>（pullback）。Brooks 对回调的定义有一个硬边界："a temporary pause or countertrend move that is part of a trend... and <strong>does not retrace beyond the start</strong>"（<a href="https://www.brookstradingcourse.com/price-action-trading-terms-glossary/">词汇表</a>）。超过推动起点，就不叫回调了。Grimes 给了健康趋势的量化特征："the upswings are larger than the downswings; <strong>usually in time, but always in price</strong>"。</p>
+
+  <p>工具最后一行就是在量这个：最近两腿，第二腿回撤了第一腿的百分之多少。看 10 月 10 日：</p>
+
+  <figure><svg style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 380" font-family="system-ui, sans-serif" font-size="12">
+<rect width="900" height="380" fill="white"/>
+<text x="40" y="22" font-size="14" fill="#333">BTCUSDT 5m 2026-10-10 UTC 12-16</text>
+<line x1="45.1" y1="234.4" x2="45.1" y2="265.9" stroke="#b8341b" stroke-width="1"/>
+<rect x="40.0" y="234.4" width="10.2" height="11.6" fill="#b8341b"/>
+<line x1="62.2" y1="239.2" x2="62.2" y2="269.2" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="57.1" y="239.2" width="10.2" height="6.8" fill="#2a7f5f"/>
+<line x1="79.3" y1="228.7" x2="79.3" y2="239.3" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="74.2" y="239.2" width="10.2" height="1.0" fill="#2a7f5f"/>
+<line x1="96.4" y1="230.9" x2="96.4" y2="252.0" stroke="#b8341b" stroke-width="1"/>
+<rect x="91.2" y="239.2" width="10.2" height="4.9" fill="#b8341b"/>
+<line x1="113.5" y1="244.1" x2="113.5" y2="263.8" stroke="#b8341b" stroke-width="1"/>
+<rect x="108.3" y="244.1" width="10.2" height="19.6" fill="#b8341b"/>
+<line x1="130.5" y1="259.5" x2="130.5" y2="276.2" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="125.4" y="259.6" width="10.2" height="4.1" fill="#2a7f5f"/>
+<line x1="147.6" y1="259.4" x2="147.6" y2="259.6" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="142.5" y="259.5" width="10.2" height="1.0" fill="#2a7f5f"/>
+<line x1="164.7" y1="259.2" x2="164.7" y2="288.9" stroke="#b8341b" stroke-width="1"/>
+<rect x="159.6" y="259.4" width="10.2" height="23.8" fill="#b8341b"/>
+<line x1="181.8" y1="250.2" x2="181.8" y2="283.3" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="176.7" y="250.2" width="10.2" height="33.0" fill="#2a7f5f"/>
+<line x1="198.9" y1="250.2" x2="198.9" y2="291.2" stroke="#b8341b" stroke-width="1"/>
+<rect x="193.8" y="250.2" width="10.2" height="40.9" fill="#b8341b"/>
+<line x1="216.0" y1="291.1" x2="216.0" y2="301.6" stroke="#b8341b" stroke-width="1"/>
+<rect x="210.8" y="291.2" width="10.2" height="10.4" fill="#b8341b"/>
+<line x1="233.0" y1="301.5" x2="233.0" y2="301.6" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="227.9" y="301.5" width="10.2" height="1.0" fill="#2a7f5f"/>
+<line x1="250.1" y1="268.9" x2="250.1" y2="301.6" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="245.0" y="276.2" width="10.2" height="25.4" fill="#2a7f5f"/>
+<line x1="267.2" y1="276.1" x2="267.2" y2="299.3" stroke="#b8341b" stroke-width="1"/>
+<rect x="262.1" y="276.2" width="10.2" height="13.2" fill="#b8341b"/>
+<line x1="284.3" y1="278.3" x2="284.3" y2="293.0" stroke="#b8341b" stroke-width="1"/>
+<rect x="279.2" y="289.4" width="10.2" height="3.6" fill="#b8341b"/>
+<line x1="301.4" y1="254.2" x2="301.4" y2="293.0" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="296.2" y="259.5" width="10.2" height="33.5" fill="#2a7f5f"/>
+<line x1="318.5" y1="250.6" x2="318.5" y2="267.6" stroke="#b8341b" stroke-width="1"/>
+<rect x="313.3" y="259.5" width="10.2" height="5.2" fill="#b8341b"/>
+<line x1="335.5" y1="241.9" x2="335.5" y2="264.8" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="330.4" y="253.0" width="10.2" height="11.8" fill="#2a7f5f"/>
+<line x1="352.6" y1="251.5" x2="352.6" y2="263.0" stroke="#b8341b" stroke-width="1"/>
+<rect x="347.5" y="253.1" width="10.2" height="9.8" fill="#b8341b"/>
+<line x1="369.7" y1="262.9" x2="369.7" y2="286.5" stroke="#b8341b" stroke-width="1"/>
+<rect x="364.6" y="263.0" width="10.2" height="23.5" fill="#b8341b"/>
+<line x1="386.8" y1="286.4" x2="386.8" y2="322.5" stroke="#b8341b" stroke-width="1"/>
+<rect x="381.7" y="286.5" width="10.2" height="27.5" fill="#b8341b"/>
+<line x1="403.9" y1="260.3" x2="403.9" y2="314.1" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="398.8" y="263.2" width="10.2" height="50.9" fill="#2a7f5f"/>
+<line x1="421.0" y1="263.2" x2="421.0" y2="301.9" stroke="#b8341b" stroke-width="1"/>
+<rect x="415.8" y="263.2" width="10.2" height="14.8" fill="#b8341b"/>
+<line x1="438.0" y1="278.0" x2="438.0" y2="278.1" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="432.9" y="278.0" width="10.2" height="1.0" fill="#2a7f5f"/>
+<line x1="455.1" y1="273.3" x2="455.1" y2="340.0" stroke="#b8341b" stroke-width="1"/>
+<rect x="450.0" y="278.1" width="10.2" height="46.7" fill="#b8341b"/>
+<line x1="472.2" y1="322.9" x2="472.2" y2="334.7" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="467.1" y="323.2" width="10.2" height="1.6" fill="#2a7f5f"/>
+<line x1="489.3" y1="300.5" x2="489.3" y2="323.2" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="484.2" y="312.8" width="10.2" height="10.4" fill="#2a7f5f"/>
+<line x1="506.4" y1="279.7" x2="506.4" y2="312.9" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="501.2" y="297.5" width="10.2" height="15.3" fill="#2a7f5f"/>
+<line x1="523.5" y1="281.4" x2="523.5" y2="304.4" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="518.3" y="281.5" width="10.2" height="15.8" fill="#2a7f5f"/>
+<line x1="540.5" y1="157.5" x2="540.5" y2="281.5" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="535.4" y="158.7" width="10.2" height="122.7" fill="#2a7f5f"/>
+<line x1="557.6" y1="132.7" x2="557.6" y2="225.1" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="552.5" y="132.7" width="10.2" height="25.9" fill="#2a7f5f"/>
+<line x1="574.7" y1="40.0" x2="574.7" y2="165.6" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="569.6" y="90.6" width="10.2" height="42.2" fill="#2a7f5f"/>
+<line x1="591.8" y1="60.3" x2="591.8" y2="102.3" stroke="#b8341b" stroke-width="1"/>
+<rect x="586.7" y="90.6" width="10.2" height="1.0" fill="#b8341b"/>
+<line x1="608.9" y1="58.8" x2="608.9" y2="147.5" stroke="#b8341b" stroke-width="1"/>
+<rect x="603.8" y="91.2" width="10.2" height="52.0" fill="#b8341b"/>
+<line x1="626.0" y1="93.1" x2="626.0" y2="150.8" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="620.8" y="117.4" width="10.2" height="25.7" fill="#2a7f5f"/>
+<line x1="643.0" y1="108.9" x2="643.0" y2="138.9" stroke="#b8341b" stroke-width="1"/>
+<rect x="637.9" y="117.4" width="10.2" height="8.9" fill="#b8341b"/>
+<line x1="660.1" y1="91.1" x2="660.1" y2="133.6" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="655.0" y="91.1" width="10.2" height="35.2" fill="#2a7f5f"/>
+<line x1="677.2" y1="69.1" x2="677.2" y2="140.3" stroke="#b8341b" stroke-width="1"/>
+<rect x="672.1" y="91.2" width="10.2" height="19.0" fill="#b8341b"/>
+<line x1="694.3" y1="110.1" x2="694.3" y2="144.6" stroke="#b8341b" stroke-width="1"/>
+<rect x="689.2" y="110.1" width="10.2" height="34.4" fill="#b8341b"/>
+<line x1="711.4" y1="131.7" x2="711.4" y2="159.5" stroke="#b8341b" stroke-width="1"/>
+<rect x="706.2" y="144.6" width="10.2" height="1.0" fill="#b8341b"/>
+<line x1="728.5" y1="141.5" x2="728.5" y2="168.5" stroke="#b8341b" stroke-width="1"/>
+<rect x="723.3" y="145.5" width="10.2" height="6.5" fill="#b8341b"/>
+<line x1="745.5" y1="128.4" x2="745.5" y2="152.1" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="740.4" y="128.4" width="10.2" height="23.6" fill="#2a7f5f"/>
+<line x1="762.6" y1="69.7" x2="762.6" y2="131.5" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="757.5" y="98.8" width="10.2" height="29.7" fill="#2a7f5f"/>
+<line x1="779.7" y1="85.8" x2="779.7" y2="98.8" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="774.6" y="88.3" width="10.2" height="10.5" fill="#2a7f5f"/>
+<line x1="796.8" y1="83.6" x2="796.8" y2="98.8" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="791.7" y="83.6" width="10.2" height="4.7" fill="#2a7f5f"/>
+<line x1="813.9" y1="49.8" x2="813.9" y2="83.7" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="808.8" y="72.2" width="10.2" height="11.4" fill="#2a7f5f"/>
+<line x1="831.0" y1="65.3" x2="831.0" y2="115.6" stroke="#b8341b" stroke-width="1"/>
+<rect x="825.8" y="72.2" width="10.2" height="43.3" fill="#b8341b"/>
+<line x1="848.0" y1="74.3" x2="848.0" y2="131.5" stroke="#2a7f5f" stroke-width="1"/>
+<rect x="842.9" y="74.3" width="10.2" height="41.2" fill="#2a7f5f"/>
+<polyline points="181.8,250.2 216.0,301.6 335.5,241.9 455.1,340.0 574.7,40.0 728.5,168.5" fill="none" stroke="#1f5f8b" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="181.8" y="242.2" text-anchor="middle" fill="#1f5f8b" font-weight="700">H</text>
+<text x="216.0" y="317.6" text-anchor="middle" fill="#1f5f8b" font-weight="700">L</text>
+<text x="335.5" y="233.9" text-anchor="middle" fill="#1f5f8b" font-weight="700">HH</text>
+<text x="455.1" y="356.0" text-anchor="middle" fill="#1f5f8b" font-weight="700">LL</text>
+<text x="574.7" y="32.0" text-anchor="middle" fill="#1f5f8b" font-weight="700">HH</text>
+<text x="728.5" y="184.5" text-anchor="middle" fill="#1f5f8b" font-weight="700">HL</text>
+<text x="860" y="368" text-anchor="end" fill="#777">82724 – 83045</text>
+</svg>
+  <figcaption>BTCUSDT 5m · 2026-10-10 · UTC 12–16。14:00–14:35 那一腿 +39 bp / 7 根（5.6 bp/根），之前所有腿都 ≤ 3.3 bp/根；接着 −17 bp / 9 根，回撤 43%。</figcaption></figure>
+
+  <pre><code>$ python practice/structure.py --date 2026-10-10
+48 bars, 6 swings  | verdict: TRADING RANGE (overlap)
+    12:40      H    82819.9
+    12:50      L    82764.8            -7     2    -3.3
+    13:25      H    82828.8   HH       +8     7    +1.1
+    14:00      L    82723.7   LL      -13     7    -1.8
+    14:35      H    83045.1   HH      +39     7    +5.6
+    15:20      L    82907.4   HL      -17     9    -1.8
+
+Last two legs: +39 bp in 7 bars, then -17 bp in 9 bars -> the second retraced 43% of the first (pullback-sized)</code></pre>
+
+  <div class="quiz" data-answer="2">
+    <div class="q">按本课规则，10 月 10 日这段的判决是什么？</div>
+    <button class="opt">上升趋势：高点与低点都在抬高</button>
+    <button class="opt">下降趋势：高点与低点都在压低</button>
+    <button class="opt">交易区间：高点与低点互相重叠</button>
+    <div class="fb right" data-for="right">对——而且这是全课最重要的一题。高点是 HH HH，但低点是 <strong>LL 然后 HL</strong>，只有一个 HL，差一个。规则说：还是区间。可你眼睛看到的是：一次突破（14:00 起那腿速度是之前的两到五倍，Brooks："Trends begin with a breakout"）加上第一次回调（回撤 43%，没过起点）。<strong>两者都对</strong>：规则告诉你趋势<strong>还没被确认</strong>，眼睛告诉你它<strong>正在被确认</strong>。这正是 pullback 这类交易的位置——在趋势被规则确认之前的那一腿进，止损放在回调低点之下，赌的是下一个 HH。如果 15:20 的低点被跌破，你赌错，−1R，结构回到区间。</div>
+    <div class="fb nope" data-for="nope">数字母：高点 HH、HH，满足；低点 <strong>LL、HL</strong>——只有一个 HL，规则要两个。判决：<strong>交易区间</strong>。但别急着翻页：14:00 起那腿 +39 bp / 7 根，速度是之前腿的两到五倍，这是突破；接着的 −17 bp 回撤 43%，没过起点，这是回调。规则说"趋势未确认"，眼睛说"正在确认"，两者都对。pullback 交易就住在这个缝里：止损放在回调低点之下，赌下一个 HH。</div>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">一个关于 BTC 的量化事实</span>
+    2026 年 8 月的一项跨市场研究（<a href="https://arxiv.org/abs/2608.21888">Kitron &amp; Wengrowicz</a>）：15 分钟尺度上，183 个 Binance 交易对里 <strong>90%</strong> 有显著的方向反转（上一个 15 分钟涨，下一个倾向跌），而 187 个美股 / ETF 里只有 2.7%——但这个效应"economically marginal after transaction costs"。对你的含义：在 5–15 分钟尺度上<strong>追刚走完的推动是在和统计作对</strong>；在推动之后的回调里顺势进，是顺着它。这不是一个策略，是一个方向性的提醒：别追。
+  </div>
+
+  <h2>三、四个格子</h2>
+
+  <p>Grimes 把所有交易分四类（<a href="https://www.adamhgrimes.com/technical-analysis-thinking-in-categories/">Thinking in Categories</a>）。你的五个名字各归一格：</p>
+
+  <table class="g">
+    <thead><tr><th>类</th><th style="text-align:left">赌什么</th><th style="text-align:left">你的名字</th><th style="text-align:left">基础概率</th></tr></thead>
+    <tbody>
+      <tr><td>趋势延续</td><td style="text-align:left">趋势再走一腿</td><td style="text-align:left">pullback</td><td style="text-align:left">有可验证的统计优势（Grimes）</td></tr>
+      <tr><td>趋势终结</td><td style="text-align:left">趋势停下来</td><td style="text-align:left">channel reversal（上 / 下）</td><td style="text-align:left">趋势日里 80% 失败（Brooks）</td></tr>
+      <tr><td>支撑阻力守住</td><td style="text-align:left">区间边缘弹回</td><td style="text-align:left">trading range reversal</td><td style="text-align:left">区间里突破 80% 失败 = 它的朋友（Brooks）</td></tr>
+      <tr><td>支撑阻力破掉</td><td style="text-align:left">突破跟进</td><td style="text-align:left">breakout</td><td style="text-align:left">"Most breakouts fail"（Grimes）</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">注意第三行和第四行是<strong>同一个结构的两面</strong>：区间里做边缘反转和做突破，是互为对手盘的赌注，Brooks 的 80% 说的是同一件事。而第二行——你的 channel reversal——是在趋势里赌终结，Grimes 说赢的定义只是"趋势停了，其余都是 bonus"。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">Brooks 说区间里 80% 的突破失败，趋势日里 80% 的反转失败。这两句合起来要求你在下单前先做什么？</div>
+    <button class="opt">先判决当前是区间还是趋势，因为同一个 setup 在两种结构里胜率相反</button>
+    <button class="opt">先判决当前是突破还是反转，因为同一个结构在两种 setup 里胜率相反</button>
+    <div class="fb right" data-for="right">对。结构在前，setup 在后。你过去的做法（日志里五个名字混着用）相当于不看结构就掷 setup——在区间里做 breakout 和在趋势里做 channel reversal 都是在逆 80%。<strong>阶段 1 只练趋势延续这一格</strong>：判决为趋势 → 等回调 → 回调不过起点 → 进。其他三格先不碰，直到这一格有 30 笔样本。</div>
+    <div class="fb nope" data-for="nope">顺序反了。突破和反转是 setup（你要做的动作），区间和趋势是结构（市场正在做的事）。Brooks 两句话的主语都是结构："<strong>区间里</strong>……" "<strong>趋势日里</strong>……"。先判结构，再决定哪个 setup 的基础概率站在你这边。阶段 1 只练趋势延续（pullback）这一格。</div>
+  </div>
+
+  <h2>四、多时间框架，一句话</h2>
+
+  <p>Grimes 的 <a href="https://www.adamhgrimes.com/nested-pullback/">nested pullback</a>：你 5 分钟图上的一次完整回调，在 1 小时图上只是一次回调里的一腿；高一级框架"turning out of a pullback"时，低一级的顺势形态胜率更高。你的止损约 1%，和 1 小时级别的摆动尺寸同量级——所以<strong>1 小时定方向、5 分钟找回调</strong>。工具没有 1 小时模式，但 <code>--start 0 --end 24 --strength 8</code> 在 5 分钟数据上看全天，等效于粗一级的结构。</p>
+
+  <div class="callout tip">
+    <span class="label">动手挑战</span>
+    <strong>①</strong> <code>python practice/structure.py --date 昨天 --svg practice/out.svg</code>，浏览器打开 svg。找<strong>一个</strong>你不同意的摆动点标注（算法标了但你觉得不该标，或反过来），告诉我是哪个、为什么。这是在校准"规则 vs 眼睛"。<br>
+    <strong>②</strong> 把你 10 笔的 setup 按四个格子归类（表三已给了映射），数一数：几笔是趋势延续？几笔是在区间里做突破或在趋势里做反转（逆 80%）？<br>
+    <strong>③</strong> 从下一笔起，开仓前在日志 <code>note</code> 写三段式：<code>判决/格子/腿</code>，例如 <code>UP/pullback/in-pullback</code>。<code>rules.py</code> 暂不检查它，你自己检查。<br>
+    <strong>④</strong> <strong>先预测再跑</strong>：接下来 20 个工作日的 UTC 12–16 窗口里，几个会被判为趋势？参考数字：过去 31 个工作日里是 <strong>5 个</strong>。写进 NOTES。<br>
+    <strong>⑤</strong> 跑 <code>--start 0 --end 24 --strength 8</code> 看昨天全天，再跑窗口。两级判决一致吗？不一致时，你会信哪个、为什么？
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读（首选来源）</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.adamhgrimes.com/market-structure/">Grimes · Market Structure</a></strong> —— 本课判决规则的出处，一篇博客的长度。读到"upswings larger than downswings... always in price"那句为止。</p>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.brookstradingcourse.com/how-to-trade-manual/trading-ranges/">Brooks · 手册 ch. 6 Trading Ranges</a></strong>（免费章节）—— "80% 的突破失败"、"BLSHS"、"回调超过 20 根就失去趋势的影响"都在这一章。你日志里三个名字的原产地。</p>
+    <p style="margin:0"><strong><a href="https://www.adamhgrimes.com/technical-analysis-thinking-in-categories/">Grimes · Thinking in Categories</a></strong> —— 四个格子。读完把你的五个名字各放进一格，这就是挑战②。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想聊 N = 3 为什么不是 5、为什么判决要"两个 HL"而不是一个、或者 Brooks 的 always-in 概念——直接说。挑战①②④的答案贴给我。<br><br>
+      <strong>下一站：L5 波动率与止损距离。</strong> 你的止损 40–240 bp 是怎么定的？本课之后它有了锚：止损放在回调低点之下。但"之下多少"要用 ATR 量——太近被噪声扫，太远 R 变小、手续费占比不变但目标装不进区间。
+    </div>
+    <div class="nav">
+      <a href="0003-rules-v1-let-the-plan-finish.html">← L3：规则 v1</a>
+      <a href="0005-stop-distance.html">L5：止损距离 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

@@ -10,14 +10,14 @@
 <div class="wrap">
   <p class="kicker">参考文档 · 打印贴在屏幕旁</p>
   <h1>交易日志：字段、公式、每日复盘清单</h1>
-  <p class="subtitle"><code>practice/journal.py</code> 的 13 个字段，以及把它们变成 R 的四个公式。</p>
+  <p class="subtitle"><code>practice/journal.py</code> 的 14 个字段、note 的四段式与描述字段、错误标签，以及把它们变成 R 的四个公式。</p>
 
   <h2>字段</h2>
   <table class="g">
     <thead><tr><th>字段</th><th style="text-align:left">含义</th><th style="text-align:left">何时填</th></tr></thead>
     <tbody>
       <tr><td>id</td><td style="text-align:left">自增编号</td><td style="text-align:left">自动</td></tr>
-      <tr><td>openedAt</td><td style="text-align:left">开仓时间（UTC）</td><td style="text-align:left">自动</td></tr>
+      <tr><td>openedAt</td><td style="text-align:left">开仓时间（UTC），格式 <code>2026-10-12 13:05</code>；R2 / R4 / R5 都靠它</td><td style="text-align:left">自动（add）或手填</td></tr>
       <tr><td>symbol</td><td style="text-align:left">品种，如 <code>BTC/USDT:USDT</code>（ccxt 永续写法）</td><td style="text-align:left">进场前</td></tr>
       <tr><td>side</td><td style="text-align:left">long / short</td><td style="text-align:left">进场前</td></tr>
       <tr><td>setup</td><td style="text-align:left">剧本名字（pullback、breakout…）；没有名字的交易是无计划交易的近亲</td><td style="text-align:left">进场前</td></tr>
@@ -26,9 +26,10 @@
       <tr><td>target</td><td style="text-align:left">目标价</td><td style="text-align:left">进场前</td></tr>
       <tr><td>qty</td><td style="text-align:left">数量 = 1R ÷ 止损距离</td><td style="text-align:left">进场前</td></tr>
       <tr><td>exit</td><td style="text-align:left">实际出场价（空着 = 持仓中）</td><td style="text-align:left">出场后</td></tr>
+      <tr><td>closedAt</td><td style="text-align:left">平仓时间（UTC），格式 <code>2026-10-12 14:35</code>；用于持仓时长与时间止损检查</td><td style="text-align:left">出场后</td></tr>
       <tr><td>feeUsd</td><td style="text-align:left">来回手续费（Binance 从成交明细聚合，订单头里常为空）</td><td style="text-align:left">出场后</td></tr>
       <tr><td>mistake</td><td style="text-align:left">错误标签（见下）；按计划执行则留空</td><td style="text-align:left">复盘时</td></tr>
-      <tr><td>note</td><td style="text-align:left">一句话：当时看到了什么</td><td style="text-align:left">随时</td></tr>
+      <tr><td>note</td><td style="text-align:left">四段式 + 描述字段（见下表），之后可接一句话</td><td style="text-align:left">进场前写前四段</td></tr>
     </tbody>
   </table>
 
@@ -53,6 +54,45 @@ expectancy = mean(resultR)                       # 只统计有 stop 且已平�
   </table>
   <p class="caption">红色 = 手续费吃掉 1/4 以上的 R。来源：<a href="https://www.binance.com/en/fee/schedule">Binance 费率表</a>；BNB 抵扣再降 10%，VIP 档更低。</p>
 
+  <h2>note 字段：四段式 + 描述字段</h2>
+  <p>格式：<code>判决/格子/腿/进场 atr=17 k=4 stop=70bp depth=45% speed=0.6 htf=aligned</code>。前四段用斜杠分隔，<code>rules.py</code> 检查前三段是否在词汇表里；斜杠后的 <code>key=value</code> 是描述字段，空格分隔，30 笔后用来分组。</p>
+
+  <table class="g">
+    <thead><tr><th>段</th><th>取值</th><th style="text-align:left">含义</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="3">① 判决</td><td><code>UP</code></td><td style="text-align:left">上升趋势：最近两个摆动高点 HH 且最近两个摆动低点 HL（L4 规则）</td></tr>
+      <tr><td><code>DOWN</code></td><td style="text-align:left">下降趋势：最近两高 LH 且两低 LL</td></tr>
+      <tr><td><code>RANGE</code></td><td style="text-align:left">其他一切，包括只确认了一半的趋势（差一个 HL / LL）</td></tr>
+      <tr><td rowspan="4">② 格子</td><td><code>cont</code></td><td style="text-align:left">趋势延续：顺趋势，在回调里进。你的 pullback。阶段 1 唯一允许的格子</td></tr>
+      <tr><td><code>term</code></td><td style="text-align:left">趋势终结：逆趋势赌它停。你的 channel reversal</td></tr>
+      <tr><td><code>hold</code></td><td style="text-align:left">支撑阻力守住：区间边缘赌弹回。你的 trading range reversal</td></tr>
+      <tr><td><code>break</code></td><td style="text-align:left">支撑阻力破掉：赌突破跟进。你的 breakout</td></tr>
+      <tr><td rowspan="4">③ 腿</td><td><code>in-pullback</code></td><td style="text-align:left">当前腿是回调，且没有超过上一推动的起点。cont 的合法位置</td></tr>
+      <tr><td><code>after-impulse</code></td><td style="text-align:left">推动刚走完就进，等于在追</td></tr>
+      <tr><td><code>at-edge</code></td><td style="text-align:left">价格在区间的上沿或下沿</td></tr>
+      <tr><td><code>in-breakout</code></td><td style="text-align:left">突破进行中，已出区间但还没回调</td></tr>
+      <tr><td rowspan="3">④ 进场</td><td><code>maker</code></td><td style="text-align:left">限价挂单成交（2 bp/边）</td></tr>
+      <tr><td><code>taker</code></td><td style="text-align:left">市价或穿越盘口的限价成交（5 bp/边）</td></tr>
+      <tr><td><code>missed</code></td><td style="text-align:left">挂了没成交。仍记一行：exit 留空、mistake 写 <code>missed</code>，stats 会排除，但能数出错过了几笔</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">自洽的组合：<code>UP/cont/in-pullback</code>、<code>DOWN/cont/in-pullback</code>、<code>RANGE/hold/at-edge</code>。逆 80% 的组合：<code>RANGE/break/in-breakout</code>、<code>UP/term/after-impulse</code>。阶段 1 只允许前两种。</p>
+
+  <table class="g">
+    <thead><tr><th>描述字段</th><th>写法</th><th style="text-align:left">含义 / 怎么得到</th></tr></thead>
+    <tbody>
+      <tr><td>atr</td><td><code>atr=17</code></td><td style="text-align:left">进场时 5 分钟 ATR14，单位 bp。盯盘时跑 <code>python practice/structure.py --live</code>，第一行 "ATR14 now"</td></tr>
+      <tr><td>k</td><td><code>k=4</code></td><td style="text-align:left">止损用的 ATR 倍数，规则 v1 固定 4</td></tr>
+      <tr><td>stop</td><td><code>stop=70bp</code></td><td style="text-align:left">实际止损距离，bp。不低于 60</td></tr>
+      <tr><td>depth</td><td><code>depth=45%</code></td><td style="text-align:left">回调幅度 ÷ 前一推动幅度。超过 100% 就不是回调。<code>structure.py --live</code> 最后两行直接给出</td></tr>
+      <tr><td>speed</td><td><code>speed=0.6</code></td><td style="text-align:left">前一推动的速度 = 推动幅度 ÷ 根数 ÷ 当时的 ATR，单位"每根 K 线几个 ATR"。<code>structure.py --live</code> 的 xATR/bar 列（看回调之前那一腿）或最后一行 "For the note"。大于 1 = 高潮式推动，剧本标为"描述性不做"</td></tr>
+      <tr><td>htf</td><td><code>htf=aligned</code> / <code>against</code> / <code>range</code></td><td style="text-align:left">当天到此刻、<code>structure.py --start 0 --end 12 --strength 8</code> 的粗一级判决与交易方向是否同向</td></tr>
+      <tr><td>cvd</td><td><code>cvd=confirm</code> / <code>diverge</code> / <code>flat</code></td><td style="text-align:left">回调期间 CVD 的样子：confirm = 回落但守住突破前水平；diverge = 跌穿突破前水平；flat = 看不出。<code>flow.py --live</code> 或 <code>--date</code>（L8）</td></tr>
+      <tr><td>level</td><td><code>level=vwap</code> / <code>pdh</code> / <code>pdl</code> / <code>swing</code> / <code>none</code></td><td style="text-align:left">回调极值 1 ATR 内最近的价位。只描述，不作条件（L6）</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">描述字段不是条件，是为了 30 笔后能按它们分组看期望值。写不全不算违规；写错比不写更糟，不确定就不写。<strong>盯盘时一条命令拿到 atr / depth / speed：</strong><code>python practice/structure.py --live</code>，复制最后一行 "For the note"，再补 htf 和 level。</p>
+
   <h2>错误标签起始词汇</h2>
   <table class="g">
     <thead><tr><th>标签</th><th style="text-align:left">含义</th></tr></thead>
@@ -63,7 +103,10 @@ expectancy = mean(resultR)                       # 只统计有 stop 且已平�
       <tr><td>early-exit</td><td style="text-align:left">没到目标也没到止损就手动平掉</td></tr>
       <tr><td>oversized</td><td style="text-align:left">数量超过 1R ÷ 止损距离</td></tr>
       <tr><td>revenge</td><td style="text-align:left">上一笔亏损后 5 分钟内的非计划进场</td></tr>
-      <tr><td>outside-session</td><td style="text-align:left">在约定盯盘时段之外交易</td></tr>
+      <tr><td>outside-session</td><td style="text-align:left">在约定开仓窗口（UTC 12–15）之外开仓（R2）</td></tr>
+      <tr><td>time-stop</td><td style="text-align:left">不是错误：UTC 16:00 时间止损平仓的标记（R3 三种合法出场之一）</td></tr>
+      <tr><td>no-stop-order</td><td style="text-align:left">开仓后没在交易所挂止损单（R1）</td></tr>
+      <tr><td>missed</td><td style="text-align:left">不是错误：限价挂单没成交的标记，exit 留空</td></tr>
     </tbody>
   </table>
 

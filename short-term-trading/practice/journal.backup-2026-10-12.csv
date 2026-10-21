@@ -1,0 +1,11 @@
+id,openedAt,symbol,side,setup,entry,stop,target,exit,qty,feeUsd,mistake,note
+,,BTC/USDT:USDT,short,pullback,64179.3,65730,62211.2,62969.7,,,,
+,,BTC/USDT:USDT,short,trading range reversal,63948.1,64493.7,63476.3,63782.1,,,,
+,,BTC/USDT:USDT,long,breakout,65490.4,64770.3,66592.6,64737.6,,,,
+,,BTC/USDT:USDT,long,trading range reversal,65768.6,65506,66284.7,65430.6,,,,
+,,BTC/USDT:USDT,long,pullback,66729.9,66088.8,67371.6,66153.2,,,,
+,,BTC/USDT:USDT,short,upward channel reversal,66440.8,66774.9,66098.7,66675.2,,,,
+,,BTC/USDT:USDT,short,pullback,64199.6,65084.6,63314.5,65097.2,,,,
+,,BTC/USDT:USDT,short,pullback,64669.5,65125.5,63972.8,64108,,,,
+,,BTC/USDT:USDT,short,upward channel reversal,63130.4,63711.9,62551.8,63181.4,,,,
+,,BTC/USDT:USDT,long,downward channel reversal,63637.7,63339,64046.8,63300.7,,,,

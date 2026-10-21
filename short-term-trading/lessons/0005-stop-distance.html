@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L5 · 止损距离：噪声、手续费与装不进区间的目标</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">短线交易 · 第 5 课 · 阶段 1 结构</p>
+  <h1>止损距离：噪声、手续费与装不进区间的目标</h1>
+  <p class="subtitle">L4 给了止损一个锚：回调极值。本课回答"之下多少"。答案不靠经验法则，靠一张在你自己市场上量出来的表——它顺便揭示了一件比止损更大的事。单一胜利：一条写下来的止损规则，和一个你能复述的理由。</p>
+
+  <h2>零、你的止损是怎么定的？</h2>
+
+  <p>10 笔的止损距离 40–240 bp，中位约 100 bp。BTC 5 分钟图的 ATR14 中位是 13 bp（窗口里 17 bp），所以你的止损是 5 分钟波动的 <strong>3 到 15 倍</strong>，跨度五倍。没有锚的止损就是这样：有时放在噪声里，有时放到下一个小时的区间之外。</p>
+
+  <h2>一、ATR：波动的单位</h2>
+
+  <p>Wilder 1978 年的定义（<a href="https://www.tradingview.com/support/solutions/43000501823-average-true-range-atr/">TradingView 文档</a>转述）：</p>
+  <pre><code>TR  = max(high − low, |high − prevClose|, |low − prevClose|)
+ATR = 14 根 TR 的 Wilder 平滑均值（第一根取简单平均，之后 (前值 × 13 + TR) / 14）</code></pre>
+  <p>为什么用它而不是固定 bp：波动有记忆——高波动日后面跟着高波动日（Grimes：<a href="https://www.adamhgrimes.com/volatility-has-a-memory/">Volatility Has a Memory</a>）。用 ATR 做单位，止损在波动翻倍时自动跟着翻倍，规则不用改。</p>
+
+  <h2>二、太近与太远，各有一个敌人</h2>
+
+  <p>太近：噪声把你扫出去，然后行情按你的方向走。太远：R 变小——同样 $2 的风险，止损 120 bp 时名义仓位只有止损 30 bp 时的四分之一；而且 2R 的目标变成 240 bp，装不进一个小时 94 bp 的区间（L2），只能靠时间止损收场。中间某处有一个最优的 k。<strong>量它</strong>：</p>
+
+  <p><code>practice/stop_distance.py</code> 在 60 个交易日的 5 分钟数据上做一件机械的事：判决为趋势时，每当一个顺势的回调极值被确认（HL 或 LH），在确认那根 K 线的收盘进场，止损放在极值之外 k × ATR，目标 2R，到收盘还没结果就时间止损。没有前视：确认需要之后 3 根 K 线，所以进场比极值晚 15 分钟。</p>
+
+  <pre><code>$ python practice/stop_distance.py --k 1 2 3 4 6 8
+BTCUSDT 5m, 60 days ending 2026-10-13, target 2.0R, fee 5 bp/side
+ATR14 (5m) median: all hours 13 bp | UTC 12-16 17 bp
+
+ k x ATR     n  stop%  target%  time%  stop bp  fee R  gross E   net E
+    1.00   207    54%      29%     18%      27   0.60    +0.05   -0.54
+    2.00   207    46%      23%     31%      41   0.37    +0.03   -0.35
+    3.00   207    42%      19%     39%      53   0.28    +0.01   -0.26
+    4.00   207    34%      19%     46%      68   0.22    +0.06   -0.16
+    6.00   207    26%      14%     60%      96   0.16    +0.04   -0.12
+    8.00   207    21%      11%     69%     124   0.12    +0.02   -0.10</code></pre>
+
+  <p>三遍读法：</p>
+  <ul>
+    <li><strong>被扫率</strong>从 54% 降到 21%——止损越远越少被噪声扫，符合直觉。但<strong>到目标率</strong>也从 29% 降到 11%，被时间止损接住的从 18% 涨到 69%：止损远了，目标也远了，一天走不完。</li>
+    <li><strong>毛期望每一行都约等于零</strong>（−0.05 到 +0.06）。这是本课最大的一句话：<strong>结构本身，机械执行，没有 edge</strong>。L4 教的判决和回调是必要条件，不是充分条件；edge 必须来自"挑哪一个回调"——那是 L6、L7 的事。这个结果和你的量化课 L13 是同一种结果：诚实的流水线最常给出的答案是"这里没有"。</li>
+    <li><strong>净期望全负，差额几乎全是手续费</strong>。k = 1 时手续费占 0.60R——还没开仓就输了半个多 R。到 k = 4（68 bp）才降到 0.22R。</li>
+  </ul>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">k 从 1 升到 8，被扫率从 54% 降到 21%，为什么净期望仍然是负的？</div>
+    <button class="opt">止损远了目标也远了，到目标的比例同样下降，大多数交易被时间止损接走</button>
+    <button class="opt">止损远了仓位就小了，每笔的美元盈利同样下降，大多数交易被手续费吃掉</button>
+    <div class="fb right" data-for="right">对。看 time% 那一列：69% 的交易到收盘还没结果。被扫得少不等于赢得多，因为 2R 的目标跟着止损一起远离，一天的行程装不下。净期望为负的另一半原因才是手续费（它在 k = 8 时只剩 0.12R）。<strong>止损距离不是独立变量，它同时决定目标距离、名义仓位和手续费占比。</strong></div>
+    <div class="fb nope" data-for="nope">仓位小了，但盈亏是以 R 计的，美元大小不影响期望值这一列。真正的原因在 time% 那列：k = 8 时 69% 的交易到收盘还没结果——目标 2R = 248 bp，一天走不完。手续费在 k = 8 时只占 0.12R，已经不是主因。止损距离同时决定了目标距离，这是它和"仓位"的区别。</div>
+  </div>
+
+  <h2>三、把手续费换成挂单</h2>
+
+  <p>同一张表，把每边 5 bp 换成挂单的 2 bp（<code>--fee 2</code>）：</p>
+  <pre><code> k x ATR   fee R   net E
+    1.00    0.24   -0.18
+    2.00    0.15   -0.12
+    4.00    0.09   -0.03
+    6.00    0.06   -0.02
+    8.00    0.05   -0.03</code></pre>
+  <p>毛期望一个字没变，k = 4 的净期望从 −0.16 变成 −0.03。回调交易天然适合限价单：你本来就在等价格回到一个位置。代价是有时不成交——这要记录（见下面的规则），因为"没成交的那些"是不是恰好是赚钱的那些，只有日志能回答。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">1R = $2，止损 68 bp（k = 4），吃单进出。名义仓位和手续费占 R 各是多少？</div>
+    <button class="opt">名义 294 美元，手续费占 0.15R</button>
+    <button class="opt">名义 136 美元，手续费占 0.07R</button>
+    <div class="fb right" data-for="right">对：名义 = 1R ÷ 止损% = 2 ÷ 0.0068 = $294；手续费 = 294 × 0.10% = $0.29 = 0.15R。表里写 0.22 是因为它取的是逐笔手续费占比的平均（止损小的那些笔拉高了均值）。换成挂单：$0.12，0.06R。</div>
+    <div class="fb nope" data-for="nope">名义 = 1R ÷ 止损% = 2 ÷ 0.0068 = <strong>$294</strong>，不是 136（那是止损 1.47% 时的数）。来回 0.10% × 294 = $0.29 = <strong>0.15R</strong>。公式在 L1：手续费占 R = 2 × 单边费率 ÷ 止损距离%，与资金量无关。</div>
+  </div>
+
+  <h2>四、只看你的窗口</h2>
+
+  <pre><code>$ python practice/stop_distance.py --k 1 2 4 6 --session 12 16
+ k x ATR     n  stop%  target%  time%  stop bp  fee R  gross E   net E
+    1.00    40    62%      32%     5%       39   0.47    +0.05   -0.41
+    2.00    40    55%      25%    20%       57   0.30    -0.02   -0.32
+    4.00    40    45%      15%    40%       93   0.18    -0.10   -0.28
+    6.00    40    32%      12%    55%      127   0.13    -0.04   -0.17</code></pre>
+  <p>窗口里 ATR 更大（止损 bp 都更宽），40 笔样本，毛期望略负。不要过度解读——40 笔的标准误大约 ±0.2R——但它至少没有说"窗口里的回调特别好"。L2 选的窗口是为了行程，不是为了 edge；edge 还是要从挑选里来。</p>
+
+  <h2>五、规则</h2>
+
+  <div class="callout">
+    <span class="label">止损规则 v1（写进规则卡）</span>
+    <strong>止损 = 回调极值 − 4 × ATR14(5m)</strong>（空单镜像），且不低于 60 bp。窗口里 ≈ 70 bp。目标 2R ≈ 140 bp，需要两个以上活跃小时——所以它和 UTC 16 的时间止损是一套。<br><br>
+    <strong>进场优先限价挂在回调里</strong>（maker）。note 加第四段：<code>maker</code> / <code>taker</code> / <code>missed</code>（挂了没成交也记一行，exit 留空、mistake 写 <code>missed</code>，stats 会把它排除，但你能数）。<br><br>
+    为什么是 4 不是 6：k = 6 的被扫率只再降 8 个点，时间止损却涨到 60%——目标 2R ≈ 190 bp，在你的窗口里几乎只能靠时间止损收场。名义仓位在两种 k 下都不到账户的一倍（$2 ÷ 0.7% ≈ $286），杠杆不是本课的约束。
+  </div>
+
+  <div class="callout tip">
+    <span class="label">动手挑战</span>
+    <strong>①</strong> 跑 <code>python practice/stop_distance.py --k 1 2 3 4 6 8</code>（首次下载约 60 个 5m 文件）。数字会和课里略有出入（多了几天）。<br>
+    <strong>②</strong> <strong>先预测再跑</strong>：<code>--target 1.5</code> 和 <code>--target 3</code>。到目标率、时间止损率、毛期望各怎么变？写下预测再看。<br>
+    <strong>③</strong> <code>--symbol ETHUSDT</code>：ETH 的 5m ATR 是 BTC 的几倍？k = 4 的止损 bp 是多少？这决定你以后做 ETH 时 $2 的 R 对应多大名义。<br>
+    <strong>④</strong> 下一笔交易按规则定止损，note 写四段：<code>UP/cont/in-pullback/maker</code>，并在 note 末尾加 <code>atr=17 k=4 stop=70bp</code> 这种实际数字。<br>
+    <strong>⑤</strong> 本课最大的结论是"结构机械执行没有 edge"。用一句话回答：如果这是真的，你那 4 笔 pullback 的 +0.02R 靠什么才能变成正数？（没有标准答案，这是 L6 的入口。）
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读（首选来源）</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.adamhgrimes.com/volatility-has-a-memory/">Grimes · Volatility Has a Memory</a></strong> —— ATR 作为单位的理由，以及为什么"昨天的波动是今天最好的预测"。短文。</p>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.tradingview.com/support/solutions/43000501823-average-true-range-atr/">TradingView · Average True Range</a></strong> —— 定义与计算，顺便看看它在图上长什么样；你的 TradingView 图上加一个 ATR(14) 窗口，以后定止损就看它。</p>
+    <p style="margin:0"><strong><a href="https://www.brookstradingcourse.com/how-to-trade-manual/stop-orders/">Brooks · 手册 ch. 7 Stop Orders</a></strong> —— Brooks 的止损放在信号 K 线之外一个 tick，比本课紧得多。读它是为了看到另一种哲学：他用更紧的止损换更低的胜率和更多次尝试。你的手续费结构（吃单 5 bp）承受不起他的做法，这就是为什么本课选了 4 × ATR。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想聊为什么机械测量用"确认后收盘进场"而不是极值、Wilder 平滑和简单均值差在哪、或者 40 笔的标准误怎么算——直接说。挑战②③⑤的答案贴给我。<br><br>
+      <strong>下一站：L6 VWAP、会话高低点与关键价位。</strong> 毛期望 ≈ 0 说明"所有回调"平均起来不赚钱；L6 开始给回调加条件：它回到了什么位置？是 VWAP、昨日高低点、还是前一个推动的起点？这是"挑选"的第一层。
+    </div>
+    <div class="nav">
+      <a href="0004-market-structure.html">← L4：市场结构</a>
+      <a href="0006-selection-tests.html">L6：挑选的第一层 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

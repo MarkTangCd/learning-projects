@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L3 · 规则 v1：让计划走完</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">短线交易 · 第 3 课 · 阶段 0 量尺</p>
+  <h1>规则 v1：让计划走完</h1>
+  <p class="subtitle">你那 10 笔里，8 笔违反了本课的规则（合规率 20%）。这不是指责，是靶子：规则 v1 的每一条都对准你日志里的一个数字。单一胜利：一页规则卡，和一个能给日志自动打分的工具 <code>rules.py</code>。</p>
+
+  <h2>零、你的三个答案拼成了一条链</h2>
+
+  <p>7 笔开在安静时段 → 止损 100 bp 装不进 30–45 bp 的小时区间 → 等两个小时以上 → 放弃。你不是没耐心，<strong>你是在错误的时段要求市场做它那时做不到的事</strong>，然后在它快要能做到的时候走了。这条链的三个环节各对应本课一条规则。</p>
+
+  <div class="callout warn">
+    <span class="label">关于你选的窗口，一句诚实的话</span>
+    UTC 12–14 只含峰的前半：UTC 12 是开盘<strong>前</strong>一小时（行程 197 bp），全日最活跃的 UTC 14（378）和 15（292）都在窗口外。两小时行程 519 bp，对比 UTC 13–15 的 700 bp。更要紧的是 <strong>2026-11-01 之后</strong>美股开盘移到 14:30 UTC，这个窗口将<strong>完全不含开盘</strong>。我猜是本地 22:00 的生活约束——如果是硬约束，就保留 12–14、并接受 UTC 16 的时间止损会替你做更多的事；如果能挪到 21–23，请挪。<strong>回答我哪种。</strong>
+  </div>
+
+  <h2>一、R1：止损住在交易所，不住在脑子里</h2>
+
+  <p>你有 2 笔结束在止损之外（−1.13R、−1.29R）。止损 100 bp 左右，超出 13–29 bp。BTC 永续小仓位的止损市价单，正常时段的滑点是几个 bp，不是几十个——<strong>这两笔的止损大概率没有挂在交易所</strong>，是心理止损，而心理止损在价格穿过时会讨价还价。</p>
+
+  <p>做法只有一种，参数来自 <a href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order">Binance USDⓈ-M New Order</a>：</p>
+  <table class="g">
+    <thead><tr><th>参数</th><th style="text-align:left">值</th><th style="text-align:left">为什么</th></tr></thead>
+    <tbody>
+      <tr><td>type</td><td style="text-align:left"><code>STOP_MARKET</code></td><td style="text-align:left">触发后市价成交。限价止损在快市里可能不成交，那是最贵的"省滑点"</td></tr>
+      <tr><td>closePosition</td><td style="text-align:left"><code>true</code></td><td style="text-align:left">触发即平掉整个仓位，不用填数量（文档：不能与 quantity / reduceOnly 同用）</td></tr>
+      <tr><td>workingType</td><td style="text-align:left"><code>MARK_PRICE</code></td><td style="text-align:left">默认是 <code>CONTRACT_PRICE</code>（最新价）。标记价是指数 + 基差的平滑值，一笔薄盘口的插针打不穿它；强平也按它算</td></tr>
+      <tr><td>stopPrice</td><td style="text-align:left">你的止损价</td><td style="text-align:left">就是日志里 <code>stop</code> 那一格</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">一个坑：在界面上给<strong>仓位</strong>设的 TP/SL，平仓后会自动撤；但通过 API 单独下的止损单<strong>不会</strong>随你另一笔市价平仓自动撤销（<a href="https://dev.binance.vision/t/automatically-cancel-take-profit-and-stop-loss-orders-when-closing-position/4484">开发者社区长期讨论</a>）。残留的 closePosition 止损单在你下一笔反向仓位上会变成一颗地雷。<strong>平仓后看一眼挂单列表</strong>，这是规则的一部分。<em>（你 2026-10-13 在真实账户实测：止损单随平仓自动撤销了。文字据此修正：看一眼是习惯，不是违规项。）</em></p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">止损单用标记价（Mark Price）还是最新价（Last Price）触发？</div>
+    <button class="opt">标记价：它是指数加基差的平滑值，不会被一笔薄盘口的插针单独打穿</button>
+    <button class="opt">最新价：它是真实成交出来的价格，不会被指数和基差的滞后算法拖慢</button>
+    <div class="fb right" data-for="right">对，而且理由要说全：这是一个<strong>选择</strong>，不是定律。最新价的优点是"真实"，缺点是薄盘口一笔成交就能把它推过你的止损，而标记价根本没动。强平按标记价算（<a href="https://www.binance.com/en/support/faq/detail/360033525071">Binance FAQ</a>），止损也按它，你的两道防线用同一把尺子。代价：极端行情里标记价可能滞后几秒。</div>
+    <div class="fb nope" data-for="nope">"真实"恰恰是问题：最新价是<strong>最后一笔成交</strong>，薄盘口时一笔很小的单就能把它打到你的止损价，而标记价（指数 + 基差平滑）没有动。强平按标记价算，止损也按它，两道防线才用同一把尺子。最新价触发不是错，但它要求你的止损离插针更远——那就是更大的止损、更小的 R。</div>
+  </div>
+
+  <h2>二、R2 窗口，R3 三种合法出场</h2>
+
+  <p>R2 就是 L2 的窗口，不再重复。R3 是本课真正的新东西，对准你那 <strong>0 笔到目标、6 笔自己平掉</strong>：</p>
+
+  <p>一笔交易只能以三种方式结束：<strong>①止损触发 ②到目标 ③时间止损</strong>。时间止损是进场前就定好的时刻——v1 定在 <strong>UTC 16:00</strong>——到点仍未到两头，市价平仓，贴 <code>time-stop</code> 标签。为什么是 16：L2 的表里 UTC 13、14、15、16 行程分别是 322、378、292、230 bp，16 之后掉回 200 以下。开盘带来的那一轮行程到 16 点基本走完；再往后拿，是在用安静时段赌。</p>
+
+  <p>注意它和你现在做的事的区别。你那 6 笔是<strong>等了两小时后感觉不对就平</strong>；时间止损是<strong>进场前写下的时刻</strong>。前者的期望值永远算不出来，因为每次的"感觉不对"都不一样；后者在日志里是一个标签，一个月后你会知道：时间止损的交易平均几个 R？它们里有多少笔如果再拿一小时会到目标？数据会告诉你该把 16 改成 15 还是 17。<strong>规则不是为了正确，是为了可测</strong>。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">时间止损和"等不下去了就平"的区别是什么？</div>
+    <button class="opt">时间止损是进场前就写下的固定时刻，它的期望值能在日志里被单独统计出来</button>
+    <button class="opt">时间止损是持仓中看盘面决定的时刻，它的期望值能在日志里被单独统计出来</button>
+    <div class="fb right" data-for="right">对。两者的动作一样（市价平仓），区别全在<strong>决定的时间点</strong>：进场前 vs 持仓中。进场前定的东西才能被统计，因为它对每笔交易都一样；持仓中定的东西每次都不同，统计出来的是你的情绪分布，不是规则的期望值。</div>
+    <div class="fb nope" data-for="nope">"持仓中根据盘面决定"正是你那 6 笔的做法，它的问题就是<strong>不可统计</strong>：每次决定的依据都不一样，一个月后你只能得到"提前平仓平均 +0.1R"这种没法行动的数字。时间止损必须是进场前写下的固定时刻，对每笔一样，它的期望值才是规则的期望值。</div>
+  </div>
+
+  <h2>三、R4 日亏 −3R，R5 连亏 3 停</h2>
+
+  <p>这两条是借来的。自营资金公司 FTMO 给交易员的硬规则是日亏 3–5%、总亏 10%（<a href="https://ftmo.com/en/trading-objectives/">Trading Objectives</a>）——它们靠这两条活着，因为违规就收回账户。你用自己的钱，没人收账户，所以更需要它。换算：若 1R = 账户 0.5%，FTMO 的 5% 日亏 = 10R；v1 用 <strong>−3R</strong>，因为你现在的期望值是负的、样本只有 10 笔，上限先紧后松。</p>
+
+  <p>连亏 3 停一天不是统计学，是行为学：台湾日内交易者的数据里，亏损后继续交易的人占了大部分成交量，而且越亏越交易（<a href="https://academic.oup.com/raps/article/10/1/61/5568276">Barber et al. 2020, "Learning Fast or Slow?"</a>）。第 4 笔是报复交易的高发位置，规则把它直接拿掉。</p>
+
+  <h2>四、工具：给日志打分</h2>
+
+  <p><code>practice/rules.py</code> 读同一个 <code>journal.csv</code>，五条规则逐笔检查。它在你的 10 笔上跑出来是这样：</p>
+
+  <pre><code>$ python practice/rules.py
+Rules v1: session UTC 12-14 weekdays | time-stop 16:00 UTC | day stop -3R | max 3 losses in a row
+Closed trades checked: 10
+  10 trades have no openedAt -> R2/R4/R5 cannot be checked for them (log the time!)
+  #1   R3 discretionary exit (profit taken early, +0.78R)
+  #2   R3 discretionary exit (profit taken early, +0.30R)
+  #4   R1 beyond stop (-1.29R): stop was not resting on the exchange, or was moved
+  #5   R3 discretionary exit (small loss, closed early, -0.90R)
+  #6   R3 discretionary exit (small loss, closed early, -0.70R)
+  #8   R3 discretionary exit (profit taken early, +1.23R)
+  #9   R3 discretionary exit (small loss, closed early, -0.09R)
+  #10  R1 beyond stop (-1.13R): stop was not resting on the exchange, or was moved
+
+Compliance: 2/10 trades with zero violations (20%)
+Hold time: unknown -- fill openedAt and closedAt</code></pre>
+
+  <p>两点：第一，<strong>合规率 20%</strong> 是你的起点数字，和期望值 −0.38R 并列。接下来的目标不是期望值转正——10 笔样本谈不上——而是<strong>合规率 ≥ 80%</strong>。期望值是市场给的，合规率是你给的，先管你能管的。第二，R2 / R4 / R5 全部"无法检查"，因为没有时间。日志新增了 <code>closedAt</code> 字段；<strong>从今天起 openedAt 和 closedAt 都必须填</strong>，否则规则的一半是盲的。</p>
+
+  <div class="callout tip">
+    <span class="label">动手挑战</span>
+    <strong>①</strong> <code>python practice/rules.py</code>，对照上面。以后每个交易日收盘后跑一次，和 <code>journal.py stats</code> 一起。<br>
+    <strong>②</strong> R1 实操验证，用最小仓位（真实账户或量化工作区的 perp 测试网 <code>perp.py</code>）：开一个仓 → 挂 <code>STOP_MARKET</code> + <code>closePosition=true</code> + <code>MARK_PRICE</code> 的止损 → 用<strong>独立的市价单</strong>平仓 → 看挂单列表：止损单还在吗？→ 撤掉。把你看到的告诉我。<br>
+    <strong>③</strong> 窗口决定：保留 UTC 12–14 还是挪到 13–15？本地 22:00 是不是硬约束？<br>
+    <strong>④</strong> 1R 定为账户的 0.5% 需要知道账户量级（百 / 千 / 万美元级即可）。告诉我，我把它写死进规则卡。<br>
+    <strong>⑤</strong> <strong>先预测再做</strong>：接下来 10 笔交易，在规则 v1 下合规率会是多少？把数字写进 <code>NOTES.md</code>，10 笔后对照。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读（首选来源）</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order">Binance · USDⓈ-M Futures New Order</a></strong> —— 只读 <code>type</code>、<code>closePosition</code>、<code>workingType</code> 三个参数的说明。你的止损单就是这三行。</p>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://ftmo.com/en/trading-objectives/">FTMO · Trading Objectives</a></strong> —— 一页纸。看一家靠交易员活着的公司怎么写风险规则：没有"尽量"，只有数字和后果。</p>
+    <p style="margin:0"><strong><a href="https://traderfeed.blogspot.com/">Steenbarger · TraderFeed</a></strong> —— 搜 "process goals"。合规率就是过程目标；他解释了为什么盯着它比盯着盈亏更快变好。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想聊为什么时间止损不用"N 根 K 线"而用固定时刻、−3R 是怎么来的、或者 closePosition 和 reduceOnly 的区别——直接说。挑战②③④的答案贴给我，规则卡会按你的答案定稿。<br><br>
+      <strong>下一站：L4 市场结构。</strong> 阶段 0 到此有了尺子（R）、时段、规则。阶段 1 开始看图：趋势 / 区间 / 回调的定义，以及你日志里 pullback、range reversal、channel reversal 这些名字到底各指什么——它们要变成能被检验的触发条件。
+    </div>
+    <div class="nav">
+      <a href="0002-where-to-put-your-hours.html">← L2：把 2–4 小时放在哪</a>
+      <a href="0004-market-structure.html">L4：市场结构 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

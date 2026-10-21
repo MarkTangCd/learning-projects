@@ -17,50 +17,21 @@ Then it recommends the best contiguous 3-hour window by median move.
 Standard library only. Honors https_proxy from the environment.
 """
 import argparse
-import csv
-import io
 import math
 import statistics
-import urllib.request
-import zipfile
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
-from pathlib import Path
 
-BASE_URL = "https://data.binance.vision/data/futures/um/daily/klines"
-DATA_DIR = Path(__file__).with_name("data") / "klines"
+from binance_data import fetchDay, readKlines
+
 WINDOW_HOURS = 3
 BAR_WIDTH = 28
 
 
-def dayUrl(symbol, day):
-    return f"{BASE_URL}/{symbol}/1m/{symbol}-1m-{day.isoformat()}.zip"
-
-
-def fetchDay(symbol, day):
-    """Return the cached zip path for one day, downloading it if needed. None if unavailable."""
-    target = DATA_DIR / symbol / f"{symbol}-1m-{day.isoformat()}.zip"
-    if target.exists():
-        return target
-    target.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        with urllib.request.urlopen(dayUrl(symbol, day), timeout=30) as resp:
-            target.write_bytes(resp.read())
-        return target
-    except Exception as err:            # 404 for days not yet published, network errors
-        print(f"  skip {day}: {err}")
-        return None
-
-
 def readMinutes(zipPath):
     """Yield (openTimeMs, open, high, low, close, quoteVolume, count, takerBuyQuote) per minute."""
-    with zipfile.ZipFile(zipPath) as zf:
-        raw = zf.read(zf.namelist()[0]).decode()
-    for row in csv.reader(io.StringIO(raw)):
-        if not row or not row[0].isdigit():          # header line or junk
-            continue
-        yield (int(row[0]), float(row[1]), float(row[2]), float(row[3]), float(row[4]),
-               float(row[7]), int(row[8]), float(row[10]))
+    for k in readKlines(zipPath):
+        yield (k.openTime, k.open, k.high, k.low, k.close, k.quoteVolume, k.count, k.takerBuyQuote)
 
 
 def hourStats(minutes):

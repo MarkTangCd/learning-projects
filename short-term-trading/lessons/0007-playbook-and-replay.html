@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L7 · 剧本与回放：把一个 setup 写成一页纸，每天练 20 分钟</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">短线交易 · 第 7 课 · 阶段 1 结构 · 实战</p>
+  <h1>剧本与回放：把一个 setup 写成一页纸，每天练 20 分钟</h1>
+  <p class="subtitle">L3 到 L6 的东西散在四张卡里。本课把它们收成<strong>一页剧本</strong>，然后给你一个每天 20 分钟的练习工具——它在历史行情里随机抽一个你窗口内的时刻，让你判决、决定、然后看结果。单一胜利：跑完 8 次回放，看到自己的判决准确率。</p>
+
+  <h2>零、一个 setup 一页纸</h2>
+
+  <p>自营交易公司训练交易员的方式不是教几十种形态，是让每个人把<strong>自己最好的一个 setup</strong>写成一页纸：我在找什么、怎么进、止损在哪、目标在哪、怎么管理、什么情况下它失效（Bellafiore《<a href="https://www.amazon.com/PlayBook-Inside-Think-Professional-Trader/dp/0132937646">The PlayBook</a>》）。写下来的目的有两个：盯盘时不用想，复盘时有东西可对。</p>
+
+  <p>你的第一页已经写好：<a href="../reference/playbook-trend-continuation.html">趋势延续回调 v1</a>。里面没有任何新规则——结构前提是 L4，止损是 L5，出场和仓位是 L3，时段是 L2。只有一栏是空的：<strong>挑选</strong>。L6 说明了为什么：位置、深度、速度在机械检验里都不分化，所以它们现在只是 note 里的描述字段，等你的 30 笔来决定哪一个值得变成条件。</p>
+
+  <div class="callout">
+    <span class="label">剧本的一句话版本</span>
+    判决为趋势 → 顺势回调的极值被确认且没过推动起点 → 限价挂在回调里 → 止损极值外 4 × ATR → 目标 2R → 不动，直到止损、目标或 16:00。其他一切都不做。
+  </div>
+
+  <h2>一、为什么是回放，不是盯盘</h2>
+
+  <p>Ericsson 对刻意练习的定义（<a href="https://gwern.net/doc/psychology/writing/1993-ericsson.pdf">1993，PDF</a>）有三个硬条件：明确的目标、<strong>即时反馈</strong>、大量重复。盯盘一天给你的反馈是两三笔交易、几小时后才知道结果，而且每笔都混着运气。回放把这三样全补上：一个时刻、一个判决、立刻知道对错，两分钟一次，一天可以做二十次。</p>
+
+  <p>TradingView 有 bar replay（<a href="https://www.tradingview.com/support/solutions/43000712747-bar-replay-how-and-why-to-test-a-strategy-in-the-past/">文档</a>），免费档对分钟级历史有限制。本课给你一个不依赖它的版本：<code>practice/replay.py</code>。它从过去 120 天随机抽一个工作日、在你的窗口里随机切一个时刻，画出 08:00 UTC 到那一刻的 5 分钟图（摆动点已标，日期隐藏），然后问你两个问题。</p>
+
+  <pre><code>$ python practice/replay.py --reps 3
+--- rep: cut at 13:55 UTC, 72 bars shown. Reload replay.svg ---
+verdict? u=uptrend d=downtrend r=range: u
+  rule says: UPTREND   OK
+action? l=long pullback s=short pullback n=no trade: l
+  playbook allows: l   OK
+  entry 68412.3 stop 67931.0 (70 bp) target 69374.9 -> target +2.00R
+  (it was 2026-09-30)
+...
+Drills: 3 | verdict accuracy 67% | action matches playbook 100%
+Drill trades: 2 | E +0.50R | stopped 50%</code></pre>
+
+  <p>两个问题各对应剧本的一栏。<strong>判决</strong>对照 L4 的规则；<strong>动作</strong>对照剧本的触发——只有"判决为趋势 + 最后一个摆动点是刚确认的顺势回调极值"时才允许进。你说进，工具就按剧本定止损和目标，把剩下的行情放完，告诉你结果。所有记录进 <code>replay_log.csv</code>，<code>--stats</code> 看累计。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">回放统计里哪个数字最重要？</div>
+    <button class="opt">动作与剧本的一致率，因为它量的是你能不能在该不做时不做</button>
+    <button class="opt">练习交易的期望值，因为它量的是你的剧本在历史上赚不赚钱</button>
+    <div class="fb right" data-for="right">对。回放交易的期望值已经在 L5 量过了：机械执行约等于零，这不是回放要回答的问题。回放练的是<strong>你</strong>——判决准不准、该不做时做不做。你 10 笔里 6 笔是在区间里做突破或趋势里做反转，这个一致率就是针对它的。目标 ≥ 90%。</div>
+    <div class="fb nope" data-for="nope">期望值在 L5 已经有 444 笔的答案：机械执行约等于零。再用回放算一遍得到的还是零附近的噪声。回放的对象是你，不是剧本：判决准确率和动作一致率。后者尤其重要——你 10 笔里 6 笔是在不该做的结构里做的，这个数字直接对着它。</div>
+  </div>
+
+  <h2>二、日程</h2>
+
+  <table class="g">
+    <thead><tr><th>时间（本地）</th><th style="text-align:left">做什么</th><th style="text-align:left">产出</th></tr></thead>
+    <tbody>
+      <tr><td>19:40–20:00</td><td style="text-align:left"><code>replay.py --reps 8</code>；读一遍剧本卡</td><td style="text-align:left">判决准确率、一致率</td></tr>
+      <tr><td>20:00–22:00</td><td style="text-align:left">只找趋势延续回调；看到就按卡做，看不到就不做</td><td style="text-align:left">0–2 笔，每笔 note 写全描述字段</td></tr>
+      <tr><td>22:00 离场</td><td style="text-align:left">仓位交给交易所的止损单和止盈单；16:00 UTC 的时间止损靠闹钟或第二天补平</td><td style="text-align:left">—</td></tr>
+      <tr><td>次日任意 10 分钟</td><td style="text-align:left">补 exit / closedAt / fee；<code>rules.py</code>；<code>journal.py stats</code>；复盘五行</td><td style="text-align:left">合规率、期望值</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">一个诚实的缺口：UTC 16:00 的时间止损在你本地是 00:00，你已经离场。两种处理：① 挂单时同时挂止损和止盈，24:00 不平就第二天早上补平并记 <code>time-stop</code>（偏差：多持了几小时）；② 把时间止损提前到 22:00 离场时（偏差：目标更难到）。选一个写进规则卡，<strong>告诉我你选哪个</strong>。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">窗口里两小时没看到符合剧本的回调，一笔没做。这一天算什么？</div>
+    <button class="opt">合规的一天：剧本没出现就不做，记录零笔，练习照做</button>
+    <button class="opt">浪费的一天：剧本没出现也要放宽去做一笔，保持手感</button>
+    <div class="fb right" data-for="right">对。过去 31 个工作日里只有 5 个窗口被判为趋势——<strong>大多数日子剧本不会出现</strong>，这是结构的事实，不是你的问题。"保持手感"由回放负责，不由实盘负责。没交易的日子，日志里什么都不加，复盘只写一句"无 setup"。</div>
+    <div class="fb nope" data-for="nope">放宽剧本做的那一笔，就是你 10 笔里那 6 笔的来源。过去 31 个工作日里只有 5 个窗口判为趋势，大多数日子剧本本来就不出现。手感由回放练（一天 8 次），实盘只负责执行剧本。没交易 = 合规。</div>
+  </div>
+
+  <h2>三、30 笔之后</h2>
+
+  <p>剧本 v1 的有效期是 30 笔合规交易。到那时三件事同时发生：合规率预测（你说 ≥ 90%）对照；期望值第一次有可读的样本（±se 大约 0.2R，仍然粗）；描述字段第一次能分组。v2 由这三样决定，不由感觉决定。在那之前，剧本不改。</p>
+
+  <div class="callout tip">
+    <span class="label">动手挑战</span>
+    <strong>①</strong> <code>python practice/replay.py --reps 8</code>，浏览器开着 <code>practice/replay.svg</code> 每次刷新。贴 <code>--stats</code> 的输出。<br>
+    <strong>②</strong> 时间止损的两种处理选一个（见日程表下那段），告诉我。<br>
+    <strong>③</strong> 读一遍剧本卡，找出<strong>一处</strong>你在实盘里做不到或不想做的条款，说为什么。剧本是你的，不是我的。<br>
+    <strong>④</strong> 连续五个交易日每天 8 次回放，第五天贴 <code>--stats</code>。看两条曲线：判决准确率和一致率有没有往 90% 走。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读（首选来源）</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.smbtraining.com/blog">SMB Training Blog</a></strong> —— 搜 "playbook"。Bellafiore 的交易台怎么用一页纸训练新人；忽略课程推销。</p>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://gwern.net/doc/psychology/writing/1993-ericsson.pdf">Ericsson, Krampe &amp; Tesch-Römer 1993</a></strong> —— 只读引言和"deliberate practice"的定义那两页。你会看到"经验年数"和"水平"为什么几乎不相关。</p>
+    <p style="margin:0"><strong><a href="https://traderfeed.blogspot.com/">Steenbarger · TraderFeed</a></strong> —— 搜 "replay" 或 "deliberate practice"。他是把 Ericsson 搬进交易的人。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想改回放的参数（窗口、上下文长度、ETH）、想加一个"推进 3 根再决定"的模式、或者想聊剧本里哪条不合理——直接说。<br><br>
+      <strong>下一站：阶段 2，盘口与成交流（L8）。</strong> L6 留下的结论是 K 线几何里没有 edge；阶段 2 看 K 线之外的东西——谁在吃单、谁在挂单、谁被强平。先从 aggTrade 和 depth 两条流开始，用 Python 把它们录下来看。
+    </div>
+    <div class="nav">
+      <a href="0006-selection-tests.html">← L6：挑选的第一层</a>
+      <a href="0008-order-flow-basics.html">L8：盘口与成交流 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

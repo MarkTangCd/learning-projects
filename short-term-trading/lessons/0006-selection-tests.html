@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L6 · 挑选的第一层：位置、深度、速度——三个经典条件的检验</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">短线交易 · 第 6 课 · 阶段 1 结构</p>
+  <h1>挑选的第一层：位置、深度、速度</h1>
+  <p class="subtitle">你在 L5 ⑤ 说 edge 来自"更好的进场位置"或"更准的判断"。本课把三个最常被推荐的挑选条件放到你的市场上测——结果是三个"否"。单一胜利不是一条规则，是一种能力：<strong>在采用任何挑选条件之前，先用十分钟量它</strong>，并把结果记进账本。</p>
+
+  <h2>零、三个假设，先写下再跑</h2>
+
+  <p>短线圈子里关于"哪个回调值得做"最常见的三句话：</p>
+  <ol>
+    <li><strong>位置</strong>：回到 VWAP、昨日高低点、或前一个推动起点的回调更好（"有支撑"）。</li>
+    <li><strong>深度</strong>：浅回调（回撤不到 38%）比深回调好（"趋势强"）。</li>
+    <li><strong>速度</strong>：高潮式推动之后的回调更差（Grimes：<a href="https://www.adamhgrimes.com/choosing-best-pullbacks/">"don't enter a pullback after a climax move"</a>）。</li>
+  </ol>
+  <p>先定义再测，是为了不让数据替我们挑假设。三个词的定义：</p>
+  <ul>
+    <li><span class="term">VWAP</span>：当日从 00:00 UTC 起的成交量加权均价（<a href="https://www.tradingview.com/support/solutions/43000502018-volume-weighted-average-price-vwap/">TradingView</a>：Σ(典型价 × 成交量) / Σ成交量；工具用 Σ成交额 / Σ成交量，是逐笔精确版）。多数人的当日持仓成本。</li>
+    <li><span class="term">昨日高低点</span>（PDH / PDL）：前一个 UTC 日的最高与最低。前推动起点：对多单而言，是这次回调之前的那个摆动高点——突破之后回踩的那个位置。</li>
+    <li>"<strong>靠近</strong>" = 回调极值离该价位 1 ATR 以内；多个都近取最近。<strong>深度</strong> = 回调幅度 ÷ 前一推动幅度。<strong>速度</strong> = 前一推动每根 K 线走了几个 ATR。</li>
+  </ul>
+
+  <h2>一、测试台与第一张表</h2>
+
+  <p><code>practice/location.py</code> 复用 L5 的机械回调（止损 4 × ATR、目标 2R、收盘时间止损），只多做一件事：给每笔贴分组标签。120 个交易日，444 笔。</p>
+
+  <pre><code>$ python practice/location.py --days 120
+BTCUSDT 5m, 120 days ending 2026-10-13, stop 4.0 x ATR, target 2.0R, grouped by location, near = 1.0 ATR
+
+           group     n  stop%  target%  time%  gross E   net E    ±se
+            none   332    35%      14%    51%    -0.03   -0.23   0.06
+            VWAP    98    56%      21%    22%    -0.09   -0.31   0.12
+              PD     8    38%       0%    62%    -0.17   -0.37   0.24
+           SWING     6    17%      17%    67%    +0.14   -0.32   0.37
+             ALL   444    39%      16%    45%    -0.04   -0.25   0.05</code></pre>
+
+  <p>三个读法。第一，<strong>昨日高低点和前推动起点几乎没有样本</strong>（8 笔、6 笔）：在 5 分钟图的趋势里，回调极值恰好落在这两个价位 1 ATR 内的情况太少，这两个"经典位置"在这个尺度上根本不常出现。第二，<strong>VWAP 附近的回调被扫率 56%，是其他的 1.6 倍</strong>。方向和故事相反：VWAP 不是垫子，是磁铁——价格回到它附近时来回穿越，4 × ATR 的止损更容易被碰到。第三，毛期望全部在零附近，差异都在 1 个标准误以内。</p>
+
+  <p>最后一列 <strong>±se</strong> 是本课的新工具：毛期望的标准误。两个组的差小于两倍标准误，就是噪声的量级。你在量化课 L22 见过同一个念头（参数高原 vs 尖峰）；这里是它的离散版。</p>
+
+  <h2>二、深度</h2>
+
+  <pre><code>$ python practice/location.py --days 120 --by depth
+           group     n  stop%  target%  time%  gross E   net E    ±se
+        deep>62%   222    41%      16%    42%    -0.06   -0.26   0.07
+       mid38-62%   164    38%      15%    47%    -0.05   -0.24   0.08
+     shallow<38%    58    33%      16%    52%    +0.05   -0.23   0.13</code></pre>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">浅回调 +0.05 ± 0.13，深回调 −0.06 ± 0.07。能说"浅回调更好"吗？</div>
+    <button class="opt">不能，差 0.11 小于两倍标准误，一正一负只是噪声的量级</button>
+    <button class="opt">能，差 0.11 且浅回调为正而深回调为负，方向已经分开了</button>
+    <div class="fb right" data-for="right">对。两组差 0.11，而浅回调自己的标准误就是 0.13——再抽一次样，+0.05 可能变成 −0.08。"一正一负"是最容易骗人的读法：零附近的两个数，一半概率异号。判决：否，记账。</div>
+    <div class="fb nope" data-for="nope">看 ±se：浅回调 0.13，深回调 0.07，两组差 0.11 连一倍标准误都不到。零附近的两个数有一半概率异号，"一正一负"不是分开，是硬币。判决标准是两倍标准误，这里差得远。记一行"否"进账本。</div>
+  </div>
+
+  <h2>三、速度——看起来有，然后没了</h2>
+
+  <pre><code>$ python practice/location.py --days 120 --by speed
+           group     n  stop%  target%  time%  gross E   net E    ±se
+        mid0.5-1   195    42%      18%    40%    -0.03   -0.26   0.08
+ slow<0.5ATR/bar   165    32%      16%    52%    +0.02   -0.13   0.08
+   fast>1ATR/bar    84    46%      10%    44%    -0.20   -0.44   0.11</code></pre>
+
+  <p>这一张有点东西：快推动之后的回调毛期望 −0.20 ± 0.11，比慢推动的 +0.02 ± 0.08 差 0.22，到目标率只有 10%。方向和 Grimes 的话一致。按账本规则，<strong>有分化才跑第二个资产</strong>：</p>
+
+  <pre><code>$ python practice/location.py --days 120 --by speed --symbol ETHUSDT
+        mid0.5-1   180    43%      16%    41%    -0.11   -0.25   0.08
+ slow<0.5ATR/bar   117    39%      21%    40%    +0.00   -0.12   0.10
+   fast>1ATR/bar   104    36%      23%    41%    +0.15   +0.01   0.11</code></pre>
+
+  <p>ETH 上<strong>反过来</strong>：快推动之后的回调最好（+0.15），是三个资产里唯一净期望不为负的组。同一个假设，两个高度相关的资产，方向相反。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">BTC 上快推动后的回调最差，ETH 上最好。该怎么处理？</div>
+    <button class="opt">当作没有发现：没在第二个资产上复现的分化，就是第一个资产上的噪声</button>
+    <button class="opt">当作两个发现：BTC 避开快推动、ETH 专做快推动，各自用规则</button>
+    <div class="fb right" data-for="right">对。两个结果各自都只有约 2 se，而且方向相反——最省的解释是两个都是噪声，而不是"BTC 和 ETH 的参与者在高潮后行为相反"。你在量化课 L15 / L25 亲手经历过同一件事：换资产不复现的 edge，是时代红利或噪声。如果你真的相信资产特异，唯一的路是预注册、换一段<strong>没开封的时间</strong>再测一次。</div>
+    <div class="fb nope" data-for="nope">这是过拟合最常见的入口：给每个资产一条相反的规则，等于把噪声当成了两个规律。两个结果各约 2 se，方向相反，最省的解释是都为噪声。规则是：第二个资产不复现 = 否。想保留它，走预注册、换没开封的时间再测（量化课 L25）。</div>
+  </div>
+
+  <h2>四、这意味着什么</h2>
+
+  <p>三个假设、九个分组，没有一个站住。这不是坏消息，是地图：</p>
+  <ul>
+    <li><strong>K 线自身的几何</strong>（位置、深度、速度）在 5 分钟尺度上机械检验不出 edge。Grimes 在书里就是这么说的，现在你在自己的市场上看到了。所以 L7 的剧本不会用"回调到 VWAP"这种条件当触发器——它们可以是<strong>描述</strong>，不能是<strong>理由</strong>。</li>
+    <li>你的 4 笔 pullback +0.02R 和这里的 444 笔 −0.04R 是同一回事：平均的回调不赚钱。你能加进去的东西只剩两样：<strong>K 线之外的信息</strong>（谁在被迫买卖——资金费率、未平仓量、清算、吃单失衡，阶段 2），以及<strong>你自己的判断</strong>——它是否有 edge，只有日志里 30 笔以后才知道。</li>
+    <li>账本的另一个用途：<strong>以后任何人告诉你"回调到 VWAP 胜率高"，你有一张 98 笔的表</strong>。</li>
+  </ul>
+
+  <div class="callout tip">
+    <span class="label">动手挑战</span>
+    <strong>①</strong> 跑三条命令（<code>--by location / depth / speed</code>），数字会和课里略有出入。把 <code>--by speed</code> 的 BTC 和 ETH 原始输出贴给我（贴输出，不转述）。<br>
+    <strong>②</strong> <strong>你的假设</strong>：在 <code>location.py</code> 里加一个 <code>--by</code> 分组（例如 <code>session</code>：信号在 UTC 12–16 内 vs 外；或 <code>htf</code>：全天判决与当前同向 vs 不同向）。<strong>先写下预期方向</strong>，BTC 跑 120 天；有分化再跑 ETH。无论结果，在 <a href="../reference/selection-ledger.html">账本</a>加一行。这是本课真正的作业。<br>
+    <strong>③</strong> 用一句话说：为什么 VWAP 附近的回调被扫率更高，和"VWAP 是支撑"这句话能不能同时为真？<br>
+    <strong>④</strong> 预测：如果把 <code>--near</code> 从 1.0 改成 0.5（更严格的"靠近"），VWAP 组的 n 和被扫率各会怎么变？跑一下。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读（首选来源）</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.adamhgrimes.com/choosing-best-pullbacks/">Grimes · Choosing the Best Pullbacks</a></strong> —— 本课第三个假设的出处。读完再看 ETH 那张表：作者的经验和你的数据不一致时，数据不一定赢，但它至少说明这条经验不是普适的。</p>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://www.tradingview.com/support/solutions/43000502018-volume-weighted-average-price-vwap/">TradingView · VWAP</a></strong> —— 定义与锚定周期。在你的图上加一条 Session VWAP，不是为了当信号，是为了看懂别人在看什么。</p>
+    <p style="margin:0"><strong><a href="https://arxiv.org/abs/2608.21888">Kitron &amp; Wengrowicz · Short-horizon mean reversion in crypto</a></strong> —— 再读一次摘要：15 分钟尺度的反转效应"扣成本后边际"。本课三张表的"净期望"列就是这句话的另一种写法。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想聊标准误怎么算、为什么 2 se 而不是 3、或者"预注册"在主观交易里怎么做——直接说。挑战①②的原始输出贴给我。<br><br>
+      <strong>下一站：L7 剧本。</strong> 把"趋势延续"写成一页可检验的剧本：触发条件只用 L4 的结构 + L5 的止损，挑选条件留空等日志填，并建立回放练习流程（TradingView bar replay）。30 笔之后，日志决定剧本的第二版。
+    </div>
+    <div class="nav">
+      <a href="0005-stop-distance.html">← L5：止损距离</a>
+      <a href="0007-playbook-and-replay.html">L7：剧本与回放 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

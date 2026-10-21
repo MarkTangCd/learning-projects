@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L8 · 盘口与成交流：谁在吃单，谁在挂单</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    figure { margin: 1.2rem 0 0.4rem; border: 1px solid var(--rule); border-radius: 6px; padding: 0.4rem; background: #fff; }
+    figcaption { font-family: var(--sans); font-size: 0.78rem; color: var(--ink-soft); padding: 0.3rem 0.4rem 0.2rem; line-height: 1.5; }
+    @media (prefers-color-scheme: dark) { figure { background: #fff; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">短线交易 · 第 8 课 · 阶段 2 流</p>
+  <h1>盘口与成交流：谁在吃单，谁在挂单</h1>
+  <p class="subtitle">L6 的结论是 K 线几何里没有 edge。阶段 2 看 K 线之外的东西：每一笔成交都有一个主动方和一个被动方，K 线把它们混成一根柱子，成交流把它们拆开。单一胜利：今晚窗口里跑 10 分钟实时 tape，读懂一行；以及在 10 月 10 日的图上看到一次"HH 失败"是怎么提前写在 CVD 里的。</p>
+
+  <h2>零、每笔成交的两面</h2>
+
+  <p>价格 82,800 成交了 1 BTC。谁买的？两种可能：买方用市价单打在卖一上（买方是<strong>吃单方</strong>），或者买方挂了限价单等卖方来打（买方是<strong>挂单方</strong>）。Binance 每笔成交都带一个字段 <code>m</code>，文档原话是 "<a href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List">Was the buyer the maker?</a>"。<code>m = false</code> → 买方是吃单方 → 这是一笔<span class="term">吃单买</span>；<code>m = true</code> → 买方是挂单方，也就是卖方在主动打 → <span class="term">吃单卖</span>。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">一笔成交的 <code>m = true</code>。它是什么？</div>
+    <button class="opt">买方是挂单方，所以这笔是卖方主动吃单，算作 taker sell</button>
+    <button class="opt">买方是吃单方，所以这笔是买方在主动吃单，算作 taker buy</button>
+    <div class="fb right" data-for="right">对。"买方是 maker"= 买方在等，卖方来打——主动的是卖方。这个字段是全课的地基：K 线里 <code>taker_buy_volume</code> 那一列就是所有 <code>m = false</code> 的成交量之和，剩下的就是吃单卖。</div>
+    <div class="fb nope" data-for="nope">反了。<code>m</code> 问的是"买方是不是 maker（挂单方）"。true = 买方在挂单等，主动打过来的是卖方 → taker sell。记法：m 为 true 时主动方是<strong>卖</strong>。</div>
+  </div>
+
+  <h2>一、delta 与 CVD</h2>
+
+  <p><span class="term">delta</span> = 一根 K 线内吃单买 − 吃单卖（美元）。<span class="term">CVD</span> = delta 的累计。CVD 的绝对值没有意义（从哪一刻开始累计是任意的），有意义的只有<strong>两个摆动点之间它往哪边走</strong>。四种组合在<a href="../reference/flow-card.html">成交流卡</a>里，核心两行：</p>
+  <ul>
+    <li>价格创 HH，CVD 也创新高：推动有吃单跟进。</li>
+    <li>价格创 HH，CVD 没创新高：涨是被动买单抬上去的，或者买单正在被上方挂单吸收。这个 HH 容易失败。</li>
+  </ul>
+
+  <p>10 月 10 日，你在 L4 看过的那段，这次把 CVD 画在下面：</p>
+
+  <figure><svg style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 460" font-family="system-ui, sans-serif" font-size="12">
+<rect width="900" height="460" fill="white"/>
+<text x="40" y="22" font-size="14" fill="#333">BTCUSDT 5m 2026-10-10 UTC 12-16: price + CVD</text>
+<line x1="45.1" y1="186.5" x2="45.1" y2="210.2" stroke="#b8341b"/>
+<rect x="40.0" y="186.5" width="10.2" height="8.7" fill="#b8341b"/>
+<line x1="62.2" y1="190.1" x2="62.2" y2="212.7" stroke="#2a7f5f"/>
+<rect x="57.1" y="190.1" width="10.2" height="5.1" fill="#2a7f5f"/>
+<line x1="79.3" y1="182.2" x2="79.3" y2="190.1" stroke="#2a7f5f"/>
+<rect x="74.2" y="190.1" width="10.2" height="1.0" fill="#2a7f5f"/>
+<line x1="96.4" y1="183.8" x2="96.4" y2="199.7" stroke="#b8341b"/>
+<rect x="91.2" y="190.1" width="10.2" height="3.7" fill="#b8341b"/>
+<line x1="113.5" y1="193.8" x2="113.5" y2="208.6" stroke="#b8341b"/>
+<rect x="108.3" y="193.8" width="10.2" height="14.8" fill="#b8341b"/>
+<line x1="130.5" y1="205.4" x2="130.5" y2="218.0" stroke="#2a7f5f"/>
+<rect x="125.4" y="205.5" width="10.2" height="3.1" fill="#2a7f5f"/>
+<line x1="147.6" y1="205.3" x2="147.6" y2="205.5" stroke="#2a7f5f"/>
+<rect x="142.5" y="205.4" width="10.2" height="1.0" fill="#2a7f5f"/>
+<line x1="164.7" y1="205.1" x2="164.7" y2="227.5" stroke="#b8341b"/>
+<rect x="159.6" y="205.3" width="10.2" height="17.9" fill="#b8341b"/>
+<line x1="181.8" y1="198.4" x2="181.8" y2="223.3" stroke="#2a7f5f"/>
+<rect x="176.7" y="198.4" width="10.2" height="24.9" fill="#2a7f5f"/>
+<line x1="198.9" y1="198.4" x2="198.9" y2="229.2" stroke="#b8341b"/>
+<rect x="193.8" y="198.4" width="10.2" height="30.8" fill="#b8341b"/>
+<line x1="216.0" y1="229.2" x2="216.0" y2="237.1" stroke="#b8341b"/>
+<rect x="210.8" y="229.2" width="10.2" height="7.8" fill="#b8341b"/>
+<line x1="233.0" y1="237.0" x2="233.0" y2="237.1" stroke="#2a7f5f"/>
+<rect x="227.9" y="237.0" width="10.2" height="1.0" fill="#2a7f5f"/>
+<line x1="250.1" y1="212.4" x2="250.1" y2="237.1" stroke="#2a7f5f"/>
+<rect x="245.0" y="217.9" width="10.2" height="19.1" fill="#2a7f5f"/>
+<line x1="267.2" y1="217.8" x2="267.2" y2="235.3" stroke="#b8341b"/>
+<rect x="262.1" y="217.9" width="10.2" height="9.9" fill="#b8341b"/>
+<line x1="284.3" y1="219.5" x2="284.3" y2="230.6" stroke="#b8341b"/>
+<rect x="279.2" y="227.9" width="10.2" height="2.7" fill="#b8341b"/>
+<line x1="301.4" y1="201.4" x2="301.4" y2="230.6" stroke="#2a7f5f"/>
+<rect x="296.2" y="205.4" width="10.2" height="25.2" fill="#2a7f5f"/>
+<line x1="318.5" y1="198.6" x2="318.5" y2="211.4" stroke="#b8341b"/>
+<rect x="313.3" y="205.4" width="10.2" height="3.9" fill="#b8341b"/>
+<line x1="335.5" y1="192.1" x2="335.5" y2="209.3" stroke="#2a7f5f"/>
+<rect x="330.4" y="200.5" width="10.2" height="8.9" fill="#2a7f5f"/>
+<line x1="352.6" y1="199.3" x2="352.6" y2="208.0" stroke="#b8341b"/>
+<rect x="347.5" y="200.5" width="10.2" height="7.4" fill="#b8341b"/>
+<line x1="369.7" y1="207.9" x2="369.7" y2="225.7" stroke="#b8341b"/>
+<rect x="364.6" y="208.0" width="10.2" height="17.7" fill="#b8341b"/>
+<line x1="386.8" y1="225.6" x2="386.8" y2="252.8" stroke="#b8341b"/>
+<rect x="381.7" y="225.7" width="10.2" height="20.7" fill="#b8341b"/>
+<line x1="403.9" y1="205.9" x2="403.9" y2="246.5" stroke="#2a7f5f"/>
+<rect x="398.8" y="208.1" width="10.2" height="38.3" fill="#2a7f5f"/>
+<line x1="421.0" y1="208.1" x2="421.0" y2="237.3" stroke="#b8341b"/>
+<rect x="415.8" y="208.1" width="10.2" height="11.2" fill="#b8341b"/>
+<line x1="438.0" y1="219.3" x2="438.0" y2="219.4" stroke="#2a7f5f"/>
+<rect x="432.9" y="219.3" width="10.2" height="1.0" fill="#2a7f5f"/>
+<line x1="455.1" y1="215.7" x2="455.1" y2="266.0" stroke="#b8341b"/>
+<rect x="450.0" y="219.4" width="10.2" height="35.2" fill="#b8341b"/>
+<line x1="472.2" y1="253.1" x2="472.2" y2="262.0" stroke="#2a7f5f"/>
+<rect x="467.1" y="253.3" width="10.2" height="1.2" fill="#2a7f5f"/>
+<line x1="489.3" y1="236.3" x2="489.3" y2="253.3" stroke="#2a7f5f"/>
+<rect x="484.2" y="245.5" width="10.2" height="7.8" fill="#2a7f5f"/>
+<line x1="506.4" y1="220.6" x2="506.4" y2="245.6" stroke="#2a7f5f"/>
+<rect x="501.2" y="234.0" width="10.2" height="11.5" fill="#2a7f5f"/>
+<line x1="523.5" y1="221.8" x2="523.5" y2="239.2" stroke="#2a7f5f"/>
+<rect x="518.3" y="221.9" width="10.2" height="11.9" fill="#2a7f5f"/>
+<line x1="540.5" y1="128.5" x2="540.5" y2="221.9" stroke="#2a7f5f"/>
+<rect x="535.4" y="129.4" width="10.2" height="92.5" fill="#2a7f5f"/>
+<line x1="557.6" y1="109.8" x2="557.6" y2="179.4" stroke="#2a7f5f"/>
+<rect x="552.5" y="109.8" width="10.2" height="19.5" fill="#2a7f5f"/>
+<line x1="574.7" y1="40.0" x2="574.7" y2="134.6" stroke="#2a7f5f"/>
+<rect x="569.6" y="78.1" width="10.2" height="31.8" fill="#2a7f5f"/>
+<line x1="591.8" y1="55.3" x2="591.8" y2="86.9" stroke="#b8341b"/>
+<rect x="586.7" y="78.1" width="10.2" height="1.0" fill="#b8341b"/>
+<line x1="608.9" y1="54.1" x2="608.9" y2="121.0" stroke="#b8341b"/>
+<rect x="603.8" y="78.5" width="10.2" height="39.2" fill="#b8341b"/>
+<line x1="626.0" y1="80.0" x2="626.0" y2="123.5" stroke="#2a7f5f"/>
+<rect x="620.8" y="98.3" width="10.2" height="19.3" fill="#2a7f5f"/>
+<line x1="643.0" y1="91.9" x2="643.0" y2="114.5" stroke="#b8341b"/>
+<rect x="637.9" y="98.3" width="10.2" height="6.7" fill="#b8341b"/>
+<line x1="660.1" y1="78.5" x2="660.1" y2="110.5" stroke="#2a7f5f"/>
+<rect x="655.0" y="78.5" width="10.2" height="26.5" fill="#2a7f5f"/>
+<line x1="677.2" y1="61.9" x2="677.2" y2="115.6" stroke="#b8341b"/>
+<rect x="672.1" y="78.5" width="10.2" height="14.3" fill="#b8341b"/>
+<line x1="694.3" y1="92.8" x2="694.3" y2="118.8" stroke="#b8341b"/>
+<rect x="689.2" y="92.8" width="10.2" height="25.9" fill="#b8341b"/>
+<line x1="711.4" y1="109.1" x2="711.4" y2="130.0" stroke="#b8341b"/>
+<rect x="706.2" y="118.8" width="10.2" height="1.0" fill="#b8341b"/>
+<line x1="728.5" y1="116.4" x2="728.5" y2="136.8" stroke="#b8341b"/>
+<rect x="723.3" y="119.5" width="10.2" height="4.9" fill="#b8341b"/>
+<line x1="745.5" y1="106.6" x2="745.5" y2="124.5" stroke="#2a7f5f"/>
+<rect x="740.4" y="106.6" width="10.2" height="17.8" fill="#2a7f5f"/>
+<line x1="762.6" y1="62.4" x2="762.6" y2="108.9" stroke="#2a7f5f"/>
+<rect x="757.5" y="84.3" width="10.2" height="22.4" fill="#2a7f5f"/>
+<line x1="779.7" y1="74.5" x2="779.7" y2="84.3" stroke="#2a7f5f"/>
+<rect x="774.6" y="76.4" width="10.2" height="7.9" fill="#2a7f5f"/>
+<line x1="796.8" y1="72.8" x2="796.8" y2="84.3" stroke="#2a7f5f"/>
+<rect x="791.7" y="72.8" width="10.2" height="3.5" fill="#2a7f5f"/>
+<line x1="813.9" y1="47.4" x2="813.9" y2="72.9" stroke="#2a7f5f"/>
+<rect x="808.8" y="64.3" width="10.2" height="8.6" fill="#2a7f5f"/>
+<line x1="831.0" y1="59.1" x2="831.0" y2="97.0" stroke="#b8341b"/>
+<rect x="825.8" y="64.3" width="10.2" height="32.6" fill="#b8341b"/>
+<line x1="848.0" y1="65.9" x2="848.0" y2="108.9" stroke="#2a7f5f"/>
+<rect x="842.9" y="65.9" width="10.2" height="31.0" fill="#2a7f5f"/>
+<text x="181.8" y="192.4" text-anchor="middle" fill="#1f5f8b" font-weight="700">H</text>
+<text x="216.0" y="251.1" text-anchor="middle" fill="#1f5f8b" font-weight="700">L</text>
+<text x="335.5" y="186.1" text-anchor="middle" fill="#1f5f8b" font-weight="700">HH</text>
+<text x="455.1" y="280.0" text-anchor="middle" fill="#1f5f8b" font-weight="700">LL</text>
+<text x="574.7" y="34.0" text-anchor="middle" fill="#1f5f8b" font-weight="700">HH</text>
+<text x="728.5" y="150.8" text-anchor="middle" fill="#1f5f8b" font-weight="700">HL</text>
+<line x1="40" y1="281.0" x2="860" y2="281.0" stroke="#ddd"/>
+<polyline points="45.1,359.1 62.2,369.2 79.3,369.3 96.4,371.5 113.5,376.9 130.5,374.4 147.6,372.9 164.7,389.4 181.8,383.4 198.9,393.4 216.0,402.5 233.0,404.0 250.1,404.9 267.2,417.0 284.3,420.0 301.4,415.7 318.5,410.2 335.5,402.1 352.6,400.8 369.7,406.2 386.8,417.0 403.9,406.4 421.0,406.9 438.0,406.9 455.1,410.2 472.2,412.3 489.3,413.6 506.4,413.5 523.5,411.1 540.5,369.8 557.6,344.1 574.7,290.2 591.8,287.5 608.9,313.5 626.0,307.8 643.0,311.7 660.1,291.6 677.2,299.8 694.3,312.6 711.4,321.6 728.5,327.1 745.5,317.9 762.6,293.2 779.7,287.5 796.8,290.5 813.9,293.2 831.0,302.1 848.0,286.0" fill="none" stroke="#1f5f8b" stroke-width="1.8"/>
+<text x="40" y="448" fill="#1f5f8b" font-weight="700">CVD = taker buy − taker sell, cumulative since 00:00 UTC (dots = swing points)</text>
+<circle cx="181.8" cy="383.4" r="3" fill="#1f5f8b"/>
+<circle cx="216.0" cy="402.5" r="3" fill="#1f5f8b"/>
+<circle cx="335.5" cy="402.1" r="3" fill="#1f5f8b"/>
+<circle cx="455.1" cy="410.2" r="3" fill="#1f5f8b"/>
+<circle cx="574.7" cy="290.2" r="3" fill="#1f5f8b"/>
+<circle cx="728.5" cy="327.1" r="3" fill="#1f5f8b"/>
+</svg>
+  <figcaption>BTCUSDT 5m · 2026-10-10 · UTC 12–16。上：价格与摆动点；下：CVD（从 00:00 累计），圆点 = 摆动点时刻的 CVD。</figcaption></figure>
+
+  <pre><code>$ python practice/flow.py --date 2026-10-10
+  UTC     close  delta $k    CVD $k  swing
+12:40   82819.9     +1928     -4648      H
+12:50   82764.9     -2951    -10818      L
+13:25   82816.9     +2606    -10673     HH   <- price HH but CVD lower high -> buyers hitting less
+14:00   82723.7      ...                 LL
+14:35   83045.1      ...                 HH      (CVD 从 -11k 升到 +22k：推动有吃单跟进)
+15:20   82925.1     -1778    +13566     HL      (回调里 CVD 回落，但远高于突破前)</code></pre>
+
+  <p>三件事。13:25 的 HH，价格比 12:40 高了 3 bp，CVD 却比 12:40 低了 6,000 千美元——买方吃单比上一次少，这个 HH 是被抬上去的，不是打上去的。它随后失败，14:00 打出 LL。然后 14:00–14:35 那根突破：CVD 从 −11k 冲到 +22k，这才是吃单在推。最后 15:20 的 HL：回调期间 CVD 回落了 9k，但停在 +13k，远高于突破前的 −11k——回调里有人在卖，但没有把突破的买单抵消。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">价格创 HH，CVD 比上一个高点低。最合理的读法是？</div>
+    <button class="opt">买方吃单比上次少，涨是被动买单抬上去的，推动偏弱</button>
+    <button class="opt">买方吃单比上次多，涨是主动买单推上去的，推动偏强</button>
+    <div class="fb right" data-for="right">对。还有第二种成因，结论一样：买单确实在打，但被上方的挂单<strong>吸收</strong>了（吃多少挂多少），所以价格只挪了 3 bp。两种情况都说明这个 HH 背后的主动力量不足。10 月 10 日 13:25 正是这样，随后 LL。</div>
+    <div class="fb nope" data-for="nope">CVD 低于上次 = 累计的吃单买<strong>少于</strong>上次。价格却更高，说明价格不是被吃单推上去的——是卖方挂单撤了（被动抬价），或者买单被上方挂单吸收了。两种都指向推动偏弱。</div>
+  </div>
+
+  <p>再看 9 月 29 日的下跌日，作为对照：</p>
+
+  <figure><svg style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 460" font-family="system-ui, sans-serif" font-size="12">
+<rect width="900" height="460" fill="white"/>
+<text x="40" y="22" font-size="14" fill="#333">BTCUSDT 5m 2026-09-29 UTC 12-16: price + CVD</text>
+<line x1="45.1" y1="62.2" x2="45.1" y2="79.1" stroke="#2a7f5f"/>
+<rect x="40.0" y="63.4" width="10.2" height="9.5" fill="#2a7f5f"/>
+<line x1="62.2" y1="63.4" x2="62.2" y2="81.2" stroke="#b8341b"/>
+<rect x="57.1" y="63.4" width="10.2" height="12.2" fill="#b8341b"/>
+<line x1="79.3" y1="70.1" x2="79.3" y2="79.6" stroke="#b8341b"/>
+<rect x="74.2" y="75.6" width="10.2" height="1.0" fill="#b8341b"/>
+<line x1="96.4" y1="54.2" x2="96.4" y2="87.2" stroke="#b8341b"/>
+<rect x="91.2" y="76.4" width="10.2" height="7.2" fill="#b8341b"/>
+<line x1="113.5" y1="83.6" x2="113.5" y2="98.7" stroke="#b8341b"/>
+<rect x="108.3" y="83.6" width="10.2" height="14.3" fill="#b8341b"/>
+<line x1="130.5" y1="91.2" x2="130.5" y2="102.8" stroke="#2a7f5f"/>
+<rect x="125.4" y="91.9" width="10.2" height="6.0" fill="#2a7f5f"/>
+<line x1="147.6" y1="80.0" x2="147.6" y2="93.3" stroke="#2a7f5f"/>
+<rect x="142.5" y="81.0" width="10.2" height="10.9" fill="#2a7f5f"/>
+<line x1="164.7" y1="56.6" x2="164.7" y2="83.5" stroke="#2a7f5f"/>
+<rect x="159.6" y="67.1" width="10.2" height="13.8" fill="#2a7f5f"/>
+<line x1="181.8" y1="62.4" x2="181.8" y2="75.5" stroke="#b8341b"/>
+<rect x="176.7" y="67.1" width="10.2" height="5.3" fill="#b8341b"/>
+<line x1="198.9" y1="71.6" x2="198.9" y2="87.2" stroke="#b8341b"/>
+<rect x="193.8" y="72.4" width="10.2" height="8.8" fill="#b8341b"/>
+<line x1="216.0" y1="72.9" x2="216.0" y2="86.4" stroke="#2a7f5f"/>
+<rect x="210.8" y="74.1" width="10.2" height="7.2" fill="#2a7f5f"/>
+<line x1="233.0" y1="67.7" x2="233.0" y2="77.4" stroke="#b8341b"/>
+<rect x="227.9" y="74.1" width="10.2" height="3.0" fill="#b8341b"/>
+<line x1="250.1" y1="71.2" x2="250.1" y2="87.3" stroke="#b8341b"/>
+<rect x="245.0" y="77.0" width="10.2" height="3.1" fill="#b8341b"/>
+<line x1="267.2" y1="61.2" x2="267.2" y2="80.1" stroke="#2a7f5f"/>
+<rect x="262.1" y="61.2" width="10.2" height="19.0" fill="#2a7f5f"/>
+<line x1="284.3" y1="59.3" x2="284.3" y2="70.2" stroke="#b8341b"/>
+<rect x="279.2" y="61.2" width="10.2" height="5.2" fill="#b8341b"/>
+<line x1="301.4" y1="60.5" x2="301.4" y2="75.1" stroke="#2a7f5f"/>
+<rect x="296.2" y="60.5" width="10.2" height="5.8" fill="#2a7f5f"/>
+<line x1="318.5" y1="55.0" x2="318.5" y2="63.4" stroke="#2a7f5f"/>
+<rect x="313.3" y="55.0" width="10.2" height="5.6" fill="#2a7f5f"/>
+<line x1="335.5" y1="40.0" x2="335.5" y2="74.0" stroke="#b8341b"/>
+<rect x="330.4" y="55.0" width="10.2" height="18.0" fill="#b8341b"/>
+<line x1="352.6" y1="72.1" x2="352.6" y2="114.8" stroke="#b8341b"/>
+<rect x="347.5" y="72.9" width="10.2" height="31.2" fill="#b8341b"/>
+<line x1="369.7" y1="87.4" x2="369.7" y2="118.8" stroke="#2a7f5f"/>
+<rect x="364.6" y="91.1" width="10.2" height="13.0" fill="#2a7f5f"/>
+<line x1="386.8" y1="75.3" x2="386.8" y2="102.0" stroke="#b8341b"/>
+<rect x="381.7" y="91.1" width="10.2" height="3.9" fill="#b8341b"/>
+<line x1="403.9" y1="88.6" x2="403.9" y2="110.4" stroke="#b8341b"/>
+<rect x="398.8" y="95.0" width="10.2" height="1.2" fill="#b8341b"/>
+<line x1="421.0" y1="66.5" x2="421.0" y2="102.2" stroke="#2a7f5f"/>
+<rect x="415.8" y="66.5" width="10.2" height="29.6" fill="#2a7f5f"/>
+<line x1="438.0" y1="58.2" x2="438.0" y2="94.6" stroke="#b8341b"/>
+<rect x="432.9" y="66.5" width="10.2" height="27.1" fill="#b8341b"/>
+<line x1="455.1" y1="81.2" x2="455.1" y2="123.3" stroke="#b8341b"/>
+<rect x="450.0" y="93.6" width="10.2" height="25.0" fill="#b8341b"/>
+<line x1="472.2" y1="117.2" x2="472.2" y2="136.2" stroke="#b8341b"/>
+<rect x="467.1" y="118.6" width="10.2" height="16.5" fill="#b8341b"/>
+<line x1="489.3" y1="123.8" x2="489.3" y2="137.7" stroke="#2a7f5f"/>
+<rect x="484.2" y="131.7" width="10.2" height="3.5" fill="#2a7f5f"/>
+<line x1="506.4" y1="111.8" x2="506.4" y2="140.4" stroke="#2a7f5f"/>
+<rect x="501.2" y="112.5" width="10.2" height="19.2" fill="#2a7f5f"/>
+<line x1="523.5" y1="110.9" x2="523.5" y2="139.6" stroke="#b8341b"/>
+<rect x="518.3" y="112.5" width="10.2" height="18.4" fill="#b8341b"/>
+<line x1="540.5" y1="109.5" x2="540.5" y2="133.9" stroke="#2a7f5f"/>
+<rect x="535.4" y="128.9" width="10.2" height="1.9" fill="#2a7f5f"/>
+<line x1="557.6" y1="117.6" x2="557.6" y2="134.1" stroke="#b8341b"/>
+<rect x="552.5" y="128.9" width="10.2" height="2.5" fill="#b8341b"/>
+<line x1="574.7" y1="131.4" x2="574.7" y2="155.2" stroke="#b8341b"/>
+<rect x="569.6" y="131.4" width="10.2" height="1.9" fill="#b8341b"/>
+<line x1="591.8" y1="117.9" x2="591.8" y2="141.7" stroke="#b8341b"/>
+<rect x="586.7" y="133.3" width="10.2" height="1.2" fill="#b8341b"/>
+<line x1="608.9" y1="118.4" x2="608.9" y2="148.6" stroke="#b8341b"/>
+<rect x="603.8" y="134.5" width="10.2" height="13.6" fill="#b8341b"/>
+<line x1="626.0" y1="136.0" x2="626.0" y2="163.6" stroke="#2a7f5f"/>
+<rect x="620.8" y="144.2" width="10.2" height="3.8" fill="#2a7f5f"/>
+<line x1="643.0" y1="135.3" x2="643.0" y2="154.4" stroke="#b8341b"/>
+<rect x="637.9" y="144.2" width="10.2" height="9.9" fill="#b8341b"/>
+<line x1="660.1" y1="152.5" x2="660.1" y2="174.9" stroke="#b8341b"/>
+<rect x="655.0" y="154.1" width="10.2" height="20.8" fill="#b8341b"/>
+<line x1="677.2" y1="168.8" x2="677.2" y2="192.8" stroke="#2a7f5f"/>
+<rect x="672.1" y="171.0" width="10.2" height="3.9" fill="#2a7f5f"/>
+<line x1="694.3" y1="163.5" x2="694.3" y2="207.4" stroke="#b8341b"/>
+<rect x="689.2" y="171.0" width="10.2" height="26.0" fill="#b8341b"/>
+<line x1="711.4" y1="187.9" x2="711.4" y2="217.1" stroke="#b8341b"/>
+<rect x="706.2" y="197.0" width="10.2" height="18.8" fill="#b8341b"/>
+<line x1="728.5" y1="208.1" x2="728.5" y2="251.9" stroke="#b8341b"/>
+<rect x="723.3" y="215.8" width="10.2" height="33.7" fill="#b8341b"/>
+<line x1="745.5" y1="242.8" x2="745.5" y2="266.0" stroke="#b8341b"/>
+<rect x="740.4" y="249.5" width="10.2" height="6.0" fill="#b8341b"/>
+<line x1="762.6" y1="227.0" x2="762.6" y2="257.9" stroke="#2a7f5f"/>
+<rect x="757.5" y="231.8" width="10.2" height="23.6" fill="#2a7f5f"/>
+<line x1="779.7" y1="226.8" x2="779.7" y2="236.2" stroke="#2a7f5f"/>
+<rect x="774.6" y="226.8" width="10.2" height="5.1" fill="#2a7f5f"/>
+<line x1="796.8" y1="222.0" x2="796.8" y2="237.7" stroke="#b8341b"/>
+<rect x="791.7" y="226.8" width="10.2" height="3.3" fill="#b8341b"/>
+<line x1="813.9" y1="209.4" x2="813.9" y2="244.0" stroke="#2a7f5f"/>
+<rect x="808.8" y="220.6" width="10.2" height="9.5" fill="#2a7f5f"/>
+<line x1="831.0" y1="217.9" x2="831.0" y2="264.7" stroke="#b8341b"/>
+<rect x="825.8" y="220.6" width="10.2" height="35.0" fill="#b8341b"/>
+<line x1="848.0" y1="243.1" x2="848.0" y2="259.5" stroke="#2a7f5f"/>
+<rect x="842.9" y="244.6" width="10.2" height="11.1" fill="#2a7f5f"/>
+<text x="96.4" y="48.2" text-anchor="middle" fill="#1f5f8b" font-weight="700">H</text>
+<text x="130.5" y="116.8" text-anchor="middle" fill="#1f5f8b" font-weight="700">L</text>
+<text x="164.7" y="50.6" text-anchor="middle" fill="#1f5f8b" font-weight="700">LH</text>
+<text x="250.1" y="101.3" text-anchor="middle" fill="#1f5f8b" font-weight="700">HL</text>
+<text x="335.5" y="34.0" text-anchor="middle" fill="#1f5f8b" font-weight="700">HH</text>
+<text x="369.7" y="132.8" text-anchor="middle" fill="#1f5f8b" font-weight="700">LL</text>
+<text x="438.0" y="52.2" text-anchor="middle" fill="#1f5f8b" font-weight="700">LH</text>
+<text x="506.4" y="154.4" text-anchor="middle" fill="#1f5f8b" font-weight="700">LL</text>
+<text x="540.5" y="103.5" text-anchor="middle" fill="#1f5f8b" font-weight="700">LH</text>
+<text x="745.5" y="280.0" text-anchor="middle" fill="#1f5f8b" font-weight="700">LL</text>
+<line x1="40" y1="281.0" x2="860" y2="281.0" stroke="#ddd"/>
+<polyline points="45.1,286.0 62.2,299.3 79.3,301.8 96.4,294.7 113.5,300.1 130.5,299.5 147.6,304.9 164.7,302.1 181.8,303.8 198.9,307.5 216.0,298.9 233.0,290.5 250.1,291.9 267.2,289.7 284.3,290.2 301.4,295.4 318.5,287.1 335.5,290.1 352.6,339.7 369.7,337.1 386.8,339.8 403.9,354.2 421.0,348.8 438.0,359.0 455.1,359.1 472.2,357.3 489.3,360.9 506.4,357.9 523.5,364.4 540.5,355.1 557.6,354.0 574.7,362.8 591.8,361.1 608.9,352.0 626.0,364.5 643.0,365.0 660.1,376.4 677.2,353.3 694.3,361.4 711.4,378.8 728.5,420.0 745.5,412.1 762.6,376.0 779.7,356.7 796.8,347.4 813.9,336.4 831.0,380.6 848.0,367.9" fill="none" stroke="#1f5f8b" stroke-width="1.8"/>
+<text x="40" y="448" fill="#1f5f8b" font-weight="700">CVD = taker buy − taker sell, cumulative since 00:00 UTC (dots = swing points)</text>
+<circle cx="96.4" cy="294.7" r="3" fill="#1f5f8b"/>
+<circle cx="130.5" cy="299.5" r="3" fill="#1f5f8b"/>
+<circle cx="164.7" cy="302.1" r="3" fill="#1f5f8b"/>
+<circle cx="250.1" cy="291.9" r="3" fill="#1f5f8b"/>
+<circle cx="335.5" cy="290.1" r="3" fill="#1f5f8b"/>
+<circle cx="369.7" cy="337.1" r="3" fill="#1f5f8b"/>
+<circle cx="438.0" cy="359.0" r="3" fill="#1f5f8b"/>
+<circle cx="506.4" cy="357.9" r="3" fill="#1f5f8b"/>
+<circle cx="540.5" cy="355.1" r="3" fill="#1f5f8b"/>
+<circle cx="745.5" cy="412.1" r="3" fill="#1f5f8b"/>
+</svg>
+  <figcaption>BTCUSDT 5m · 2026-09-29 · UTC 12–16。每一个 LL，CVD 都同步创新低——下跌有吃单跟进，没有背离，工具也一个都没标。注意最后 20 分钟：价格在 LL 附近横着，CVD 却在升。</figcaption></figure>
+
+  <p>最后那 20 分钟是第三种组合：价格不动，CVD 在升——主动买单在打，但价格没起来，说明有人在上方挂单接货（吸收）。这一段的后续在 16:00 之后，不在图里；它是一个"偏空"的描述，不是一个结论。</p>
+
+  <h2>二、实时 tape</h2>
+
+  <p>离线看的是 5 分钟一根。盯盘时用 <code>flow.py --live</code>，它每隔几秒拉一次最近成交（<code>aggTrades</code>）和前五档盘口（<code>depth</code>），打一行：</p>
+
+  <pre><code>$ python practice/flow.py --live --minutes 10 --every 5
+     UTC      last  buy $k  sell $k  delta $k   CVD $k   bid/ask top5   imb
+08:54:48   81406.6      92      233      -142     +226     697/705      0.50
+08:54:56   81406.5      21       24        -3     +223     543/761      0.42</code></pre>
+
+  <p>读法：delta 和 CVD 同上；<code>bid/ask</code> 是买一到买五、卖一到卖五的挂单金额；<code>imb</code> = 买 ÷（买 + 卖），0.5 平衡。盘口那两列<strong>每秒都在变，而且可以被撤单操纵</strong>——它是背景色，不是信号。所有行写进 <code>tape_log.csv</code>。</p>
+
+  <div class="quiz" data-answer="0">
+    <div class="q">CVD 从 00:00 累计。为什么只比摆动点之间的方向，不看它的正负？</div>
+    <button class="opt">起点任意，绝对值没有意义；只有两个摆动点之间的变化方向可比</button>
+    <button class="opt">起点固定，绝对值有意义；正值代表多头占优，负值代表空头占优</button>
+    <div class="fb right" data-for="right">对。实时 tape 从你按下回车那一刻累计，离线从 00:00 累计——同一天两条 CVD 的数值完全不同，方向却一样。而且 CVD 只数吃单那一边，"+7.6M"不代表多头赢了，代表吃单买比吃单卖多了 7.6M，挂单那一边可能吸收了更多。</div>
+    <div class="fb nope" data-for="nope">起点是任意的：离线从 00:00，实时从你启动那一秒。同一天两条线数值不同、方向相同。正负号还有第二个问题——CVD 只数吃单方，吃单买多 7.6M 不等于多头赢了，如果挂单卖方吸收了 8M，价格照样跌。看方向，看摆动点之间。</div>
+  </div>
+
+  <h2>三、它在剧本里的位置</h2>
+
+  <p>和 L6 的位置 / 深度 / 速度一样：<strong>描述，不是条件</strong>。note 新增一个描述字段 <code>cvd=</code>，取值三个：<code>confirm</code>（回调期间 CVD 与结构一致：做多时回调里 CVD 回落但守住了突破前的水平）、<code>diverge</code>（回调里 CVD 跌穿了突破前水平，推动的买单被还回去了）、<code>flat</code>（看不出来）。30 笔后它和其他字段一起分组。</p>
+
+  <div class="callout tip">
+    <span class="label">动手挑战</span>
+    <strong>①</strong> 今晚窗口里跑 <code>python practice/flow.py --live --minutes 30 --every 10</code>，让它在终端里跑着。结束后贴其中连续 5 行给我，并用一句话说这 5 分钟里主动方是谁。<br>
+    <strong>②</strong> <code>python practice/flow.py --date 昨天 --svg practice/flow.svg</code>，看有没有被标出的背离；有的话，说它之后发生了什么（HH 失败了吗？）。<br>
+    <strong>③</strong> 下一笔交易的 note 加 <code>cvd=confirm|diverge|flat</code>。<br>
+    <strong>④</strong> 一道判断题：你在做多回调，回调期间 CVD 在降（有人主动卖），但价格守住了 HL 没有跌破。这是你想看到的吗？一句话。
+  </div>
+
+  <div class="source-box">
+    <div class="label">推荐精读（首选来源）</div>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://bookmap.com/learning-center">Bookmap · Learning Center</a></strong> —— 免费。先看 Market Mechanics 4 课（订单簿怎么工作），再挑 Order Flow Phenomena 里的 absorption 和 iceberg 两课。厂商出品，但是最完整的免费入门。</p>
+    <p style="margin:0 0 0.5rem"><strong><a href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams">Binance · WebSocket Market Streams</a></strong> —— 只看 <code>@aggTrade</code> 和 <code>@depth</code> 两节的字段表。你今天用的是轮询版；以后要秒级以下就换成这两条流。</p>
+    <p style="margin:0"><strong>Harris《Trading and Exchanges》第 2–3 章</strong>（付费书）—— 谁是吃单方、谁是挂单方、各自为什么存在。读完会明白 CVD 为什么只能说一半的故事。</p>
+  </div>
+
+  <div class="lesson-foot" id="next">
+    <div class="ask">
+      <strong>我是你的老师 —— 随时提问。</strong> 想把 tape 改成 websocket 版、想看 1 分钟 delta 而不是 5 分钟、或者想聊 CVD 跨所为什么不能加——直接说。挑战①②④的答案贴给我。<br><br>
+      <strong>下一站：L9 足迹与吸收。</strong> 把 delta 从"每根 K 线一个数"拆到"每个价位一个数"（足迹图），看回调极值处的吸收长什么样——这是 CVD 在回调里"守住"的微观版本。
+    </div>
+    <div class="nav">
+      <a href="0007-playbook-and-replay.html">← L7：剧本与回放</a>
+      <a href="../reference/flow-card.html">成交流卡 →</a>
+    </div>
+  </div>
+
+  <script src="../assets/quiz.js"></script>
+</div>
+</body>
+</html>

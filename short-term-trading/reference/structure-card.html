@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>参考 · 市场结构卡</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style> table.g td:not(:first-child), table.g th:not(:first-child) { text-align: left; } </style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">参考文档 · 看图之前先过一遍</p>
+  <h1>市场结构卡：判决规则与四类交易</h1>
+  <p class="subtitle">先判决结构，再挑 setup。同一个 setup 在趋势和区间里胜率相反。</p>
+
+  <h2>一、原子：摆动点</h2>
+  <table class="g">
+    <thead><tr><th>词</th><th>定义（本课程用法）</th></tr></thead>
+    <tbody>
+      <tr><td>摆动高点 / 低点</td><td>某根 K 线的最高价是左右各 N 根里最高的（低点镜像）。N = 3（5 分钟图 = 左右各 15 分钟）。工具参数 <code>--strength</code>。</td></tr>
+      <tr><td>HH / LH</td><td>这个摆动高点比上一个摆动高点高 / 低。</td></tr>
+      <tr><td>HL / LL</td><td>这个摆动低点比上一个摆动低点高 / 低。</td></tr>
+      <tr><td>腿（leg）</td><td>相邻两个摆动点之间的那段行情，量它的 bp 与根数。</td></tr>
+    </tbody>
+  </table>
+
+  <h2>二、判决规则</h2>
+  <table class="g">
+    <thead><tr><th>判决</th><th>规则</th><th>来源</th></tr></thead>
+    <tbody>
+      <tr><td><strong>上升趋势</strong></td><td>最近两个高点都是 HH <strong>且</strong>最近两个低点都是 HL</td><td rowspan="3">Grimes：上升趋势 = "a series of both higher highs and higher lows"；区间里的摆动"much more random"（<a href="https://www.adamhgrimes.com/market-structure/">Market Structure</a>）</td></tr>
+      <tr><td><strong>下降趋势</strong></td><td>最近两个高点都是 LH 且最近两个低点都是 LL</td></tr>
+      <tr><td><strong>交易区间</strong></td><td>其他一切（高低点互相重叠，或趋势只确认了一半）</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">规则故意保守："差一个 HL"就还是区间。宁可晚一腿确认，不要早一腿猜。过去 31 个工作日的 UTC 12–16 窗口里，只有 5 个被判为趋势——<strong>区间是常态</strong>（Brooks："a never ending market cycle of trends and trading ranges"，<a href="https://www.brookstradingcourse.com/how-to-trade-manual/trading-ranges/">ch. 6</a>）。</p>
+
+  <h2>三、推动与回调</h2>
+  <ul>
+    <li><strong>推动</strong>（impulse）：顺趋势方向的腿。<strong>回调</strong>（pullback）：逆趋势方向的腿，且"does not retrace beyond the start"（<a href="https://www.brookstradingcourse.com/price-action-trading-terms-glossary/">Brooks 词汇表</a>）。回调超过推动起点就不再是回调，是反转候选。</li>
+    <li>健康的趋势里"the upswings are larger than the downswings; usually in time, but always in price"（Grimes）。工具打印"最近两腿回撤了 X%"：0–100% 是回调尺寸；大于 100% 不是回调。</li>
+    <li>推动的速度（bp / 根）突然变大 = 突破相（Brooks："Trends begin with a breakout. Once pullbacks begin, the trend converts... to the trend channel phase"）。</li>
+    <li>别在高潮式推动之后追回调（Grimes：<a href="https://www.adamhgrimes.com/choosing-best-pullbacks/">"don't enter a pullback after a climax move"</a>）；强趋势的回调更长、可能有两腿（复杂回调）。</li>
+  </ul>
+
+  <h2>四、四类交易与你的 setup 名字</h2>
+  <table class="g">
+    <thead><tr><th>Grimes 的类</th><th>你在赌什么</th><th>你日志里的名字</th><th>基础概率（来源）</th></tr></thead>
+    <tbody>
+      <tr><td>趋势延续</td><td>趋势会再走一腿；在回调里顺势进</td><td>pullback</td><td>"verifiable, statistical edge for trend continuation"（<a href="https://www.adamhgrimes.com/technical-analysis-thinking-in-categories/">Grimes</a>）</td></tr>
+      <tr><td>趋势终结</td><td>趋势会停；赢的定义只是"它停了"</td><td>upward / downward channel reversal</td><td>趋势日里 80% 的反转失败（<a href="https://www.brookstradingcourse.com/ask-al/trading-range-days-price-action/">Brooks</a>）</td></tr>
+      <tr><td>支撑阻力守住</td><td>区间边缘会弹回</td><td>trading range reversal</td><td>区间里 80% 的突破失败 = 边缘反转的朋友（Brooks ch. 6）</td></tr>
+      <tr><td>支撑阻力破掉</td><td>突破会跟进</td><td>breakout</td><td>"Most breakouts fail"（Grimes）；区间里 80% 失败（Brooks）</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">四类里只有第一类被两位作者都标为"有可验证的统计优势"。你日志里 pullback 是唯一期望值非负的 setup（n = 4，样本太小，但方向与文献一致）。<strong>阶段 1 只练第一类。</strong></p>
+
+  <h2>五、多时间框架</h2>
+  <p>高一级时间框架给方向，交易时间框架给进场（Grimes：<a href="https://www.adamhgrimes.com/nested-pullback/">nested pullback</a>——你 5 分钟图上的一次回调，在 1 小时图上只是一次回调里的一腿）。你的止损约 1%，接近 1 小时级别的摆动尺寸，所以 1 小时图定方向、5 分钟图找回调。工具：<code>--start 0 --end 24 --strength 8</code> 看全天结构，再 <code>--start 12 --end 16</code> 看窗口。</p>
+
+  <h2>每次开仓前的三个问题</h2>
+  <ol>
+    <li>判决是什么？（上升 / 下降 / 区间，按第二节规则，不凭感觉）</li>
+    <li>我这笔属于四类里的哪一类？它和判决是否一致？（区间里做突破、趋势里做反转 = 逆基础概率）</li>
+    <li>最近一腿是推动还是回调？我是在回调里进，还是在推动末端追？</li>
+  </ol>
+  <h2>日志 note 的三段式：取值表</h2>
+  <p>格式 <code>判决/格子/腿</code>，三段用斜杠分隔，例如 <code>UP/cont/in-pullback</code>。</p>
+  <table class="g">
+    <thead><tr><th>段</th><th>取值</th><th>含义</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="3">① 判决</td><td><code>UP</code></td><td>上升趋势：最近两高 HH 且两低 HL</td></tr>
+      <tr><td><code>DOWN</code></td><td>下降趋势：最近两高 LH 且两低 LL</td></tr>
+      <tr><td><code>RANGE</code></td><td>其他一切（含"差一个 HL"的未确认趋势）</td></tr>
+      <tr><td rowspan="4">② 格子</td><td><code>cont</code></td><td>趋势延续：顺趋势，在回调里进（你的 pullback）</td></tr>
+      <tr><td><code>term</code></td><td>趋势终结：逆趋势赌它停（你的 channel reversal）</td></tr>
+      <tr><td><code>hold</code></td><td>支撑阻力守住：区间边缘赌弹回（你的 range reversal）</td></tr>
+      <tr><td><code>break</code></td><td>支撑阻力破掉：赌突破跟进（你的 breakout）</td></tr>
+      <tr><td rowspan="4">③ 腿</td><td><code>in-pullback</code></td><td>当前腿是回调，且未超过上一推动的起点——cont 的合法位置</td></tr>
+      <tr><td><code>after-impulse</code></td><td>推动刚走完就进 = 在追（Grimes："don't enter after a climax move"）</td></tr>
+      <tr><td><code>at-edge</code></td><td>价格在区间的上沿或下沿</td></tr>
+      <tr><td><code>in-breakout</code></td><td>突破正在进行，价格已出区间但还没有回调</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">一致性检查：<code>UP/cont/in-pullback</code> 和 <code>RANGE/hold/at-edge</code> 是自洽的；<code>RANGE/break/in-breakout</code> 和 <code>UP/term/after-impulse</code> 是逆 80% 的，不禁止但要知道自己在逆什么。阶段 1 只允许第一种。<code>rules.py</code> 会统计 note 是否按格式写（软检查，不算违规）。</p>
+
+  <div class="lesson-foot">
+    <div class="nav">
+      <a href="../lessons/0004-market-structure.html">← L4</a>
+      <a href="glossary.html">词汇表 →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

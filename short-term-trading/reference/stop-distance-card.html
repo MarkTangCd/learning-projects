@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>参考 · 止损距离卡</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">参考文档 · 定止损前看一眼 · 每月重跑</p>
+  <h1>止损距离：回调极值之下 k × ATR</h1>
+  <p class="subtitle">数据：BTCUSDT 5m，60 个交易日（至 2026-10-13），机械顺势回调，目标 2R。重跑：<code>python practice/stop_distance.py --k 1 2 3 4 6 8</code>。</p>
+
+  <h2>ATR</h2>
+  <pre><code>TR  = max(high − low, |high − prevClose|, |low − prevClose|)     # Wilder 1978
+ATR = 14 根 TR 的 Wilder 平滑均值
+BTC 5m ATR14 中位：全天 13 bp | UTC 12–16 窗口 17 bp</code></pre>
+
+  <h2>k 的代价表（吃单 5 bp/边）</h2>
+  <table class="g">
+    <thead><tr><th>k × ATR</th><th>止损 bp</th><th>被扫</th><th>到 2R</th><th>时间止损</th><th>手续费占 R</th><th>毛期望</th><th>净期望</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>27</td><td class="bad">54%</td><td>29%</td><td>18%</td><td class="bad">0.60</td><td>+0.05</td><td class="bad">−0.54</td></tr>
+      <tr><td>2</td><td>41</td><td class="bad">46%</td><td>23%</td><td>31%</td><td class="bad">0.37</td><td>+0.03</td><td class="bad">−0.35</td></tr>
+      <tr><td>3</td><td>53</td><td>42%</td><td>19%</td><td>39%</td><td class="bad">0.28</td><td>+0.01</td><td class="bad">−0.26</td></tr>
+      <tr><td><strong>4</strong></td><td><strong>68</strong></td><td>34%</td><td>19%</td><td>46%</td><td>0.22</td><td>+0.06</td><td>−0.16</td></tr>
+      <tr><td>6</td><td>96</td><td>26%</td><td>14%</td><td class="bad">60%</td><td>0.16</td><td>+0.04</td><td>−0.12</td></tr>
+      <tr><td>8</td><td>124</td><td>21%</td><td>11%</td><td class="bad">69%</td><td>0.12</td><td>+0.02</td><td>−0.10</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">n = 207 笔，全天所有信号。<strong>毛期望每一行都 ≈ 0</strong>：结构本身机械执行没有 edge，edge 只能来自挑选（L6–L7）。净期望全负，差额几乎全是手续费。</p>
+
+  <h2>同一张表，挂单 2 bp/边</h2>
+  <table class="g">
+    <thead><tr><th>k × ATR</th><th>手续费占 R</th><th>净期望</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>0.24</td><td class="bad">−0.18</td></tr>
+      <tr><td>2</td><td>0.15</td><td>−0.12</td></tr>
+      <tr><td>4</td><td class="ok">0.09</td><td class="ok">−0.03</td></tr>
+      <tr><td>6</td><td class="ok">0.06</td><td class="ok">−0.02</td></tr>
+      <tr><td>8</td><td class="ok">0.05</td><td class="ok">−0.03</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">同样的毛期望，挂单把 k = 4 的净期望从 −0.16 拉到 −0.03。挂单不是省钱技巧，是短线的生存条件。</p>
+
+  <div class="callout warn"><span class="label">v1.1 覆盖（2026-10-20）</span>用户看图后把 k 从 4 改为 <strong>1–2（最大 2）</strong>，下限 40 bp，止损 &lt; 60 bp 时必须 maker 进场。下表是 k=4 时的基线；30 笔后用日志对照 k=1–2 的被扫率 / 手续费占 R / 到目标率。</div>
+
+  <h2>规则（v1，2026-10-14，已被 v1.1 覆盖）</h2>
+  <ul>
+    <li><strong>止损 = 回调极值 − 4 × ATR14(5m)</strong>（空单镜像），且<strong>不低于 60 bp</strong>。在窗口里 ≈ 70 bp。</li>
+    <li>目标 2R ≈ 140 bp，要 2 个以上活跃小时才装得下 → 与时间止损 UTC 16 一致；在安静时段这个目标到不了（L2）。</li>
+    <li>数量 = $2 ÷ 止损（USD）。止损 70 bp、BTC 80,000 → 止损 $560/BTC → 0.00357 BTC ≈ <strong>$286 名义</strong>（账户的 0.7 倍，不需要杠杆；高于最小名义 $50）。手续费吃单 $0.29（0.14R）/ 挂单 $0.11（0.06R）。</li>
+    <li>进场优先<strong>限价挂在回调里</strong>（maker）。没成交就没成交，记在 note 第四段 <code>missed</code>；成交写 <code>maker</code> / <code>taker</code>。</li>
+    <li>ATR 每月重跑一次；波动翻倍时 70 bp 的锚自动跟着变，这就是用 ATR 而不是固定 bp 的理由。</li>
+  </ul>
+
+  <h2>来源</h2>
+  <p>ATR 定义：<a href="https://www.tradingview.com/support/solutions/43000501823-average-true-range-atr/">TradingView · ATR</a>（Wilder 1978 原始定义的转述）。波动有记忆、ATR 作单位：<a href="https://www.adamhgrimes.com/volatility-has-a-memory/">Grimes · Volatility Has a Memory</a>。手续费：<a href="https://www.binance.com/en/fee/schedule">Binance 费率表</a>。</p>
+
+  <div class="lesson-foot">
+    <div class="nav">
+      <a href="../lessons/0005-stop-distance.html">← L5</a>
+      <a href="rules-v1.html">规则卡 →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

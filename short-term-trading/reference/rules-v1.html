@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>参考 · 规则 v1（一页纸）</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .rules { font-family: var(--sans); counter-reset: r; }
+    .rules .r { border: 1px solid var(--rule); border-left: 4px solid var(--accent); border-radius: 0 6px 6px 0;
+                padding: 0.7rem 1rem; margin: 0.7rem 0; }
+    .rules .r h3 { margin: 0 0 0.25rem; font-size: 1rem; }
+    .rules .r p { margin: 0; font-size: 0.88rem; color: var(--ink-soft); line-height: 1.5; }
+    .rules .r code { font-size: 0.78em; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">参考文档 · 规则 v1 · 定稿 2026-10-13 · 打印贴在屏幕旁</p>
+  <h1>规则 v1：让计划走完</h1>
+  <p class="subtitle">五条规则，三种合法出场，三个标签。改动只在 <code>practice/rules.py</code> 顶部的常量里改，改完在这里同步，并写一条学习记录说明为什么。</p>
+
+  <div class="rules">
+    <div class="r"><h3>R1 · 止损住在交易所，不住在脑子里</h3>
+      <p>开仓后 60 秒内挂 <code>STOP_MARKET</code> + <code>closePosition=true</code> + <code>workingType=MARK_PRICE</code>。平仓后看一眼挂单列表：你在真实账户上实测（2026-10-13）止损单随平仓<strong>自动撤销了</strong>；通过 API 单独下的止损单可能不会，所以看一眼仍是习惯。没挂的交易贴 <code>no-stop-order</code>。判据：结果 R 低于 −1.05R 即违规。</p></div>
+    <div class="r"><h3>R2 · 只在窗口内开仓</h3>
+      <p>工作日 UTC 12:00–15:00 开仓（本地 20–23，2026-10-20 扩）；在场到 00:00 本地 = UTC 16:00，时间止损亲手执行。窗口外开的交易不禁止，贴 <code>outside-session</code>，月底单独看期望值。2026-11-01 美国夏令时结束后重跑 <code>hour_profile.py</code> 重选。</p></div>
+    <div class="r"><h3>R3 · 只有三种合法出场</h3>
+      <p>① 止损触发；② 到目标；③ <strong>时间止损</strong>：UTC 16:00 仍未到两头 → 市价平仓，贴 <code>time-stop</code>。其他一切出场都是违规（提前止盈、小亏跑掉、"感觉不对"）。</p></div>
+    <div class="r"><h3>R4 · 日亏损上限 −3R</h3>
+      <p>当日累计到 −3R，关掉下单界面，剩下的时间只做复盘。周累计 −6R 则本周停。</p></div>
+    <div class="r"><h3>R5 · 连亏 3 笔停一天</h3>
+      <p>连续 3 笔亏损（含时间止损的亏损）后当天不再开仓。第 4 笔是报复交易的高发位置。</p></div>
+  </div>
+
+  <h2>仓位与止损距离</h2>
+  <p><strong>止损 = 回调极值 − k × ATR14(5m)，k ∈ [1, 2] 由你判断，下限 40 bp</strong>（v1.1，2026-10-20，用户看图后把 v1 的 4 改为 1–2）。<strong>止损 &lt; 60 bp 时必须限价进场</strong>。note 记实际 k。30 笔后对照：被扫率、手续费占 R、到目标率，与 L5 的 k=4 基线比。</p>
+  <p><strong>1R = $2</strong>（400 USDT 账户的 0.5%，2026-10-13 定）。数量 = $2 ÷ 止损距离（USD）。永续最小名义 $50 的后果：止损 1% → 名义 $200；止损 0.4% → $500（需 ≥ 2x 杠杆）；止损距离<strong>不能超过 4%</strong>，否则名义不足 $50 下不了单。合规率 ≥ 80% 且满 30 笔后再讨论提到 1%。</p>
+
+  <h2>每天</h2>
+  <ul>
+    <li><strong>窗口前 10 分钟</strong>：读一遍这页；看今天是否已触发 R4 / R5。</li>
+    <li><strong>每笔开仓</strong>：先算 R（计算器），<code>journal.py add</code>（exit 留空），挂止损单。</li>
+    <li><strong>窗口后</strong>：补 exit / closedAt / feeUsd；<code>python practice/rules.py</code>；<code>python practice/journal.py stats</code>；按 <a href="trade-journal-schema.html">复盘清单</a>写五行。</li>
+  </ul>
+
+  <h2>来源</h2>
+  <p>止损单参数：<a href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order">Binance USDⓈ-M New Order</a>。API 下的 TP/SL 不随平仓自动撤：<a href="https://dev.binance.vision/t/automatically-cancel-take-profit-and-stop-loss-orders-when-closing-position/4484">Binance 开发者社区</a>。日亏 / 总亏模板：<a href="https://ftmo.com/en/trading-objectives/">FTMO Trading Objectives</a>（日亏 3–5%、总亏 10%）。</p>
+
+  <div class="lesson-foot">
+    <div class="nav">
+      <a href="../lessons/0003-rules-v1-let-the-plan-finish.html">← L3</a>
+      <a href="session-profile.html">时段卡 →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

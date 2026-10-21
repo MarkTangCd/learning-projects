@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>参考 · 成交流卡</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style> table.g td:not(:first-child), table.g th:not(:first-child) { text-align: left; } </style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">参考文档 · 阶段 2 · 看 K 线之外的东西</p>
+  <h1>成交流卡：吃单、挂单、delta、CVD、盘口失衡</h1>
+  <p class="subtitle">每一笔成交都有一个吃单方和一个挂单方。K 线的成交量把两者混在一起；成交流把它们拆开。</p>
+
+  <h2>定义</h2>
+  <table class="g">
+    <thead><tr><th>词</th><th>定义</th><th>数据来源</th></tr></thead>
+    <tbody>
+      <tr><td>吃单买 taker buy</td><td>买方是吃单方的成交（主动买，打在卖一上）。Binance 字段 <code>m</code>（"Was the buyer the maker?"）= false</td><td>aggTrades 的 <code>m</code>；K 线的 <code>taker_buy_volume</code></td></tr>
+      <tr><td>吃单卖 taker sell</td><td>买方是挂单方的成交（= 卖方主动，打在买一上）。<code>m</code> = true</td><td>成交量 − 吃单买</td></tr>
+      <tr><td>delta</td><td>一根 K 线（或一个时间片）内：吃单买 − 吃单卖，USD</td><td><code>flow.py</code> 的 delta 列</td></tr>
+      <tr><td>CVD</td><td>delta 的累计。离线从 00:00 UTC 起，实时从开始录制起。<strong>绝对值无意义，只比两个摆动点之间的方向</strong></td><td><code>flow.py</code> 的 CVD 列 / 下图</td></tr>
+      <tr><td>盘口失衡 imbalance</td><td>买一到买五的挂单金额 ÷（买 + 卖）。0.5 平衡；偏离越大越一边倒。<strong>每秒都在变、可被撤单操纵</strong>，只当背景</td><td><code>flow.py --live</code> 的 imb 列（<code>depth</code> 接口）</td></tr>
+    </tbody>
+  </table>
+
+  <h2>四种组合</h2>
+  <table class="g">
+    <thead><tr><th>价格</th><th>CVD</th><th>读法</th><th>偏向</th></tr></thead>
+    <tbody>
+      <tr><td>HH</td><td>也创新高</td><td>推动有吃单跟进</td><td>延续</td></tr>
+      <tr><td>HH</td><td>没创新高</td><td>涨得靠被动买单抬、吃单不足；或买单被上方挂单吸收</td><td>推动偏弱，HH 易失败</td></tr>
+      <tr><td>LL</td><td>也创新低</td><td>下跌有吃单跟进</td><td>延续</td></tr>
+      <tr><td>LL</td><td>没创新低</td><td>卖得靠被动挂单压、吃单不足；或卖单被下方挂单吸收</td><td>推动偏弱，LL 易失败</td></tr>
+      <tr><td>不动</td><td>在升</td><td>主动买单被挂单卖方吸收（absorption）</td><td>偏空</td></tr>
+      <tr><td>不动</td><td>在降</td><td>主动卖单被挂单买方吸收</td><td>偏多</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">这些是<strong>描述</strong>，和 L6 的位置 / 深度 / 速度一样：写进 note 的 <code>cvd=</code> 字段，30 笔后看它分不分化。不是进场条件。</p>
+
+  <h2>命令</h2>
+  <pre><code>python practice/flow.py --date 2026-10-10 --svg practice/flow.svg   # 历史：5m delta / CVD 表 + 图，自动标出摆动点处的背离
+python practice/flow.py --live --minutes 30 --every 10              # 实时：每 10 秒一行，写 tape_log.csv</code></pre>
+
+  <h2>注意</h2>
+  <ul>
+    <li>CVD 只数吃单那一边。价格最终由两边决定，所以 CVD 与价格背离本身就是信息（挂单方在做什么）。</li>
+    <li>一个交易所的 CVD。Binance 永续是 BTC 最大的单一场所，但不是全部；跨所相加没有意义（基准不同）。</li>
+    <li>5 分钟 delta 噪声大，单根不读；读摆动点之间的方向。</li>
+    <li>盘口：看得见的挂单随时可撤；冰山单看不见。Bookmap 学习中心（免费）有 Order Flow Phenomena 23 课讲这些现象。</li>
+  </ul>
+
+  <h2>来源</h2>
+  <p><a href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List">Binance · aggTrades</a>（字段 <code>m</code>："Was the buyer the maker?"）；<a href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams">Binance · WebSocket Market Streams</a>（<code>@aggTrade</code>、<code>@depth</code>）；<a href="https://bookmap.com/learning-center">Bookmap Learning Center</a>（Market Mechanics 4 课、Order Flow Phenomena 23 课）；Harris《Trading and Exchanges》第 2 章。</p>
+
+  <div class="lesson-foot">
+    <div class="nav">
+      <a href="../lessons/0008-order-flow-basics.html">← L8</a>
+      <a href="trade-journal-schema.html">日志字段 →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

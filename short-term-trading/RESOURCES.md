@@ -23,6 +23,19 @@
 - [Course: Magnum Opus (free tier) by Lance Breitstein](https://theonelanceb.com/about-magnum-opus/)
   免费层 + 付费层。Breitstein（前 Trillium，SMB 顾问）按自营公司课程结构组织。Use for: 免费层关于过度交易、读 tape、交易员成长；付费层可选。
 
+- [Blog: Market Structure by Adam Grimes](https://www.adamhgrimes.com/market-structure/)
+  免费。趋势 = "higher highs and higher lows"；健康趋势"upswings larger than downswings, usually in time, always in price"。Use for: L4 判决规则的出处。
+- [Blog: Thinking in Categories by Adam Grimes](https://www.adamhgrimes.com/technical-analysis-thinking-in-categories/)
+  免费。四类交易：趋势延续 / 趋势终结 / 支撑阻力守住 / 破掉；"Most breakouts fail"。Use for: 把任何 setup 归格子。
+- [Blog: Nested Pullback / Trade Pullbacks / Choosing Best Pullbacks by Adam Grimes](https://www.adamhgrimes.com/nested-pullback/)
+  免费（另见 https://www.adamhgrimes.com/trade-pullbacks/ 、 https://www.adamhgrimes.com/choosing-best-pullbacks/ ）。多时间框架嵌套、回调定义、"别在高潮推动后追回调"。Use for: 阶段 1 的 pullback 剧本。
+- [Glossary: Price Action Trading Terms by Al Brooks](https://www.brookstradingcourse.com/price-action-trading-terms-glossary/)
+  免费。trend / trading range / breakout / pullback（"does not retrace beyond the start"）/ always in / measured move / signal bar 的原始定义。Use for: 术语对齐。
+- [Manual ch. 6: Trading Ranges by Al Brooks](https://www.brookstradingcourse.com/how-to-trade-manual/trading-ranges/)
+  免费章节。"区间里 80% 的突破失败"、BLSHS、回调超过 20 根失去趋势影响、"Trends begin with a breakout"。另：ch. 7 止损单 https://www.brookstradingcourse.com/how-to-trade-manual/stop-orders/ 。Use for: 区间与通道的基础概率。
+- [Paper: Short-horizon mean reversion in cryptocurrency markets by Kitron & Wengrowicz (arXiv:2608.21888)](https://arxiv.org/abs/2608.21888)
+  免费。15 分钟尺度上 90% 的 Binance 交易对有显著方向反转（美股 2.7%），扣成本后边际。Use for: "别追刚走完的推动"的量化依据。
+
 ### 2. 市场微观结构与订单流（剥头皮的底层）
 
 - [Book: Trading and Exchanges: Market Microstructure for Practitioners by Larry Harris (OUP, 2002)](https://books.google.com/books/about/Trading_and_Exchanges.html?id=Rd9hDRR1Yx4C)

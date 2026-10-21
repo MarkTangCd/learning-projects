@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>剧本 · 趋势延续回调 v1</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .pb { font-family: var(--sans); }
+    .pb .row { display: grid; grid-template-columns: 7rem 1fr; gap: 0.6rem 1rem; padding: 0.55rem 0; border-bottom: 1px solid var(--rule); font-size: 0.92rem; }
+    .pb .row b { color: var(--accent); }
+    .pb .row span.fill { color: var(--ink-faint); font-style: italic; }
+    @media (max-width: 520px) { .pb .row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">剧本 · 阶段 1 唯一允许的 setup · v1.1 2026-10-20（止损改 k=1–2）· 30 笔后出 v2</p>
+  <h1>趋势延续回调（pullback）</h1>
+  <p class="subtitle">一页纸。触发条件只用已经写进规则的东西；"挑选"那一栏留空，等日志用 30 笔来填。</p>
+
+  <div class="pb">
+    <div class="row"><b>名字</b><div><code>cont</code>（note 第二段）。日志 setup 字段写 <code>pullback</code>。</div></div>
+    <div class="row"><b>市场 / 时段</b><div>BTCUSDT 永续（ETH 待 ATR 校准后加入）。工作日 UTC 12–15 内开仓（2026-10-20 扩）；在场到 UTC 16:00（本地 00:00），时间止损由你亲手执行。</div></div>
+    <div class="row"><b>结构前提</b><div>5 分钟图判决 = UP（做多）或 DOWN（做空）：最近两高 HH 且两低 HL（镜像）。差一个 HL 就不是。粗一级（<code>--strength 8</code> 全天）不逆向。</div></div>
+    <div class="row"><b>触发</b><div>顺势回调的极值被确认（极值之后 3 根 K 线没有更极端），且回调<strong>没有超过前一推动的起点</strong>。</div></div>
+    <div class="row"><b>进场</b><div>优先<strong>限价挂单</strong>在回调区域内（极值与确认 K 线收盘之间）；没成交记 <code>missed</code>。备选：确认 K 线收盘市价（taker，记 <code>taker</code>）。</div></div>
+    <div class="row"><b>止损</b><div>极值 − k × ATR14(5m)（空单镜像），<strong>k 在 1–2 之间由你判断，最大 2</strong>（v1.1，你看图后的决定；v1 是 4）；下限 40 bp。止损 &lt; 60 bp 时<strong>必须</strong>限价进场（maker），否则手续费占 R 超过 0.25。开仓 60 秒内挂 <code>STOP_MARKET</code> + <code>closePosition</code> + <code>MARK_PRICE</code>。note 里记实际 k。</div></div>
+    <div class="row"><b>目标</b><div>2R。挂限价止盈单。</div></div>
+    <div class="row"><b>管理</b><div>不挪止损、不提前止盈。三种出场：止损 / 目标 / UTC 16:00 时间止损。</div></div>
+    <div class="row"><b>数量</b><div>$2 ÷ 止损距离（USD）。</div></div>
+    <div class="row"><b>不做</b><div>判决为 RANGE；回调超过推动起点；高潮式推动后的第一个回调（描述性，不是硬规则）；当日已 −3R 或连亏 3 笔；UTC 15:00 之后不开新仓。</div></div>
+    <div class="row"><b>挑选</b><div><span class="fill">留空。30 笔后用 note 的描述字段分组看期望值再填。</span></div></div>
+    <div class="row"><b>描述字段</b><div>note：<code>UP/cont/in-pullback/maker atr=17 k=4 stop=70bp depth=45% speed=0.6 htf=aligned</code>。这些是<strong>描述</strong>，不是条件——它们存在是为了 30 笔后能分组。</div></div>
+    <div class="row"><b>失效</b><div>这个剧本被证伪的样子：30 笔合规交易后，毛期望 &lt; 0 且 95% 区间不含正数。那时换的是剧本，不是规则。</div></div>
+  </div>
+
+  <h2>每天</h2>
+  <ol>
+    <li><strong>窗口前 20 分钟</strong>：<code>python practice/replay.py --reps 8</code>。目标：判决准确率 ≥ 90%，动作与剧本一致 ≥ 90%。</li>
+    <li><strong>窗口内</strong>：只找这一个剧本。看到候选就跑 <code>python practice/structure.py --live</code>：判决、最后一腿是不是回调、ATR、"For the note" 那行直接抄进 note。看不到就不交易——"没交易"是合规的一天。</li>
+    <li><strong>窗口后 10 分钟</strong>：补日志，<code>rules.py</code>，<code>journal.py stats</code>，复盘五行（<a href="trade-journal-schema.html">清单</a>）。</li>
+  </ol>
+
+  <p class="caption">模板来自 Bellafiore《The PlayBook》：一个 setup 一页，含"what I'm looking for / entry / stop / target / management / what invalidates"。刻意练习的三要素（Ericsson 1993）：明确目标、即时反馈、重复——回放工具提供后两样，这页提供第一样。</p>
+
+  <div class="lesson-foot">
+    <div class="nav">
+      <a href="../lessons/0007-playbook-and-replay.html">← L7</a>
+      <a href="rules-v1.html">规则卡 →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

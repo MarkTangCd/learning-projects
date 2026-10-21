@@ -6,6 +6,7 @@ Usage:
   python journal.py init            # create journal.csv next to this script
   python journal.py add             # interactive: log one trade
   python journal.py stats           # expectancy, per-setup table, mistake tags
+  python journal.py migrate         # rewrite journal.csv with the current column set (keeps all rows)
 
 Every trade is measured in R: 1R = planned loss = |entry - stop| * qty.
 A trade without a stop recorded BEFORE entry has no R and is reported as
@@ -20,7 +21,7 @@ from pathlib import Path
 
 JOURNAL_PATH = Path(__file__).with_name("journal.csv")
 FIELDS = ["id", "openedAt", "symbol", "side", "setup", "entry", "stop",
-          "target", "exit", "qty", "feeUsd", "mistake", "note"]
+          "target", "exit", "closedAt", "qty", "feeUsd", "mistake", "note"]
 TAKER_FEE = 0.0005          # Binance USDS-M regular tier, per side
 DEMO_RISK_USD = 20.0        # 1R in the synthetic sample
 
@@ -86,8 +87,10 @@ def readRows(path=JOURNAL_PATH):
         raise SystemExit(f"No journal at {path}. Run: python journal.py init")
     with path.open(newline="") as f:
         rows = list(csv.DictReader(f))
-    for i, row in enumerate(rows, start=1):     # tolerate hand-filled rows without ids
-        row["id"] = row.get("id") or str(i)
+    for i, row in enumerate(rows, start=1):     # tolerate hand-filled rows and older headers
+        for key in FIELDS:
+            row.setdefault(key, "")
+        row["id"] = row["id"] or str(i)
     return rows
 
 
@@ -113,6 +116,7 @@ def cmdAdd(args):
     prompts = [("symbol", "Symbol (e.g. BTC/USDT:USDT)"), ("side", "Side long/short"),
                ("setup", "Setup name"), ("entry", "Entry price"), ("stop", "Stop price"),
                ("target", "Target price"), ("qty", "Quantity"), ("exit", "Exit price (blank if open)"),
+               ("closedAt", "Closed at UTC, e.g. 2026-10-12 14:35 (blank if open)"),
                ("feeUsd", "Fees paid USD (blank if open)"), ("mistake", "Mistake tag (blank if none)"),
                ("note", "Note")]
     for key, label in prompts:
@@ -220,6 +224,13 @@ def cmdStats(args):
     printStats(readRows())
 
 
+def cmdMigrate(args):
+    """Bring an older journal.csv up to the current FIELDS; existing values are kept, new columns are empty."""
+    rows = readRows()                       # readRows already fills missing keys with ""
+    writeRows(rows)
+    print(f"Rewrote {JOURNAL_PATH} with {len(rows)} rows and columns: {', '.join(FIELDS)}")
+
+
 # ---------- synthetic sample ----------
 
 DEMO_SETUPS = {
@@ -252,7 +263,7 @@ def demoRows(count=60, seed=7):
         rows.append({"id": str(i), "openedAt": f"2026-10-{(i % 28) + 1:02d} 14:{rng.randint(0, 59):02d}",
                      "symbol": "BTC/USDT:USDT", "side": side, "setup": setup,
                      "entry": f"{entry:.1f}", "stop": f"{stop:.1f}", "target": f"{target:.1f}",
-                     "exit": f"{exitPrice:.1f}", "qty": f"{qty:.5f}", "feeUsd": f"{feeUsd:.3f}",
+                     "exit": f"{exitPrice:.1f}", "closedAt": "", "qty": f"{qty:.5f}", "feeUsd": f"{feeUsd:.3f}",
                      "mistake": mistake, "note": ""})
     rows.append({**rows[-1], "id": str(count + 1), "stop": "", "note": "no stop written down"})
     return rows
@@ -266,7 +277,7 @@ def cmdDemo(args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="cmd", required=True)
-    for name, fn in [("demo", cmdDemo), ("init", cmdInit), ("add", cmdAdd), ("stats", cmdStats)]:
+    for name, fn in [("demo", cmdDemo), ("init", cmdInit), ("add", cmdAdd), ("stats", cmdStats), ("migrate", cmdMigrate)]:
         sub.add_parser(name).set_defaults(fn=fn)
     args = parser.parse_args()
     args.fn(args)

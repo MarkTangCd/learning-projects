@@ -40,6 +40,29 @@
 
     <dt>吃单 / 挂单 <span class="en">Taker / Maker</span></dt>
     <dd>吃单 = 用市价单或穿越盘口的限价单立刻成交，付高费率；挂单 = 限价单停在盘口等别人来成交，付低费率但可能不成交。</dd>
+    <dt>行程 / 区间 <span class="en">Travel / Range (per hour)</span></dt>
+    <dd>行程 = 某小时内 1 分钟 |收益| 之和（价格走了多少路，机会）；区间 = 小时最高减最低（最远到了哪，目标装不装得下）。行程 ÷ 区间 = 来回程度。见 <a href="../lessons/0002-where-to-put-your-hours.html">L2</a>、<a href="session-profile.html">时段卡</a>。</dd>
+
+    <dt>合规率 <span class="en">Compliance rate</span></dt>
+    <dd>零违规交易占已平仓交易的比例，由 <code>rules.py</code> 计算。阶段 0 的过程目标（≥ 80%），与期望值并列报告。起点 20%。见 <a href="../lessons/0003-rules-v1-let-the-plan-finish.html">L3</a>。</dd>
+  </dl>
+
+  <h2>结构</h2>
+  <dl class="gl">
+    <dt>摆动点 / HH HL LH LL <span class="en">Swing point</span></dt>
+    <dd>最高价为左右各 N 根里最高的 K 线是摆动高点（低点镜像），N = 3。与上一个同类摆动点比高低，得到 HH / LH（高点）与 HL / LL（低点）。结构就是这四个字母的序列。见 <a href="../lessons/0004-market-structure.html">L4</a>。</dd>
+
+    <dt>判决 <span class="en">Verdict (UP / DOWN / RANGE)</span></dt>
+    <dd>最近两高 HH 且两低 HL = UP；两高 LH 且两低 LL = DOWN；其他一切 = RANGE（含只确认了一半的趋势）。规则故意晚一腿。</dd>
+
+    <dt>推动 / 回调 <span class="en">Impulse / Pullback</span></dt>
+    <dd>推动 = 顺趋势方向的腿；回调 = 逆方向的腿且不超过推动的起点（Brooks）。健康趋势里推动比回调长，"usually in time, always in price"（Grimes）。</dd>
+
+    <dt>四格 <span class="en">Grimes' four categories</span></dt>
+    <dd>趋势延续（cont）/ 趋势终结（term）/ 支撑阻力守住（hold）/ 破掉（break）。同一结构里 hold 与 break 互为对手盘。只有 cont 被两位作者标为有可验证的统计优势；阶段 1 只练它。</dd>
+
+    <dt>ATR <span class="en">Average True Range</span></dt>
+    <dd>波动的单位：14 根真实波幅（含跳空）的 Wilder 平滑均值。BTC 5m 中位 13 bp（窗口 17 bp）。止损规则用它做锚：回调极值 − 4 × ATR。见 <a href="../lessons/0005-stop-distance.html">L5</a>。</dd>
   </dl>
 
   <h2>过程</h2>
@@ -53,6 +76,12 @@
 
     <dt>交易日志 <span class="en">Trade journal</span></dt>
     <dd>以 R 为单位记录每笔交易的计划与结果的表格（字段见 <a href="trade-journal-schema.html">日志字段参考</a>）。它是复盘的原材料，也是所有"方法有没有用"问题的唯一法官。</dd>
+
+    <dt>盯盘窗口 <span class="en">Session window</span></dt>
+    <dd>进场前写下的、唯一允许开仓的时段（当前：工作日 UTC 12–15，在场到 16）。之外的交易贴 <code>outside-session</code> 并单独统计，不是禁令。</dd>
+
+    <dt>时间止损 <span class="en">Time stop</span></dt>
+    <dd>进场前就定好的时刻（当前 UTC 16:00），到点仍未到止损或目标则市价平仓，贴 <code>time-stop</code>。与"等不下去了就平"的区别只在决定的时间点：进场前 vs 持仓中；前者可统计，后者不可。三种合法出场之一（止损 / 目标 / 时间止损）。</dd>
 
     <dt>Setup / 剧本 <span class="en">Setup, playbook</span></dt>
     <dd>一类有明确触发条件、进场、止损、目标规则的交易机会，有名字（如 pullback）。日志按 setup 分组算期望值，才能知道该多做什么、停做什么。来源：Bellafiore《The PlayBook》。</dd>

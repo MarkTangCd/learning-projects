@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>参考 · 挑选假设账本</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style> table.g td:not(:first-child), table.g th:not(:first-child) { text-align: left; } </style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">参考文档 · 负结果也要记账 · 每测一个假设加一行</p>
+  <h1>挑选假设账本</h1>
+  <p class="subtitle">"哪些回调值得做"的每一个假设，测过就记在这里：数据、分组、结果、判决。目的有两个——不重复测同一件事，以及诚实面对"测过多少个才找到一个"（多重检验）。</p>
+
+  <h2>测试台</h2>
+  <p>机械顺势回调（L5 / L6 工具）：判决为趋势、顺势回调极值被确认后在收盘进场；止损 = 极值 − 4 × ATR14(5m)；目标 2R；收盘时间止损。BTCUSDT 5m，120 个交易日至 2026-10-13，444 笔；对照组 ETHUSDT 401 笔。毛期望 ± 标准误；差异 < 2 se 视为噪声。</p>
+
+  <table class="g">
+    <thead><tr><th>#</th><th>假设（事先写下）</th><th>分组与结果（毛期望 ± se，n）</th><th>ETH 复现</th><th>判决</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>回到 VWAP / 昨日高低 / 前推动起点（1 ATR 内）的回调更好</td><td>none −0.03±0.06 (332)；VWAP −0.09±0.12 (98)；PD −0.17±0.24 (8)；SWING +0.14±0.37 (6)</td><td>未跑（BTC 已无分化）</td><td class="bad">否。VWAP 附近被扫率反而最高（56% vs 35%）</td></tr>
+      <tr><td>2</td><td>浅回调（&lt; 38%）比深回调好</td><td>shallow +0.05±0.13 (58)；mid −0.05±0.08 (164)；deep −0.06±0.07 (222)</td><td>未跑</td><td class="bad">否。差 0.11 &lt; 2 se</td></tr>
+      <tr><td>3</td><td>快推动（&gt; 1 ATR/根，高潮式）之后的回调更差（Grimes）</td><td>fast −0.20±0.11 (84)；mid −0.03±0.08 (195)；slow +0.02±0.08 (165)</td><td><strong>反向</strong>：fast +0.15±0.11 (104)，slow +0.00±0.10</td><td class="bad">否。BTC 上看似成立，ETH 上反转 → 噪声或资产特异，均不可用</td></tr>
+    </tbody>
+  </table>
+  <p class="caption">三个"经典"挑选条件在 5 分钟尺度上机械检验，没有一个站住。这与 Grimes 自己的结论一致：脱离上下文的形态大多没有可测的 edge。<strong>总计已测 3 个假设、9 个分组：下一个"看起来有效"的分组要先过这个数再说。</strong></p>
+
+  <h2>怎么加一行</h2>
+  <ol>
+    <li>先用一句话写下假设和预期方向（在跑之前）。</li>
+    <li>在 <code>location.py</code> 里加一个 <code>--by</code> 分组函数，BTC 跑 120 天。</li>
+    <li>有分化（&gt; 2 se）才跑 ETH；ETH 不复现 = 否。</li>
+    <li>无论结果，加一行。负结果是这页的主要内容。</li>
+  </ol>
+
+  <h2>还没测、但有理由测的</h2>
+  <ul>
+    <li>时段 × 结构：窗口内 vs 窗口外的回调（L2 行程假设的交叉检验；窗口内 40 笔样本太小，等数据）。</li>
+    <li>高一级框架一致：全天判决与窗口判决同向时的回调（L4 ⑤）。</li>
+    <li>流与仓位（阶段 2）：回调期间的吃单失衡、资金费率方向、清算簇位置——这些不在 K 线里，是下一层。</li>
+  </ul>
+
+  <div class="lesson-foot">
+    <div class="nav">
+      <a href="../lessons/0006-selection-tests.html">← L6</a>
+      <a href="structure-card.html">结构卡 →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
